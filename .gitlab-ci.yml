@@ -2,4 +2,4 @@ image: python:latest
 
 test:
     script:
-        - manage.py test
+        - ./manage.py test
