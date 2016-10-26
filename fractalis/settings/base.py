@@ -6,20 +6,15 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-SECRETS_FILE = os.path.join(BASE_DIR, 'fractalis', 'settings', 'secrets.json')
-
-with open(SECRETS_FILE) as f:
-    secrets = json.loads(f.read())
-
-def get_secret(setting, secrets=secrets):
-    """Get the secret variable or return excplicit exception."""
+def get_env_var(var_name):
+    """Get the environment variable or return excplicit exception."""
     try:
-        return secrets[setting]
+        return os.environ[var_name]
     except KeyError:
-        error_msg = "Variable {0} not found in 'secrets.json'".format(setting)
+        error_msg = "Environment variable {0} is not set!".format(var_name)
         raise ImproperlyConfigured(error_msg)
 
-SECRET_KEY = get_secret("SECRET_KEY")
+SECRET_KEY = get_env_var("SECRET_KEY")
 
 ALLOWED_HOSTS = []
 
