@@ -1,3 +1,4 @@
+secrets.json
 db.sqlite3
 *.pyc
 .coverage
