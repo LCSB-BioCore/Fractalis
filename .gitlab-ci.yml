@@ -5,4 +5,4 @@ before_script:
 
 test:
     script:
-        - ./manage.py test
+        - ./manage.py test --settings=fractalis.settings.development
