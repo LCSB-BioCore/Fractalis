@@ -1,8 +1,8 @@
 image: python:latest
 
 before_script:
-    - pip install -r requirements/development.txt
 
 test:
     script:
-        - ./manage.py test --settings=fractalis.settings.development
+        - python setup.py install
+        - python setup.py test

@@ -1,4 +1,4 @@
-secrets.json
-db.sqlite3
+.DS_Store
 *.pyc
 .coverage
+.eggs/
