@@ -10,7 +10,6 @@ setup(
         'Flask'
     ],
     tests_require = [
-        'coverage'
     ],
     test_suite = 'tests',
 )
