@@ -12,7 +12,5 @@ setup(
     tests_require = [
         'coverage'
     ],
-    dev_requires = [
-
-    ]
+    test_suite = 'tests',
 )
