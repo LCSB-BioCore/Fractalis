@@ -5,5 +5,7 @@ before_script:
 
 test:
     script:
+        - echo $PYTHONPATH
+        - export PYTHONPATH=/usr/lib/python3.5
         - export FRACTALIS_MODE="testing"
         - python setup.py test
