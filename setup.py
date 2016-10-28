@@ -14,7 +14,7 @@ setup(
         'pytest-runner',
     ],
     tests_require = [
-        'pytest',
+        'pytest==3.0.3',
         'pytest-cov'
     ]
 )
