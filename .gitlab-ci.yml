@@ -5,6 +5,5 @@ before_script:
 
 test:
     script:
-        - export PYTHONPATH=$PWD/install/site-packages
         - export FRACTALIS_MODE="testing"
         - python setup.py test
