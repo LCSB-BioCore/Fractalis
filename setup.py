@@ -9,5 +9,12 @@ setup(
     install_requires = [
         'Flask',
         'celery'
+    ],
+    setup_requires = [
+        'pytest-runner',
+    ],
+    tests_require = [
+        'pytest',
+        'pytest-cov'
     ]
 )

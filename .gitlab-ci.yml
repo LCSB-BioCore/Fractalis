@@ -1,12 +1,9 @@
 image: python:3
 
 before_script:
-    - pip install coverage pytest
     - pip install -e .
 
 test:
     script:
         - export FRACTALIS_MODE="testing"
-        - py.test
-        - coverage run --source=fractalis -m py.test
-        - coverage report --show-missing
+        - python setup.py test
