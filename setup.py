@@ -9,9 +9,5 @@ setup(
     install_requires = [
         'Flask',
         'celery'
-    ],
-    tests_require = [
-        'test'
-    ],
-    test_suite = 'tests',
+    ]
 )
