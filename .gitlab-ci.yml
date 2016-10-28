@@ -1,7 +1,7 @@
 image: python:3
 
 before_script:
-    pip install coverage
+    - pip install coverage
 
 test:
     script:

@@ -7,7 +7,8 @@ setup(
     name = 'fractalis',
     packages = find_packages(),
     install_requires = [
-        'Flask'
+        'Flask',
+        'celery'
     ],
     tests_require = [
     ],
