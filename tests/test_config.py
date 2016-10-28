@@ -1,9 +1,8 @@
-import unittest
 import fractalis
 from importlib import reload
 from test.support import EnvironmentVarGuard
 
-class FractalisConfigTestCase(unittest.TestCase):
+class TestConfig:
 
     env_var_guard = EnvironmentVarGuard()
 
@@ -30,6 +29,3 @@ class FractalisConfigTestCase(unittest.TestCase):
         reload(fractalis)
         assert not fractalis.app.config['DEBUG']
         assert not fractalis.app.config['TESTING']
-
-if __name__ == '__main__':
-    unittest.main()
