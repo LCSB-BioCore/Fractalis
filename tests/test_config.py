@@ -1,5 +1,6 @@
 import os
 import fractalis
+import pytest
 from importlib import reload
 
 class TestConfig:
@@ -27,3 +28,8 @@ class TestConfig:
         reload(fractalis)
         assert not fractalis.app.config['DEBUG']
         assert not fractalis.app.config['TESTING']
+
+    def test_config_when_unknown_mode(self):
+        os.environ['FRACTALIS_MODE'] = 'foobar'
+        with pytest.raises(KeyError):
+            reload(fractalis)

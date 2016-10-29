@@ -20,4 +20,8 @@ config = {
 
 def configure_app(app):
     mode = os.getenv('FRACTALIS_MODE', default='production')
-    app.config.from_object(config[mode])
+    try:
+        app.config.from_object(config[mode])
+    except KeyError as e:
+        raise KeyError("'{}' is no valid value for the FRACTALIS_MODE "
+                        "environment variable.".format(mode)) from e
