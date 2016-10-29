@@ -2,7 +2,6 @@ image: python:3
 
 before_script:
     - pip install -e .
-    - pip install unittest
 
 test:
     script:
