@@ -1,7 +1,10 @@
 import os
-import fractalis
-import pytest
 from importlib import reload
+
+import pytest
+
+import fractalis
+
 
 class TestConfig:
 
