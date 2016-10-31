@@ -1,4 +1,4 @@
-from fractalis import app
+rom fractalis import app
 
 if __name__ == '__main__':
     app.run()
