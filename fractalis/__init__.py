@@ -1,3 +1,8 @@
+"""Initalize Fractalis Flask app and configure it.
+
+Modules in this package:
+    - config -- Manages Fractalis Flask app configuration
+"""
 from flask import Flask
 from fractalis.config import configure_app
 
