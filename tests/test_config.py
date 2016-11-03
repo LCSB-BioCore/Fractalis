@@ -6,7 +6,7 @@ import pytest
 import fractalis
 
 
-class TestConfig:
+class TestConfig(object):
 
     def test_config_when_test_mode(self):
         os.environ['FRACTALIS_MODE'] = 'testing'

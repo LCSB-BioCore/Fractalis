@@ -10,6 +10,8 @@ class BaseConfig(object):
     """Basic configuration that should be used in production."""
     DEBUG = False
     TESTING = False
+    CELERY_BROKER_URL = 'redis://localhost:6379'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 
 
 class DevelopmentConfig(BaseConfig):

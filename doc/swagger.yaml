@@ -1,0 +1,158 @@
+swagger: '2.0'
+info:
+  title: Fractalis API
+  description: foobar
+  version: '0.1.0'
+host: 127.0.0.1:8000
+schemes:
+  - http
+produces:
+  - application/json
+paths:
+  /data:
+    post:
+      summary: Add data to current session
+      parameters:
+        - name: etl
+          in: query
+          description: ETL to use for moving data from source to Fractalis
+          required: false
+          type: string
+        - name: data
+          in: query
+          description: Data in Fractalis standard format
+          required: false
+          type: string
+        - name: action
+          in: query
+          description: Action to extract the data from the source system
+          required: false
+          type: string
+      responses:
+        201:
+          description: Accepted
+          schema:
+            type: object
+            properties:
+              data_id:
+                type: string
+    get:
+      summary: Get all completed and running ETLs for current session
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ETLStatus'
+  /data/{data_id}:
+    parameters:
+      - name: data_id
+        in: path
+        description: ID given on launching an ETL
+        required: true
+        type: string
+    get:
+      summary: Get status of ETL associated with data_id
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/ETLStatus'
+  /data/{data_id}/subsets:
+    parameters:
+      - name: data_id
+        in: path
+        description: ID given on launching an ETL
+        required: true
+        type: string
+    post:
+      summary: Create a new subset for the loaded data
+      parameters:
+        - name: subjects
+          in: query
+          description: List of subjects that define a new subset
+          required: true
+          type: string
+      responses:
+        201:
+          description: Created
+          schema:
+            type: object
+            properties:
+              subset_id:
+                type: integer
+  /data/{data_id}/subsets/{subset_id}:
+    parameters:
+      - name: data_id
+        in: path
+        description: ID given on launching an ETL
+        required: true
+        type: string
+      - name: subset_id
+        in: path
+        description: ID given when creating subset
+        required: true
+        type: string
+    delete:
+      summary: Delete subset definition
+      responses:
+        200:
+          description: OK
+  /analytics:
+    post:
+      summary: Launch analytical script
+      parameters:
+        - name: script
+          in: query
+          description: Analysis script to run
+          required: true
+          type: string
+        - name: arguments
+          in: query
+          description: String describing the arguments to the analysis script
+          required: true
+          type: string
+      responses:
+        201:
+          description: Created
+          schema:
+            type: object
+            properties:
+              job_id:
+                type: string
+  /analytics/{job_id}:
+    parameters:
+      - name: job_id
+        in: path
+        description: ID given on job creation
+        required: true
+        type: string
+    get:
+      summary: Get job status information for given job id
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/JobStatus'
+    delete:
+      summary: Attempts to kill all processes assiated with the job
+      responses:
+        200:
+          description: OK
+    
+definitions:
+  ETLStatus:
+    type: object
+    properties:
+      data_id:
+        type: string
+      status:
+        type: string
+  JobStatus:
+    type: object
+    properties:
+      status: 
+        type: string
+      message:
+        type: string
