@@ -5,13 +5,17 @@ Exports:
 """
 import os
 
+from redislite import Redis
+
 
 class BaseConfig(object):
     """Basic configuration that should be used in production."""
     DEBUG = False
     TESTING = False
-    CELERY_BROKER_URL = 'redis://localhost:6379'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+    REDIS_DB_PATH = os.path.join(os.sep, 'tmp', 'fractalis.db')
+    rdb = Redis(REDIS_DB_PATH)
+    CELERY_BROKER_URL = 'redis+socket://{}'.format(rdb.socket_file)
+    CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 
 class DevelopmentConfig(BaseConfig):
@@ -33,7 +37,7 @@ config = {
 }
 
 
-def configure_app(app):
+def configure_app(app, mode=None):
     """Apply configuration to given flask app based on environment variable.
 
     This function assumes that the environment variable FRACTALIS_MODE contains
@@ -41,13 +45,16 @@ def configure_app(app):
     it defaults to 'production'. Each of these keys maps to a class in this
     module that contains appropriate settings.
 
-    Arguments:
+    Keyword Arguments:
     app (Flask) -- An instance of the app to configure
+    mode (string) -- (optional) Use this instead of the environment variable
 
     Exceptions:
     KeyError (Exception) -- Is raised when FRACTALIS_MODE contains unknown key
     """
-    mode = os.getenv('FRACTALIS_MODE', default='production')
+    if mode is None:
+        mode = os.getenv('FRACTALIS_MODE', default='production')
+
     try:
         app.config.from_object(config[mode])
     except KeyError as e:

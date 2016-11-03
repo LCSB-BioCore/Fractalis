@@ -1,30 +1,29 @@
 import pytest
 from celery import Celery
 
-from fractalis import celery
+from fractalis.celery import init_celery
 
 
 class TestCelery(object):
 
     @pytest.fixture
-    def flask_app(self):
+    def app(self):
         from flask import Flask
+        from fractalis.config import configure_app
         app = Flask('test_app')
-        app.config['TESTING'] = True
-        app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379'
-        app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379'
+        configure_app(app, mode='testing')
         return app
 
-    def test_exception_if_no_connection_to_broker(self, flask_app):
-        flask_app.config['CELERY_BROKER_URL'] = 'foobar'
+    def test_exception_if_no_connection_to_broker(self, app):
+        app.config['CELERY_BROKER_URL'] = 'redis+socket:///foobar.socket'
         with pytest.raises(ConnectionRefusedError):
-            celery.init_celery(flask_app)
+            init_celery(app)
 
-    def test_exception_if_no_connection_to_result_backend(self, flask_app):
-        flask_app.config['CELERY_RESULT_BACKEND'] = 'foobar'
+    def test_exception_if_no_connection_to_result_backend(self, app):
+        app.config['CELERY_RESULT_BACKEND'] = 'redis+socket:///foobar.socket'
         with pytest.raises(ConnectionRefusedError):
-            celery.init_celery(flask_app)
+            init_celery(app)
 
-    def test_returns_celery_instance_if_connection_valid(self, flask_app):
-        celery_instance = celery.init_celery(flask_app)
+    def test_returns_celery_instance_if_connection_valid(self, app):
+        celery_instance = init_celery(app)
         assert isinstance(celery_instance, Celery)
