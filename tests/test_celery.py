@@ -16,7 +16,7 @@ class TestCelery(object):
 
     def test_exception_if_no_connection_to_broker(self, app):
         app.config['CELERY_BROKER_URL'] = 'redis+socket:///foobar.socket'
-        with pytest.raises(ConnectionRefusedError):
+        with pytest.raises(ConnectionError):
             init_celery(app)
 
     def test_exception_if_no_connection_to_result_backend(self, app):

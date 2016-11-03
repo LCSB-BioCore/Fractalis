@@ -24,12 +24,13 @@ def init_celery(app):
                     backend=app.config['CELERY_RESULT_BACKEND'],
                     broker=app.config['CELERY_BROKER_URL'])
     celery.conf.update(app.config)
-#    try:
-#        celery.connection().connect()
-#    except OSError as e:
-#        error_msg = """Could not establish connection to celery broker.
-#                    URL: '{}'""".format(app.config['CELERY_BROKER_URL'])
-#        raise ConnectionRefusedError(error_msg) from e
+    try:
+        celery.connection().heartbeat_check()
+    except Exception as e:
+        error_msg = "Could not establish connection to {}".format(
+            app.config['CELERY_BROKER_URL'])
+        raise ConnectionRefusedError(error_msg) from e
+
     TaskBase = celery.Task
 
     class ContextTask(TaskBase):
