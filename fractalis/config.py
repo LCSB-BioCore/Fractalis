@@ -5,7 +5,7 @@ Exports:
 """
 import os
 
-from redislite import Redis
+from redislite import StrictRedis
 
 
 class BaseConfig(object):
@@ -13,9 +13,9 @@ class BaseConfig(object):
     DEBUG = False
     TESTING = False
     REDIS_DB_PATH = os.path.join(os.sep, 'tmp', 'fractalis.db')
-    rdb = Redis(REDIS_DB_PATH)
-    CELERY_BROKER_URL = 'redis+socket://{}'.format(rdb.socket_file)
-    CELERY_RESULT_BACKEND = 'redis+socket://{}'.format(rdb.socket_file)
+    redis = StrictRedis(REDIS_DB_PATH)
+    CELERY_BROKER_URL = 'redis+socket://{}'.format(redis.socket_file)
+    CELERY_RESULT_BACKEND = 'redis+socket://{}'.format(redis.socket_file)
 
 
 class DevelopmentConfig(BaseConfig):

@@ -1,7 +1,7 @@
 from fractalis import celery_app
 
 
-def start_job():
+def create_job():
     pass
 
 
