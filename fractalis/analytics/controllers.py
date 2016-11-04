@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from flask import Blueprint
 
@@ -8,7 +9,7 @@ analytics = Blueprint('analytics', __name__)
 
 @analytics.route('', methods=['POST'])
 def create_job():
-    body = json.dumps({'job_id': 123})
+    body = json.dumps({'job_id': str(uuid.uuid4())})
     return body, 201
 
 

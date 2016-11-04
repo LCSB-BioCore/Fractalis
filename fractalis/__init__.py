@@ -9,8 +9,8 @@ from fractalis.config import configure_app
 from fractalis.celery import init_celery
 from fractalis.analytics.controllers import analytics
 
-app = Flask(__name__)
-configure_app(app)
-celery = init_celery(app)
+flask_app = Flask(__name__)
+configure_app(flask_app)
+celery_app = init_celery(flask_app)
 
-app.register_blueprint(analytics, url_prefix='/analytics')
+flask_app.register_blueprint(analytics, url_prefix='/analytics')
