@@ -1,8 +1,6 @@
 from uuid import uuid4
 
 from redislite import StrictRedis
-
-from fractalis import flask_app
 from flask.sessions import SecureCookieSessionInterface, SecureCookieSession
 
 
@@ -15,8 +13,8 @@ class RedisSession(SecureCookieSession):
 
 class RedisSessionInterface(SecureCookieSessionInterface):
 
-    def __init__(self):
-        self.redis = StrictRedis(flask_app.config['REDIS_DB_PATH'])
+    def __init__(self, redis_db_path):
+        self.redis = StrictRedis(redis_db_path)
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)

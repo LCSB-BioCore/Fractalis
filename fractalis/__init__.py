@@ -13,7 +13,9 @@ from fractalis.analytics.controllers import analytics
 
 flask_app = Flask(__name__)
 configure_app(flask_app)
-flask_app.session_interface = RedisSessionInterface()
+
+flask_app.session_interface = RedisSessionInterface(
+    redis_db_path=flask_app.config['REDIS_DB_PATH'])
 
 celery_app = init_celery(flask_app)
 
