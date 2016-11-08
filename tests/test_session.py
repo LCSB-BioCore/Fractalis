@@ -59,7 +59,7 @@ class TestSession(object):
             with test_client.session_transaction() as session:
                 session['foo'] = 'bar'
             sleep(2)
-            //TODO Not sure which exception is thrown
+            #TODO Not sure which exception is thrown
             flask.session['foo']
 
     def test_session_data_not_in_db_when_expired(self, flask_app):
