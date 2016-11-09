@@ -27,7 +27,17 @@ def init_celery(app):
     try:
         celery.connection().heartbeat_check()
     except Exception as e:
-        error_msg = "Could not establish connection to {}".format(
+        error_msg = "Could not establish connection to broker: {}".format(
+            app.config['CELERY_BROKER_URL'])
+        raise ConnectionRefusedError(error_msg) from e
+
+    try:
+        @celery.task
+        def f():
+            pass
+        f.delay()
+    except Exception as e:
+        error_msg = "Could not establish connection to backend: {}".format(
             app.config['CELERY_BROKER_URL'])
         raise ConnectionRefusedError(error_msg) from e
 

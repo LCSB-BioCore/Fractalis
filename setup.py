@@ -8,8 +8,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         'Flask',
-        'celery',
-        'redislite'
+        'celery[redis]',
+        'redis'
     ],
     setup_requires=[
         'pytest-runner',

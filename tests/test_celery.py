@@ -6,21 +6,20 @@ from fractalis.celery import init_celery
 
 class TestCelery(object):
 
-    @pytest.fixture
+    @pytest.fixture()
     def app(self):
         from flask import Flask
-        from fractalis.config import configure_app
         app = Flask('test_app')
-        configure_app(app, mode='testing')
+        app.config.from_object('fractalis.config')
         return app
 
     def test_exception_if_no_connection_to_broker(self, app):
-        app.config['CELERY_BROKER_URL'] = 'redis+socket:///foobar.socket'
-        with pytest.raises(ConnectionError):
+        app.config['CELERY_BROKER_URL'] = 'redis://lacolhost:6379'
+        with pytest.raises(ConnectionRefusedError):
             init_celery(app)
 
     def test_exception_if_no_connection_to_result_backend(self, app):
-        app.config['CELERY_RESULT_BACKEND'] = 'redis+socket:///foobar.socket'
+        app.config['CELERY_RESULT_BACKEND'] = 'redis://lacolhost:6379'
         with pytest.raises(ConnectionRefusedError):
             init_celery(app)
 

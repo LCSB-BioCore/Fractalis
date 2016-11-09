@@ -11,3 +11,8 @@ def add(a, b):
 @celery_app.task
 def do_nothing(time):
     sleep(time)
+
+
+@celery_app.task
+def div(a, b):
+    return a / b

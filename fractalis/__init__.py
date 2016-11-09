@@ -5,18 +5,19 @@ Modules in this package:
 """
 from flask import Flask
 
-from fractalis.config import configure_app
 from fractalis.session import RedisSessionInterface
 from fractalis.celery import init_celery
-from fractalis.analytics.controllers import analytics
+from fractalis.analytics.controllers import analytics_blueprint
 
 
-flask_app = Flask(__name__)
-configure_app(flask_app)
+app = Flask(__name__)
+app.config.from_object('fractalis.config')
+app.session_interface = RedisSessionInterface(app.config)
+celery_app = init_celery(app)
 
-flask_app.session_interface = RedisSessionInterface(
-    redis_db_path=flask_app.config['REDIS_DB_PATH'])
+app.register_blueprint(analytics_blueprint, url_prefix='/analytics')
 
-celery_app = init_celery(flask_app)
-
-flask_app.register_blueprint(analytics, url_prefix='/analytics')
+if __name__ == '__main__':
+    app.config.from_envvar('FRACTALIS_CONFIG')
+    celery_app.worker_main(['worker', '--loglevel=DEBUG'])
+    app.run()
