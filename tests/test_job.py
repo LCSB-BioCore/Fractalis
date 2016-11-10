@@ -23,33 +23,34 @@ class TestJob(object):
 
     def test_finished_job_returns_results(self):
         job_id = job.start_job('test.tasks.add', {'a': 1, 'b': 2})
-        async_result = job.get_job_result('test.tasks.add', job_id)
+        async_result = job.get_job_result(job_id)
         async_result.get(timeout=1)
-        assert async_result.status == 'SUCCESS'
+        assert async_result.state == 'SUCCESS'
         assert async_result.result == 3
 
     def test_failing_job_return_exception_message(self):
         job_id = job.start_job('test.tasks.div', {'a': 1, 'b': 0})
-        async_result = job.get_job_result('test.tasks.div', job_id)
-        async_result.get(timeout=1)
-        assert async_result.status == 'FAILURE'
+        async_result = job.get_job_result(job_id)
+        # TODO Figure out how get works
+        async_result.get(timeout=1, propagate=False)
+        assert async_result.state == 'FAILURE'
         assert 'ZeroDivisionError' in async_result.result
 
     def test_job_in_progress_has_running_status(self):
         job_id = job.start_job('test.tasks.do_nothing', {'time': 2})
-        async_result = job.get_job_result('test.tasks.do_nothing', job_id)
-        assert async_result.status == 'PENDING'
+        async_result = job.get_job_result(job_id)
+        assert async_result.state == 'PENDING'
 
-    def test_exception_when_checking_non_existing_job(self):
-        with pytest.raises(LookupError):
-            job.get_job_result('test.tasks.do_nothing', str(uuid4()))
+    def test_non_existing_job_has_pending_state(self):
+        async_result = job.get_job_result(str(uuid4()))
+        assert async_result.state == 'PENDING'
 
     def test_job_is_gone_after_canceling(self):
         job_id = job.start_job('test.tasks.do_nothing', {'time': 10})
-        job.cancel_job('test.tasks.do_nothing', job_id)
+        job.cancel_job(job_id)
         with pytest.raises(LookupError):
             job.get_job_result(job_id)
 
     def test_exception_when_canceling_non_existing_job(self):
         with pytest.raises(LookupError):
-            job.cancel_job('test.tasks.do_nothing', uuid4())
+            job.cancel_job(uuid4())

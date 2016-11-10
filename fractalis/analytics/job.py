@@ -2,6 +2,7 @@
 
 """
 import fractalis.analytics.scripts # flake8: noqa
+from fractalis import celery_app
 
 
 def get_celery_task(task):
@@ -15,10 +16,9 @@ def start_job(task, arguments):
     return async_result.id
 
 
-def cancel_job(task, job_id):
+def cancel_job(job_id):
     pass
 
 
-def get_job_result(task, job_id):
-    celery_task = get_celery_task(task)
-    return celery_task.AsyncResult(job_id)
+def get_job_result(job_id):
+    return celery_app.AsyncResult(job_id)
