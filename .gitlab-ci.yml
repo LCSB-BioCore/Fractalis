@@ -7,6 +7,7 @@ services:
 before_script:
     - pip install -e .
     - pip install flake8
+    - celery -A fraktalis.celery_app worker -l info
 
 test:
     script:
