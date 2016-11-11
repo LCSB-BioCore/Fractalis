@@ -1,7 +1,5 @@
 image: python:latest
 
-sudo: required
-
 services:
     - redis-server
     - rabbitmq
