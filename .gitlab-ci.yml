@@ -1,13 +1,14 @@
 image: python:latest
 
+sudo: required
+
 services:
-    - redis:latest
-    - rabbitmq:latest
+    - redis-server
+    - rabbitmq
 
 before_script:
     - pip install -e .
     - pip install flake8
-    - celery -A fractalis.celery_app worker -l info
 
 test:
     script:
