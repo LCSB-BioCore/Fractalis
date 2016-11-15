@@ -3,8 +3,15 @@ import uuid
 
 from flask import Blueprint
 
+import fractalis.analytics.scripts
+from fractalis import celery_app
 
 analytics_blueprint = Blueprint('analytics_blueprint', __name__)
+
+
+def get_celery_task(task):
+    celery_task = eval('fractalis.analytics.scripts.{}'.format(task))
+    return celery_task
 
 
 @analytics_blueprint.route('', methods=['POST'])
