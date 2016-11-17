@@ -7,9 +7,10 @@ services:
 before_script:
     - pip install -e .
     - pip install flake8
+    - echo "REDIS_HOST=redis" > fractalis.conf
+    - export FRACTALIS_CONFIG=fractalis.conf
     
 test:
     script:
-        - export FRACTALIS_MODE="testing"
         - python setup.py test
         - flake8 .
