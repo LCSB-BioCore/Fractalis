@@ -1,8 +1,10 @@
 """This module is responsible for the establishment and configuration of a
 Celery instance."""
 import os
+import logging
 
 from celery import Celery
+from celery.exceptions import ImproperlyConfigured
 
 
 def get_scripts_packages():
@@ -20,5 +22,9 @@ def get_scripts_packages():
 
 app = Celery(__name__)
 app.config_from_object('fractalis.config')
-# app.config_from_envvar('FRACTALIS_CONFIG')
+try:
+    app.config_from_envvar('FRACTALIS_CONFIG')
+except ImproperlyConfigured:
+    logger = logging.getLogger('fractalis')
+    logger.warning("FRACTALIS_CONFIG is not set. Using defaults.")
 app.autodiscover_tasks(packages=get_scripts_packages())
