@@ -25,7 +25,7 @@ class RedisSessionInterface(SecureCookieSessionInterface):
     """
 
     def __init__(self, app_config):
-        self.redis = StrictRedis(host=app_config['REDIS_HOSTNAME'],
+        self.redis = StrictRedis(host=app_config['REDIS_HOST'],
                                  port=app_config['REDIS_PORT'])
 
     def open_session(self, app, request):
@@ -55,6 +55,7 @@ class RedisSessionInterface(SecureCookieSessionInterface):
                             expires=expiration_times['cookies'], httponly=True,
                             domain=domain)
 
+    # TODO: change seconds to timedelta
     def get_expiration_times(self, app, session):
         """Get dictionary that contains redis session and cookie expiration
         times in the correct format.

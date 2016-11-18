@@ -1,23 +1,25 @@
 import json
-import uuid
 
-from flask import Blueprint
+from flask import Blueprint, abort
 
-import fractalis.analytics.scripts
-from fractalis import celery_app
+import fractalis.analytics.scripts  # noqa
+from fractalis.celery import app
+from fractalis.analytics.form import POSTAnalyticsForm
+
 
 analytics_blueprint = Blueprint('analytics_blueprint', __name__)
 
 
 def get_celery_task(task):
-    celery_task = eval('fractalis.analytics.scripts.{}'.format(task))
-    return celery_task
+    task = eval('fractalis.analytics.scripts.{}'.format(task))
+    return task
 
 
 @analytics_blueprint.route('', methods=['POST'])
 def create_job():
-    body = json.dumps({'job_id': str(uuid.uuid4())})
-    return body, 201
+    form = POSTAnalyticsForm()
+    if not form.validate():
+        abort(400)
 
 
 @analytics_blueprint.route('/<uuid:job_id>', methods=['GET'])

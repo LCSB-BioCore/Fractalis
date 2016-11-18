@@ -18,11 +18,7 @@ def get_scripts_packages():
         packages.append(package)
     return packages
 
-
-def make_celery(app):
-    celery = Celery(app.import_name,
-                    backend=app.config['CELERY_RESULT_BACKEND'],
-                    broker=app.config['CELERY_BROKER_URL'])
-    celery.conf.update(app.config)
-    celery.autodiscover_tasks(packages=get_scripts_packages())
-    return celery
+app = Celery(__name__)
+app.config_from_object('fractalis.config')
+# app.config_from_envvar('FRACTALIS_CONFIG')
+app.autodiscover_tasks(packages=get_scripts_packages())

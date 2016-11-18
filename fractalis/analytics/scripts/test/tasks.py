@@ -1,18 +1,18 @@
 from time import sleep
 
-from fractalis import celery_app
+from fractalis.celery import app
 
 
-@celery_app.task
+@app.task
 def add(a, b):
     return a + b
 
 
-@celery_app.task
+@app.task
 def do_nothing(time):
     sleep(time)
 
 
-@celery_app.task
+@app.task
 def div(a, b):
     return a / b

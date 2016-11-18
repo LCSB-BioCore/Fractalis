@@ -20,7 +20,7 @@ class TestSession(object):
 
     @pytest.fixture(scope='module')
     def redis(self, app):
-        redis = StrictRedis(host=app.config['REDIS_HOSTNAME'],
+        redis = StrictRedis(host=app.config['REDIS_HOST'],
                             port=app.config['REDIS_PORT'])
         return redis
 
