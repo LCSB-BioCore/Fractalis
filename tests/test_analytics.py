@@ -24,6 +24,7 @@ class TestAnalytics(object):
         new_url = '/analytics/{}'.format(body['job_id'])
         assert rv.status_code == 201
         assert uuid.UUID(body['job_id'])
+        import pdb; pdb.set_trace()
         assert app.head(new_url).status_code == 200
 
     @pytest.fixture(scope='module',
