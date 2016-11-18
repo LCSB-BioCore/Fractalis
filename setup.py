@@ -8,15 +8,15 @@ setup(
     packages=find_packages(),
     install_requires=[
         'Flask',
-        'Flask-WTF',
+        'jsonschema',
         'celery[redis]',
-        'redis'
+        'redis',
     ],
     setup_requires=[
         'pytest-runner',
     ],
     tests_require=[
         'pytest==3.0.3',
-        'pytest-cov'
+        'pytest-cov',
     ]
 )

@@ -8,8 +8,7 @@ class TestAnalytics(object):
 
     @pytest.fixture(scope='module')
     def app(self):
-        from flask import Flask
-        app = Flask('test_app')
+        from fractalis import app
         app.testing = True
         test_client = app.test_client()
         return test_client
@@ -17,75 +16,37 @@ class TestAnalytics(object):
     # test POST to /analytics
 
     def test_new_resource_created(self, app):
-        rv = app.post('/analytics', data=dict(
-            task='test.sample.add',
+        rv = app.post('/analytics', data=flask.json.dumps(dict(
+            task='test.add',
             arguments={'a': 1, 'b': 1}
-        ))
+        )), content_type='application/json')
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['job_id'])
         assert rv.status_code == 201
         assert uuid.UUID(body['job_id'])
         assert app.head(new_url).status_code == 200
 
-    def test_400_if_POST_body_invalid_1(self, app):
-        rv = app.post('/analytics', data=dict(
-            arguments={'a': 1, 'b': 1}
-        ))
-        assert rv.status_code == 400
+    @pytest.fixture(scope='module',
+                    params=[{'task': 'querty.add',
+                             'arguments': {'a': 1, 'b': 2}},
+                            {'task': 'test.querty',
+                             'arguments': {'a': 1, 'b': 2}},
+                            {'task': 'test.add',
+                             'arguments': {'a': 1, 'c': 2}},
+                            {'task': 'test.add',
+                             'arguments': {'a': 1}},
+                            {'task': 'test.add'},
+                            {'arguments': {'a': 1, 'b': 2}},
+                            {'task': '',
+                             'arguments': {'a': 1, 'b': 2}},
+                            {'task': 'querty.add',
+                             'arguments': ''}])
+    def bad_request(self, app, request):
+        return app.post('/analytics', data=flask.json.dumps(request.param),
+                        content_type='application/json')
 
-    def test_400_if_POST_body_invalid_2(self, app):
-        rv = app.post('/analytics', data=dict(
-            task='test.sample.add'
-        ))
-        assert rv.status_code == 400
-
-    def test_400_if_POST_body_invalid_3(self, app):
-        rv = app.post('/analytics', data=dict(
-            task='test.sample.add',
-            arguments='something'
-        ))
-        assert rv.status_code == 400
-
-    def test_400_if_POST_body_invalid_4(self, app):
-        rv = app.post('/analytics', data=dict(
-            task='test.sample.add',
-            arguments={}
-        ))
-        assert rv.status_code == 400
-
-    def test_400_if_POST_body_invalid_5(self, app):
-        rv = app.post('/analytics', data=dict(
-            task='',
-            arguments={'a': 1, 'b': 1}
-        ))
-        assert rv.status_code == 400
-
-    def test_400_if_creating_but_task_does_not_exist_1(self, app):
-        rv = app.post('/analytics', data=dict(
-            task='test.sample.querty',
-            arguments={'a': 1, 'b': 1}
-        ))
-        body = flask.json.loads(rv.get_data())
-        assert rv.status_code == 400
-        assert 'ImportError' in body['result']
-
-    def test_400_if_creating_but_task_does_not_exist_2(self, app):
-        rv = app.post('/analytics', data=dict(
-            task='querty.sample.add',
-            arguments={'a': 1, 'b': 1}
-        ))
-        body = flask.json.loads(rv.get_data())
-        assert rv.status_code == 400
-        assert 'ImportError' in body['result']
-
-    def test_400_if_creating_but_arguments_are_invalid(self, app):
-        rv = app.post('/analytics', data=dict(
-            task='test.sample.add',
-            arguments={'a': 1, 'c': 1}
-        ))
-        body = flask.json.loads(rv.get_data())
-        assert rv.status_code == 400
-        assert 'TypeError' in body['result']
+    def test_400_if_POST_body_invalid(self, bad_request):
+        assert bad_request.status_code == 400
 
     def test_403_if_creating_but_not_authenticated(self, app):
         assert False
@@ -94,7 +55,7 @@ class TestAnalytics(object):
 
     def test_resource_deleted(self, app):
         rv = app.post('/analytics', data=dict(
-            task='test.sample.add',
+            task='test.add',
             arguments={'a': 1, 'b': 1}
         ))
         body = flask.json.loads(rv.get_data())
@@ -109,7 +70,7 @@ class TestAnalytics(object):
 
     def test_running_resource_deleted(self, app):
         rv = app.post('/analytics', data=dict(
-            task='test.sample.do_nothing',
+            task='test.do_nothing',
             arguments={'time': 10}
         ))
         body = flask.json.loads(rv.get_data())
@@ -125,7 +86,7 @@ class TestAnalytics(object):
 
     def test_status_contains_result_if_finished(self, app):
         rv = app.post('/analytics', data=dict(
-            task='test.sample.add',
+            task='test.add',
             arguments={'a': 1, 'b': 2}
         ))
         body = flask.json.loads(rv.get_data())
@@ -136,7 +97,7 @@ class TestAnalytics(object):
 
     def test_status_result_empty_if_not_finished(self, app):
         rv = app.post('/analytics', data=dict(
-            task='test.sample.do_nothing',
+            task='test.do_nothing',
             arguments={'time': 10}
         ))
         body = flask.json.loads(rv.get_data())
@@ -148,7 +109,7 @@ class TestAnalytics(object):
 
     def test_correct_response_if_task_fails(self, app):
         rv = app.post('/analytics', data=dict(
-            task='test.sample.div',
+            task='test.div',
             arguments={}
         ))
         body = flask.json.loads(rv.get_data())

@@ -13,11 +13,6 @@ from fractalis.analytics.controllers import analytics_blueprint
 
 app = Flask(__name__)
 app.config.from_object('fractalis.config')
-
-handler = logging.handlers.RotatingFileHandler('fractalis.log')
-handler.setLevel(logging.INFO)
-app.logger.addHandler(handler)
-
 try:
     app.config.from_envvar('FRACTALIS_CONFIG')
 except RuntimeError:
@@ -27,4 +22,9 @@ app.session_interface = RedisSessionInterface(app.config)
 app.register_blueprint(analytics_blueprint, url_prefix='/analytics')
 
 if __name__ == '__main__':
+    handler = logging.handlers.TimedRotatingFileHandler('fractalis.log',
+                                                        when='midnight',
+                                                        backupCount=14)
+    handler.setLevel(logging.INFO)
+    app.logger.addHandler(handler)
     app.run()
