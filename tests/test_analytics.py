@@ -18,33 +18,31 @@ class TestAnalytics(object):
     def test_new_resource_created(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.add',
-            arguments={'a': 1, 'b': 1}
-        )), content_type='application/json')
+            args={'a': 1, 'b': 1}
+        )))
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['job_id'])
+        new_url = '/analytics/{}'.format(body['task_id'])
         assert rv.status_code == 201
-        assert uuid.UUID(body['job_id'])
-        import pdb; pdb.set_trace()
+        assert uuid.UUID(body['task_id'])
         assert app.head(new_url).status_code == 200
 
     @pytest.fixture(scope='module',
                     params=[{'task': 'querty.add',
-                             'arguments': {'a': 1, 'b': 2}},
+                             'args': {'a': 1, 'b': 2}},
                             {'task': 'test.querty',
-                             'arguments': {'a': 1, 'b': 2}},
+                             'args': {'a': 1, 'b': 2}},
                             {'task': 'test.add',
-                             'arguments': {'a': 1, 'c': 2}},
+                             'args': {'a': 1, 'c': 2}},
                             {'task': 'test.add',
-                             'arguments': {'a': 1}},
+                             'args': {'a': 1}},
                             {'task': 'test.add'},
-                            {'arguments': {'a': 1, 'b': 2}},
+                            {'args': {'a': 1, 'b': 2}},
                             {'task': '',
-                             'arguments': {'a': 1, 'b': 2}},
+                             'args': {'a': 1, 'b': 2}},
                             {'task': 'querty.add',
-                             'arguments': ''}])
+                             'args': ''}])
     def bad_request(self, app, request):
-        return app.post('/analytics', data=flask.json.dumps(request.param),
-                        content_type='application/json')
+        return app.post('/analytics', data=flask.json.dumps(request.param))
 
     def test_400_if_POST_body_invalid(self, bad_request):
         assert bad_request.status_code == 400
@@ -52,15 +50,15 @@ class TestAnalytics(object):
     def test_403_if_creating_but_not_authenticated(self, app):
         assert False
 
-    # test DELETE to /analytics/{job_id}
+    # test DELETE to /analytics/{task_id}
 
     def test_resource_deleted(self, app):
-        rv = app.post('/analytics', data=dict(
+        rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.add',
-            arguments={'a': 1, 'b': 1}
-        ))
+            args={'a': 1, 'b': 1}
+        )))
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['job_id'])
+        new_url = '/analytics/{}'.format(body['task_id'])
         assert app.head(new_url).status_code == 200
         assert app.delete(new_url).status_code == 200
         assert app.head(new_url).status_code == 404
@@ -70,12 +68,12 @@ class TestAnalytics(object):
         assert rv.status_code == 404
 
     def test_running_resource_deleted(self, app):
-        rv = app.post('/analytics', data=dict(
+        rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.do_nothing',
-            arguments={'time': 10}
-        ))
+            args={'time': 10}
+        )))
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['job_id'])
+        new_url = '/analytics/{}'.format(body['task_id'])
         assert app.head(new_url).status_code == 200
         assert app.delete(new_url).status_code == 200
         assert app.head(new_url).status_code == 404
@@ -83,38 +81,38 @@ class TestAnalytics(object):
     def test_403_if_deleting_but_not_authenticated(self, app):
         assert False
 
-    # test GET to /analytics/{job_id}
+    # test GET to /analytics/{task_id}
 
     def test_status_contains_result_if_finished(self, app):
-        rv = app.post('/analytics', data=dict(
+        rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.add',
-            arguments={'a': 1, 'b': 2}
-        ))
+            args={'a': 1, 'b': 2}
+        )))
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['job_id'])
+        new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
         new_body = flask.json.loads(new_response.get_data())
         assert new_body['result'] == 3
 
     def test_status_result_empty_if_not_finished(self, app):
-        rv = app.post('/analytics', data=dict(
+        rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.do_nothing',
-            arguments={'time': 10}
-        ))
+            args={'time': 10}
+        )))
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['job_id'])
+        new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
         new_body = flask.json.loads(new_response.get_data())
         assert not new_body['result']
         assert new_body['status'] == 'RUNNING'
 
     def test_correct_response_if_task_fails(self, app):
-        rv = app.post('/analytics', data=dict(
+        rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.div',
-            arguments={}
-        ))
+            args={}
+        )))
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['job_id'])
+        new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
         new_body = flask.json.loads(new_response.get_data())
         assert new_body['status'] == 'FAILURE'

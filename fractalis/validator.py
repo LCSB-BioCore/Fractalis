@@ -11,7 +11,8 @@ def validate_json(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         try:
-            if not (request.json):
+            json = request.get_json(force=True)
+            if not (json):
                 raise BadRequest()
         except BadRequest:
             error_msg = "Request payload must be valid JSON."
@@ -24,8 +25,9 @@ def validate_schema(schema):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
+            json = request.get_json(force=True)
             try:
-                validate(request.json, schema)
+                validate(json, schema)
             except ValidationError as e:
                 return jsonify({'error': e.message}), 400
             return f(*args, **kwargs)

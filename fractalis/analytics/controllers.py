@@ -28,28 +28,31 @@ def permanent_session():
 @validate_json
 @validate_schema(create_job_schema)
 def create_job():
-    task = get_celery_task(request.json['task'])
+    json = request.get_json(force=True)
+    task = get_celery_task(json['task'])
     if task is None:
         return jsonify({'error': 'Task {} not found.'.format(
-            request.json['task'])}), 400
+            json['task'])}), 400
     try:
-        async_result = task.delay(*request.json['arguments'])
+        async_result = task.delay(*json['args'])
     except TypeError as e:
         return jsonify({'error': 'Invalid Arguments for task {}: {}'.format(
-                request.json['task'], e)}), 400
+                json['task'], e)}), 400
 
-    if 'jobs' not in session:
-        session['jobs'] = []
-    session['jobs'].append(async_result.id)
-    return jsonify({'job_id': async_result.id}), 201
+    if 'tasks' not in session:
+        session['tasks'] = []
+    session['tasks'].append(async_result.id)
+    return jsonify({'task_id': async_result.id}), 201
 
 
-@analytics_blueprint.route('/<uuid:job_id>', methods=['GET'])
-def get_job_details(job_id):
-    async_result = celery.AsyncResult(request.json['uuid'])
+@analytics_blueprint.route('/<uuid:task_id>', methods=['GET'])
+def get_job_details(task_id):
+    task_id = str(task_id)
+    async_result = celery.AsyncResult(task_id)
     return jsonify({'status': async_result.state}), 200
 
 
-@analytics_blueprint.route('/<uuid:job_id>', methods=['DELETE'])
-def cancel_job(job_id):
-    pass
+@analytics_blueprint.route('/<uuid:task_id>', methods=['DELETE'])
+def cancel_job(task_id):
+    task_id = str(task_id)
+    celery.control.revoke(task_id, terminate=True)
