@@ -1,4 +1,3 @@
-import datetime
 from uuid import uuid4
 
 from redis import StrictRedis
@@ -46,9 +45,7 @@ class RedisSessionInterface(SecureCookieSessionInterface):
                 response.delete_cookie(app.session_cookie_name, domain=domain)
             return None
         session_expiration_time = app.config['PERMANENT_SESSION_LIFETIME']
-        cookie_expiration_time = (datetime.datetime.utcnow() +
-                                  datetime.timedelta(
-                                      seconds=session_expiration_time))
+        cookie_expiration_time = self.get_expiration_time(app, session)
         serialzed_session_data = self.serializer.dumps(dict(session))
         self.redis.setex(name='session:{}'.format(session.sid),
                          time=session_expiration_time,
