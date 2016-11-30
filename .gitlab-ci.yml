@@ -7,8 +7,8 @@ services:
 before_script:
     - pip install -e .
     - pip install flake8
-    - echo "REDIS_HOST='redis'" > ~/fractalis.conf
-    - export FRACTALIS_CONFIG=~/fractalis.conf
+    - echo "REDIS_HOST='redis'" > /root/f.conf
+    - export FRACTALIS_CONFIG=/root/f.conf
 
 test:
     script:
