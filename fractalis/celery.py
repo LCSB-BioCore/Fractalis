@@ -4,7 +4,8 @@ import os
 import logging
 
 from celery import Celery
-from celery.exceptions import ImproperlyConfigured
+
+from fractalis.config import file_to_dict
 
 
 def get_scripts_packages():
@@ -20,11 +21,13 @@ def get_scripts_packages():
         packages.append(package)
     return packages
 
+
 app = Celery(__name__)
 app.config_from_object('fractalis.config')
 try:
-    app.config_from_envvar('FRACTALIS_CONFIG')
-except ImproperlyConfigured:
+    config = file_to_dict(os.environ['FRACTALIS_CONFIG'])
+    app.conf.update(config)
+except KeyError:
     logger = logging.getLogger('fractalis')
     logger.warning("FRACTALIS_CONFIG is not set. Using defaults.")
 app.autodiscover_tasks(packages=get_scripts_packages())
