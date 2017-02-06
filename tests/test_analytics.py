@@ -47,9 +47,6 @@ class TestAnalytics(object):
     def test_400_if_POST_body_invalid(self, bad_request):
         assert bad_request.status_code == 400
 
-    def test_403_if_creating_but_not_authenticated(self, app):
-        assert False
-
     # test DELETE to /analytics/{task_id}
 
     def test_resource_deleted(self, app):

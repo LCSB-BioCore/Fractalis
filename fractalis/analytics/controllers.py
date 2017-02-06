@@ -34,7 +34,7 @@ def create_job():
         return jsonify({'error': 'Task {} not found.'.format(
             json['task'])}), 400
     try:
-        async_result = task.delay(*json['args'])
+        async_result = task.delay(**json['args'])
     except TypeError as e:
         return jsonify({'error': 'Invalid Arguments for task {}: {}'.format(
                 json['task'], e)}), 400
