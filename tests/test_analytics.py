@@ -1,4 +1,5 @@
 import uuid
+import time
 
 import flask
 import pytest
@@ -75,9 +76,6 @@ class TestAnalytics(object):
         assert app.delete(new_url).status_code == 200
         assert app.head(new_url).status_code == 404
 
-    def test_403_if_deleting_but_not_authenticated(self, app):
-        assert False
-
     # test GET to /analytics/{task_id}
 
     def test_status_contains_result_if_finished(self, app):
@@ -85,6 +83,7 @@ class TestAnalytics(object):
             task='test.add',
             args={'a': 1, 'b': 2}
         )))
+        time.sleep(1)
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
@@ -96,6 +95,7 @@ class TestAnalytics(object):
             task='test.do_nothing',
             args={'time': 10}
         )))
+        time.sleep(2)
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
@@ -106,8 +106,9 @@ class TestAnalytics(object):
     def test_correct_response_if_task_fails(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.div',
-            args={}
+            args={'a': 2, 'b': 0}
         )))
+        time.sleep(1)
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
@@ -117,6 +118,3 @@ class TestAnalytics(object):
 
     def test_404_if_status_non_existing_resource(self, app):
         assert app.get('/analytics/{}'.format(uuid.uuid4())).status_code == 404
-
-    def test_403_when_getting_status_but_not_authenticated(self, app):
-        assert False

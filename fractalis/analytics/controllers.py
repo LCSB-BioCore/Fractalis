@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, session, request, jsonify
+from flask import Blueprint, session, request, jsonify
 
 import fractalis.analytics.scripts  # noqa
 from fractalis.celery import app as celery
@@ -48,11 +48,22 @@ def create_job():
 @analytics_blueprint.route('/<uuid:task_id>', methods=['GET'])
 def get_job_details(task_id):
     task_id = str(task_id)
+    if (task_id not in session['tasks']):  # access control
+        return jsonify({'error': "No matching task found."}), 404
     async_result = celery.AsyncResult(task_id)
-    return jsonify({'status': async_result.state}), 200
+    state = async_result.state
+    result = async_result.result
+    if (isinstance(result, Exception)):
+        result = "{}: {}".format(type(result).__name__, str(result))
+    return jsonify({'status': state,
+                    'result': result}), 200
 
 
 @analytics_blueprint.route('/<uuid:task_id>', methods=['DELETE'])
 def cancel_job(task_id):
     task_id = str(task_id)
+    if (task_id not in session['tasks']):
+        return jsonify({'error': "No matchin task found."}), 404
     celery.control.revoke(task_id, terminate=True)
+    session['tasks'].remove(task_id)
+    return jsonify({'task_id': task_id}), 200

@@ -11,6 +11,7 @@ def add(a, b):
 @app.task
 def do_nothing(time):
     sleep(time)
+    return True
 
 
 @app.task
