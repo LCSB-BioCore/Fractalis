@@ -20,8 +20,10 @@ def get_celery_task(task):
 
 
 @analytics_blueprint.before_request
-def permanent_session():
+def prepare_session():
     session.permanent = True
+    if 'tasks' not in session:
+        session['tasks'] = []
 
 
 @analytics_blueprint.route('', methods=['POST'])
@@ -39,8 +41,6 @@ def create_job():
         return jsonify({'error': 'Invalid Arguments for task {}: {}'.format(
                 json['task'], e)}), 400
 
-    if 'tasks' not in session:
-        session['tasks'] = []
     session['tasks'].append(async_result.id)
     return jsonify({'task_id': async_result.id}), 201
 
@@ -62,8 +62,8 @@ def get_job_details(task_id):
 @analytics_blueprint.route('/<uuid:task_id>', methods=['DELETE'])
 def cancel_job(task_id):
     task_id = str(task_id)
-    if (task_id not in session['tasks']):
-        return jsonify({'error': "No matchin task found."}), 404
+    if (task_id not in session['tasks']):  # Access control
+        return jsonify({'error': "No matching task found."}), 404
     celery.control.revoke(task_id, terminate=True)
     session['tasks'].remove(task_id)
     return jsonify({'task_id': task_id}), 200

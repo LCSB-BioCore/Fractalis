@@ -1,4 +1,4 @@
-from time import sleep
+import time
 
 from fractalis.celery import app
 
@@ -9,9 +9,9 @@ def add(a, b):
 
 
 @app.task
-def do_nothing(time):
-    sleep(time)
-    return True
+def do_nothing(seconds):
+    time.sleep(seconds)
+    return 1
 
 
 @app.task

@@ -7,12 +7,15 @@ import pytest
 
 class TestAnalytics(object):
 
-    @pytest.fixture(scope='module')
+    @pytest.fixture(scope='function')
     def app(self):
         from fractalis import app
         app.testing = True
-        test_client = app.test_client()
-        return test_client
+        with app.test_client() as test_client:
+            yield test_client
+            # cleanup running tasks after each test
+            for task_id in flask.session['tasks']:
+                test_client.delete('/analytics/{}'.format(task_id))
 
     # test POST to /analytics
 
@@ -27,7 +30,7 @@ class TestAnalytics(object):
         assert uuid.UUID(body['task_id'])
         assert app.head(new_url).status_code == 200
 
-    @pytest.fixture(scope='module',
+    @pytest.fixture(scope='function',
                     params=[{'task': 'querty.add',
                              'args': {'a': 1, 'b': 2}},
                             {'task': 'test.querty',
@@ -68,7 +71,7 @@ class TestAnalytics(object):
     def test_running_resource_deleted(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.do_nothing',
-            args={'time': 10}
+            args={'seconds': 4}
         )))
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['task_id'])
@@ -83,7 +86,7 @@ class TestAnalytics(object):
             task='test.add',
             args={'a': 1, 'b': 2}
         )))
-        time.sleep(1)
+        time.sleep(0.5)
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
@@ -93,22 +96,22 @@ class TestAnalytics(object):
     def test_status_result_empty_if_not_finished(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.do_nothing',
-            args={'time': 10}
+            args={'seconds': 4}
         )))
-        time.sleep(2)
+        time.sleep(0.5)
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
         new_body = flask.json.loads(new_response.get_data())
         assert not new_body['result']
-        assert new_body['status'] == 'RUNNING'
+        assert new_body['status'] == 'PENDING'
 
     def test_correct_response_if_task_fails(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.div',
             args={'a': 2, 'b': 0}
         )))
-        time.sleep(1)
+        time.sleep(0.5)
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
