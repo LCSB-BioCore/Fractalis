@@ -10,7 +10,7 @@ before_script:
     - echo "REDIS_HOST='redis'" > /root/conf.py
     - echo "REDIS_PORT=7777" >> /root/conf.py
     - echo "CELERY_RESULT_BACKEND='redis://redis:7777'" >> /root/conf.py
-    - export FRACTALIS_CONFIG=/root/f.conf
+    - export FRACTALIS_CONFIG=/root/conf.py
 
 test:
     script:
