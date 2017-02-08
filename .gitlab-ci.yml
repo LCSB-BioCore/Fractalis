@@ -7,7 +7,9 @@ services:
 before_script:
     - pip install -e .
     - pip install flake8
-    - echo "REDIS_HOST='redis'" > /root/f.conf
+    - echo "REDIS_HOST='redis'" > /root/conf.py
+    - echo "REDIS_PORT=7777" >> /root/conf.py
+    - echo "CELERY_RESULT_BACKEND='redis://redis:7777'" >> /root/conf.py
     - export FRACTALIS_CONFIG=/root/f.conf
 
 test:

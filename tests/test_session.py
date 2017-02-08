@@ -10,12 +10,8 @@ class TestSession(object):
 
     @pytest.fixture(scope='module')
     def app(self):
-        from flask import Flask
-        from fractalis.session import RedisSessionInterface
-        app = Flask('test_app')
-        app.config.from_object('fractalis.config')
+        from fractalis import app
         app.testing = True
-        app.session_interface = RedisSessionInterface(app.config)
         return app
 
     @pytest.fixture(scope='module')

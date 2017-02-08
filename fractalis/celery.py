@@ -1,11 +1,10 @@
 """This module is responsible for the establishment and configuration of a
 Celery instance."""
 import os
+import sys
 import logging
 
 from celery import Celery
-
-from fractalis.config import file_to_dict
 
 
 def get_scripts_packages():
@@ -25,8 +24,13 @@ def get_scripts_packages():
 app = Celery(__name__)
 app.config_from_object('fractalis.config')
 try:
-    config = file_to_dict(os.environ['FRACTALIS_CONFIG'])
-    app.conf.update(config)
+    config_file = os.environ['FRACTALIS_CONFIG']
+    module = os.path.splitext(os.path.basename(config_file))[0]
+    sys.path.append(os.path.dirname(os.path.expanduser(config_file)))
+    config = __import__(module).__dict__
+    for key in app.conf:
+        if (key in config and key[0] != '_'):
+            app.conf[key] = config[key]
 except KeyError:
     logger = logging.getLogger('fractalis')
     logger.warning("FRACTALIS_CONFIG is not set. Using defaults.")
