@@ -10,6 +10,7 @@ before_script:
     - echo "REDIS_HOST='redis'" > /root/conf.py
     - echo "CELERY_RESULT_BACKEND='redis://redis:6379'" >> /root/conf.py
     - export FRACTALIS_CONFIG=/root/conf.py
+    - celery worker -A fractalis.celery
 
 test:
     script:
