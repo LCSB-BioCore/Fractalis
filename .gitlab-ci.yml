@@ -2,6 +2,7 @@ image: python:latest
 
 services:
     - redis
+    - rabbitmq
 
 before_script:
     - pip install -e .
@@ -9,7 +10,6 @@ before_script:
     - echo "REDIS_HOST='redis'" > /root/conf.py
     - echo "CELERY_RESULT_BACKEND='redis://redis:6379'" >> /root/conf.py
     - export FRACTALIS_CONFIG=/root/conf.py
-    - apt-get install rabbitmq-server
     - rabbitmq-server
     - celery worker -A fractalis.celery -b rabbit
 
