@@ -48,12 +48,12 @@ def create_job():
 @analytics_blueprint.route('/<uuid:task_id>', methods=['GET'])
 def get_job_details(task_id):
     task_id = str(task_id)
-    if (task_id not in session['tasks']):  # access control
+    if task_id not in session['tasks']:  # access control
         return jsonify({'error': "No matching task found."}), 404
     async_result = celery.AsyncResult(task_id)
     state = async_result.state
     result = async_result.result
-    if (isinstance(result, Exception)):
+    if isinstance(result, Exception):
         result = "{}: {}".format(type(result).__name__, str(result))
     return jsonify({'status': state,
                     'result': result}), 200
@@ -62,7 +62,7 @@ def get_job_details(task_id):
 @analytics_blueprint.route('/<uuid:task_id>', methods=['DELETE'])
 def cancel_job(task_id):
     task_id = str(task_id)
-    if (task_id not in session['tasks']):  # Access control
+    if task_id not in session['tasks']:  # Access control
         return jsonify({'error': "No matching task found."}), 404
     celery.control.revoke(task_id, terminate=True)
     session['tasks'].remove(task_id)

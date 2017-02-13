@@ -1,3 +1,4 @@
+"""This module tests the analytics controller."""
 import uuid
 import time
 
@@ -51,6 +52,10 @@ class TestAnalytics(object):
     def test_400_if_POST_body_invalid(self, bad_request):
         assert bad_request.status_code == 400
 
+    @pytest.mark.skip(reason="Data interface not implemented yet.")
+    def test_404_if_creating_without_auth(self, app):
+        pass
+
     # test DELETE to /analytics/{task_id}
 
     def test_resource_deleted(self, app):
@@ -78,6 +83,18 @@ class TestAnalytics(object):
         assert app.head(new_url).status_code == 200
         assert app.delete(new_url).status_code == 200
         assert app.head(new_url).status_code == 404
+
+    def test_404_if_deleting_without_auth(self, app):
+        rv = app.post('/analytics', data=flask.json.dumps(dict(
+            task='test.do_nothing',
+            args={'seconds': 4}
+        )))
+        time.sleep(1)
+        body = flask.json.loads(rv.get_data())
+        new_url = '/analytics/{}'.format(body['task_id'])
+        with app.session_transaction() as sess:
+            sess['tasks'] = []
+        assert app.delete(new_url).status_code == 404
 
     # test GET to /analytics/{task_id}
 
@@ -121,3 +138,15 @@ class TestAnalytics(object):
 
     def test_404_if_status_non_existing_resource(self, app):
         assert app.get('/analytics/{}'.format(uuid.uuid4())).status_code == 404
+
+    def test_404_if_status_without_auth(self, app):
+        rv = app.post('/analytics', data=flask.json.dumps(dict(
+            task='test.do_nothing',
+            args={'seconds': 4}
+        )))
+        time.sleep(1)
+        body = flask.json.loads(rv.get_data())
+        new_url = '/analytics/{}'.format(body['task_id'])
+        with app.session_transaction() as sess:
+            sess['tasks'] = []
+        assert app.get(new_url).status_code == 404
