@@ -7,7 +7,7 @@ services:
 before_script:
     - pip install -e .
     - pip install flake8
-    - export FRACTALIS_CONFIG=.gitlab-config.py
+    - export FRACTALIS_CONFIG="$(pwd)/.gitlab-config.py"
     - celery worker -A fractalis.celery -b rabbitmq -D -l info
 
 test:
