@@ -86,7 +86,7 @@ class TestAnalytics(object):
             task='test.add',
             args={'a': 1, 'b': 2}
         )))
-        time.sleep(0.5)
+        time.sleep(1)
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
@@ -98,7 +98,7 @@ class TestAnalytics(object):
             task='test.do_nothing',
             args={'seconds': 4}
         )))
-        time.sleep(0.5)
+        time.sleep(1)
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)
@@ -111,7 +111,7 @@ class TestAnalytics(object):
             task='test.div',
             args={'a': 2, 'b': 0}
         )))
-        time.sleep(0.5)
+        time.sleep(1)
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}'.format(body['task_id'])
         new_response = app.get(new_url)

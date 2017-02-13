@@ -1,4 +1,4 @@
-"""Initalize Fractalis Flask app and configure it.
+"""Initialize Fractalis Flask app and configure it.
 
 Modules in this package:
     - config -- Manages Fractalis Flask app configuration

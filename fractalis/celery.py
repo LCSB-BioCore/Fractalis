@@ -11,11 +11,11 @@ def get_scripts_packages():
     packages = []
     script_dir = os.path.join(
         os.path.dirname(__file__), 'analytics', 'scripts')
-    for dirpath, dirnames, filenames in os.walk(script_dir):
-        if (dirpath == script_dir or '__pycache__' in dirpath or
-                '__init__.py' not in filenames):
+    for dir_path, dir_names, file_names in os.walk(script_dir):
+        if (dir_path == script_dir or '__pycache__' in dir_path or
+                '__init__.py' not in file_names):
             continue
-        dirname = os.path.basename(dirpath)
+        dirname = os.path.basename(dir_path)
         package = 'fractalis.analytics.scripts.{}'.format(dirname)
         packages.append(package)
     return packages
@@ -29,7 +29,7 @@ try:
     sys.path.append(os.path.dirname(os.path.expanduser(config_file)))
     config = __import__(module).__dict__
     for key in app.conf:
-        if (key in config and key[0] != '_'):
+        if key in config and key[0] != '_':
             app.conf[key] = config[key]
 except KeyError:
     logger = logging.getLogger('fractalis')
