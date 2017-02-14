@@ -38,8 +38,9 @@ def create_job():
     try:
         async_result = task.delay(**json['args'])
     except TypeError as e:
-        return jsonify({'error_msg': 'Invalid Arguments for task {}: {}'.format(
-                json['task'], e)}), 400
+        return jsonify({'error_msg':
+                        'Invalid Arguments for task {}: {}'.format(
+                            json['task'], e)}), 400
 
     session['tasks'].append(async_result.id)
     return jsonify({'task_id': async_result.id}), 201

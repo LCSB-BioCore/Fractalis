@@ -8,7 +8,7 @@ import logging
 from flask import Flask
 
 from fractalis.session import RedisSessionInterface
-from fractalis.analytics.controllers import analytics_blueprint
+from fractalis.analytics.controller import analytics_blueprint
 
 
 app = Flask(__name__)
