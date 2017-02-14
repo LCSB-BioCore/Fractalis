@@ -1,6 +1,5 @@
 from uuid import uuid4
 
-from redis import StrictRedis
 from flask.sessions import SecureCookieSessionInterface, SecureCookieSession
 
 
@@ -22,9 +21,8 @@ class RedisSessionInterface(SecureCookieSessionInterface):
     sid (UUID) -- A session id
     """
 
-    def __init__(self, app_config):
-        self.redis = StrictRedis(host=app_config['REDIS_HOST'],
-                                 port=app_config['REDIS_PORT'])
+    def __init__(self, redis):
+        self.redis = redis
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
