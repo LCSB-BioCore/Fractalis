@@ -51,7 +51,8 @@ def get_job_details(task_id):
     if task_id not in session['tasks']:  # access control
         return jsonify({'error': "No matching task found."}), 404
     async_result = celery.AsyncResult(task_id)
-    if request.args.get('wait') and request.args.get('wait') == '1':
+    wait = bool(int(request.args.get('wait') or 0))
+    if wait:
         async_result.get(propagate=False)  # wait for results
     state = async_result.state
     result = async_result.result
@@ -66,7 +67,8 @@ def cancel_job(task_id):
     task_id = str(task_id)
     if task_id not in session['tasks']:  # Access control
         return jsonify({'error': "No matching task found."}), 404
+    wait = bool(int(request.args.get('wait') or 0))
     # possibly dangerous: http://stackoverflow.com/a/29627549
-    celery.control.revoke(task_id, terminate=True, signal='SIGUSR1', wait=True)
+    celery.control.revoke(task_id, terminate=True, signal='SIGUSR1', wait=wait)
     session['tasks'].remove(task_id)
     return jsonify({'task_id': task_id}), 200

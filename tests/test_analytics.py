@@ -6,8 +6,6 @@ import time
 import flask
 import pytest
 
-from fractalis.celery import app as celery
-
 
 class TestAnalytics(object):
 
@@ -19,7 +17,7 @@ class TestAnalytics(object):
             yield test_client
             # cleanup running tasks after each test
             for task_id in flask.session['tasks']:
-                test_client.delete('/analytics/{}'.format(task_id))
+                test_client.delete('/analytics/{}?wait=1'.format(task_id))
 
     # test POST to /analytics
 
@@ -67,13 +65,13 @@ class TestAnalytics(object):
             args={'a': 1, 'b': 1}
         )))
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['task_id'])
+        new_url = '/analytics/{}?wait=1'.format(body['task_id'])
         assert app.head(new_url).status_code == 200
         assert app.delete(new_url).status_code == 200
         assert app.head(new_url).status_code == 404
 
     def test_404_if_deleting_non_existing_resource(self, app):
-        rv = app.delete('/analytics/{}'.format(uuid.uuid4()))
+        rv = app.delete('/analytics/{}?wait=1'.format(uuid.uuid4()))
         assert rv.status_code == 404
 
     def test_running_resource_deleted(self, app):
@@ -82,7 +80,7 @@ class TestAnalytics(object):
             args={'seconds': 4}
         )))
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['task_id'])
+        new_url = '/analytics/{}?wait=1'.format(body['task_id'])
         assert app.head(new_url).status_code == 200
         assert app.delete(new_url).status_code == 200
         assert app.head(new_url).status_code == 404
@@ -94,7 +92,7 @@ class TestAnalytics(object):
         )))
         time.sleep(1)
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['task_id'])
+        new_url = '/analytics/{}?wait=1'.format(body['task_id'])
         with app.session_transaction() as sess:
             sess['tasks'] = []
         assert app.delete(new_url).status_code == 404
