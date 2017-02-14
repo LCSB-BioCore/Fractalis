@@ -1,9 +1,12 @@
-"""This module tests the analytics controller."""
+"""This module tests the analytics controller module."""
+
 import uuid
 import time
 
 import flask
 import pytest
+
+from fractalis.celery import app as celery
 
 
 class TestAnalytics(object):
@@ -103,9 +106,8 @@ class TestAnalytics(object):
             task='test.add',
             args={'a': 1, 'b': 2}
         )))
-        time.sleep(1)
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['task_id'])
+        new_url = '/analytics/{}?wait=1'.format(body['task_id'])
         new_response = app.get(new_url)
         new_body = flask.json.loads(new_response.get_data())
         assert new_body['result'] == 3
@@ -117,7 +119,7 @@ class TestAnalytics(object):
         )))
         time.sleep(1)
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['task_id'])
+        new_url = '/analytics/{}?wait=0'.format(body['task_id'])
         new_response = app.get(new_url)
         new_body = flask.json.loads(new_response.get_data())
         assert not new_body['result']
@@ -128,25 +130,24 @@ class TestAnalytics(object):
             task='test.div',
             args={'a': 2, 'b': 0}
         )))
-        time.sleep(1)
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['task_id'])
+        new_url = '/analytics/{}?wait=1'.format(body['task_id'])
         new_response = app.get(new_url)
         new_body = flask.json.loads(new_response.get_data())
         assert new_body['status'] == 'FAILURE'
         assert 'ZeroDivisionError' in new_body['result']
 
     def test_404_if_status_non_existing_resource(self, app):
-        assert app.get('/analytics/{}'.format(uuid.uuid4())).status_code == 404
+        assert app.get('/analytics/{}?wait=1'.format(uuid.uuid4())
+                       ).status_code == 404
 
     def test_404_if_status_without_auth(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
             task='test.do_nothing',
             args={'seconds': 4}
         )))
-        time.sleep(1)
         body = flask.json.loads(rv.get_data())
-        new_url = '/analytics/{}'.format(body['task_id'])
+        new_url = '/analytics/{}?wait=0'.format(body['task_id'])
         with app.session_transaction() as sess:
             sess['tasks'] = []
         assert app.get(new_url).status_code == 404
