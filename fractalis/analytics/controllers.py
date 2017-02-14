@@ -33,12 +33,12 @@ def create_job():
     json = request.get_json(force=True)
     task = get_celery_task(json['task'])
     if task is None:
-        return jsonify({'error': 'Task {} not found.'.format(
+        return jsonify({'error_msg': 'Task {} not found.'.format(
             json['task'])}), 400
     try:
         async_result = task.delay(**json['args'])
     except TypeError as e:
-        return jsonify({'error': 'Invalid Arguments for task {}: {}'.format(
+        return jsonify({'error_msg': 'Invalid Arguments for task {}: {}'.format(
                 json['task'], e)}), 400
 
     session['tasks'].append(async_result.id)
@@ -49,7 +49,7 @@ def create_job():
 def get_job_details(task_id):
     task_id = str(task_id)
     if task_id not in session['tasks']:  # access control
-        return jsonify({'error': "No matching task found."}), 404
+        return jsonify({'error_msg': "No matching task found."}), 404
     async_result = celery.AsyncResult(task_id)
     wait = bool(int(request.args.get('wait') or 0))
     if wait:
@@ -66,7 +66,7 @@ def get_job_details(task_id):
 def cancel_job(task_id):
     task_id = str(task_id)
     if task_id not in session['tasks']:  # Access control
-        return jsonify({'error': "No matching task found."}), 404
+        return jsonify({'error_msg': "No matching task found."}), 404
     wait = bool(int(request.args.get('wait') or 0))
     # possibly dangerous: http://stackoverflow.com/a/29627549
     celery.control.revoke(task_id, terminate=True, signal='SIGUSR1', wait=wait)
