@@ -1,7 +1,7 @@
 from fractalis.data.etls.etlhandler import ETLHandler
 
 
-class HandlerTransmart(ETLHandler):
+class TransmartHandler(ETLHandler):
 
     _ETL = 'transmart'
 
