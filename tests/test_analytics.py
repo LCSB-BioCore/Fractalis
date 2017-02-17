@@ -23,7 +23,7 @@ class TestAnalytics(object):
 
     def test_new_resource_created(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
-            task='test.add',
+            task='test.tasks.add',
             args={'a': 1, 'b': 1}
         )))
         body = flask.json.loads(rv.get_data())
@@ -33,19 +33,21 @@ class TestAnalytics(object):
         assert app.head(new_url).status_code == 200
 
     @pytest.fixture(scope='function',
-                    params=[{'task': 'querty.add',
+                    params=[{'task': 'querty.tasks.add',
                              'args': {'a': 1, 'b': 2}},
-                            {'task': 'test.querty',
+                            {'task': 'test.tasks.querty',
                              'args': {'a': 1, 'b': 2}},
                             {'task': 'test.add',
+                             'args': {'a': 1, 'b': 2}},
+                            {'task': 'test.tasks.add',
                              'args': {'a': 1, 'c': 2}},
-                            {'task': 'test.add',
+                            {'task': 'test.tasks.add',
                              'args': {'a': 1}},
-                            {'task': 'test.add'},
+                            {'task': 'test.tasks.add'},
                             {'args': {'a': 1, 'b': 2}},
                             {'task': '',
                              'args': {'a': 1, 'b': 2}},
-                            {'task': 'querty.add',
+                            {'task': 'querty.tasks.add',
                              'args': ''}])
     def bad_request(self, app, request):
         return app.post('/analytics', data=flask.json.dumps(request.param))
@@ -61,7 +63,7 @@ class TestAnalytics(object):
 
     def test_resource_deleted(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
-            task='test.add',
+            task='test.tasks.add',
             args={'a': 1, 'b': 1}
         )))
         body = flask.json.loads(rv.get_data())
@@ -76,7 +78,7 @@ class TestAnalytics(object):
 
     def test_running_resource_deleted(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
-            task='test.do_nothing',
+            task='test.tasks.do_nothing',
             args={'seconds': 4}
         )))
         body = flask.json.loads(rv.get_data())
@@ -87,7 +89,7 @@ class TestAnalytics(object):
 
     def test_404_if_deleting_without_auth(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
-            task='test.do_nothing',
+            task='test.tasks.do_nothing',
             args={'seconds': 4}
         )))
         time.sleep(1)
@@ -101,7 +103,7 @@ class TestAnalytics(object):
 
     def test_status_contains_result_if_finished(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
-            task='test.add',
+            task='test.tasks.add',
             args={'a': 1, 'b': 2}
         )))
         body = flask.json.loads(rv.get_data())
@@ -112,7 +114,7 @@ class TestAnalytics(object):
 
     def test_status_result_empty_if_not_finished(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
-            task='test.do_nothing',
+            task='test.tasks.do_nothing',
             args={'seconds': 4}
         )))
         time.sleep(1)
@@ -125,7 +127,7 @@ class TestAnalytics(object):
 
     def test_correct_response_if_task_fails(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
-            task='test.div',
+            task='test.tasks.div',
             args={'a': 2, 'b': 0}
         )))
         body = flask.json.loads(rv.get_data())
@@ -141,7 +143,7 @@ class TestAnalytics(object):
 
     def test_404_if_status_without_auth(self, app):
         rv = app.post('/analytics', data=flask.json.dumps(dict(
-            task='test.do_nothing',
+            task='test.tasks.do_nothing',
             args={'seconds': 4}
         )))
         body = flask.json.loads(rv.get_data())
