@@ -5,3 +5,6 @@
 *.egg-info/
 __pycache__/
 .cache/
+*.rdb
+*.log
+*.idea
