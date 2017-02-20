@@ -3,4 +3,7 @@ from fractalis.data.etls.etlhandler import ETLHandler
 
 class TestHandler(ETLHandler):
 
-    _ETL = 'test'
+    _HANDLER = 'test'
+
+    def _heartbeat():
+        pass
