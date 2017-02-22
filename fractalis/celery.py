@@ -6,7 +6,9 @@ import logging
 
 from celery import Celery
 
-from fractalis.utils import get_sub_packages_for_package
+from fractalis.utils import list_classes_with_base_class
+from fractalis.data.etls.etl import ETL
+
 
 app = Celery(__name__)
 app.config_from_object('fractalis.config')
@@ -16,11 +18,12 @@ try:
     sys.path.append(os.path.dirname(os.path.expanduser(config_file)))
     config = __import__(module).__dict__
     for key in app.conf:
-        if key in config and key[0] != '_':
+        if key in config and key.startswith('_'):
             app.conf[key] = config[key]
 except KeyError:
     logger = logging.getLogger('fractalis')
     logger.warning("FRACTALIS_CONFIG is not set. Using defaults.")
 
-task_package = 'fractalis.analytics.scripts'
-app.autodiscover_tasks(packages=get_sub_packages_for_package(task_package))
+etl_classes = list_classes_with_base_class('fractalis.data.etls', ETL)
+for etl_class in etl_classes:
+    app.tasks.register(etl_class)

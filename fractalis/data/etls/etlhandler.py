@@ -29,15 +29,16 @@ class ETLHandler(metaclass=abc.ABCMeta):
 
     @classmethod
     def factory(cls, **kwargs):
-        for subclass in cls.__subclasses__():
-            if subclass._can_handle(kwargs):
-                return subclass(kwargs)
-        raise NotImplemented(
+        from . import HANDLER_REGISTRY
+        for handler in HANDLER_REGISTRY:
+            if handler.can_handle(kwargs):
+                return handler(kwargs)
+        raise NotImplementedError(
             "No ETLHandler implementation found for: '{}'"
             .format(kwargs))
 
     @classmethod
-    def _can_handle(cls, kwargs):
+    def can_handle(cls, kwargs):
         return kwargs['handler'] == cls._HANDLER
 
     @abc.abstractmethod

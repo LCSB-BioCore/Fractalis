@@ -1,8 +1,16 @@
 import abc
-from fractalis.celery import app as celery
+
+# TODO: is there a difference between this and importing
+# fractalis.celery.app.Task ?
+from celery import Task
 
 
-class ETL(celery.Task, metaclass=abc.ABCMeta):
+class ETL(Task, metaclass=abc.ABCMeta):
+
+    @property
+    @abc.abstractmethod
+    def name(self):
+        pass
 
     @property
     @abc.abstractmethod
@@ -14,21 +22,18 @@ class ETL(celery.Task, metaclass=abc.ABCMeta):
     def _DATA_TYPE(self):
         pass
 
-    def __init__(self, params):
-        for key in params:
-            self.__dict__[key] = params[key]
-
     @classmethod
-    def _can_handle(cls, params):
+    def can_handle(cls, params):
         return (params['_handler'] == cls._HANDLER and
                 params['_descriptor']['data_type'] == cls._DATA_TYPE)
 
     @classmethod
     def factory(cls, params):
-        for subclass in cls.__subclasses__():
-            if subclass._can_handle(params):
-                return subclass(params)
-        raise NotImplemented(
+        from . import ETL_REGISTRY
+        for etl in ETL_REGISTRY:
+            if etl.can_handle(params):
+                return etl()
+        raise NotImplementedError(
             "No ETL implementation found for: '{}'"
             .format(params))
 
