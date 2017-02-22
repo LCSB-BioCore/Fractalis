@@ -6,8 +6,6 @@ from fractalis.data.etls.etl import ETL
 
 class ETLHandler(metaclass=abc.ABCMeta):
 
-    _etls = []
-
     @property
     @abc.abstractmethod
     def _HANDLER(self):
@@ -18,14 +16,16 @@ class ETLHandler(metaclass=abc.ABCMeta):
             self.__dict__['_' + key] = kwargs[key]
 
     def handle(self):
-        assert not self._etls
         assert self._descriptors
+        etl_job_ids = []
         for descriptor in self._descriptors:
             params = copy.deepcopy(vars(self))
             del params['_descriptors']
             params['_descriptor'] = descriptor
             etl = ETL.factory(params)
-            self._etls.append(etl)
+            async_result = etl.delay(params)
+            etl_job_ids.append(async_result.id)
+        return etl_job_ids
 
     @classmethod
     def factory(cls, **kwargs):

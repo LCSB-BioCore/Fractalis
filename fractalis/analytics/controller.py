@@ -22,7 +22,7 @@ def prepare_session():
 @validate_json
 @validate_schema(create_job_schema)
 def create_job():
-    json = request.get_json(force=True)
+    json = request.get_json(force=True)  # pattern enforced by decorators
     analytics_job = AnalyticsJob.factory(json['job_name'])
     if analytics_job is None:
         return jsonify({'error_msg': "Job with name '{}' not found.".format(
