@@ -4,29 +4,18 @@ from flask import Blueprint, session, request, jsonify
 
 from fractalis.celery import app as celery
 from fractalis.validator import validate_json, validate_schema
-from fractalis.analytics.schema import create_job_schema
+from .schema import create_job_schema
+from .job import AnalyticsJob
 
 
 analytics_blueprint = Blueprint('analytics_blueprint', __name__)
 
 
-def get_celery_task(task):
-    try:
-        split = task.split('.')
-        import_cmd = ('importlib.import_module("'
-                      'fractalis.analytics.scripts.{}.{}").{}')
-        task = eval(import_cmd.format(*split))
-    except Exception as e:
-        # some logging here would be nice
-        return None
-    return task
-
-
 @analytics_blueprint.before_request
 def prepare_session():
     session.permanent = True
-    if 'tasks' not in session:
-        session['tasks'] = []
+    if 'jobs' not in session:
+        session['jobs'] = []
 
 
 @analytics_blueprint.route('', methods=['POST'])
@@ -34,27 +23,21 @@ def prepare_session():
 @validate_schema(create_job_schema)
 def create_job():
     json = request.get_json(force=True)
-    task = get_celery_task(json['task'])
-    if task is None:
-        return jsonify({'error_msg': 'Task {} not found.'.format(
-            json['task'])}), 400
-    try:
-        async_result = task.delay(**json['args'])
-    except TypeError as e:
-        return jsonify({'error_msg':
-                        'Invalid Arguments for task {}: {}'.format(
-                            json['task'], e)}), 400
-
-    session['tasks'].append(async_result.id)
-    return jsonify({'task_id': async_result.id}), 201
+    analytics_job = AnalyticsJob.factory(json['job_name'])
+    if analytics_job is None:
+        return jsonify({'error_msg': "Job with name '{}' not found.".format(
+            json['job_name'])}), 400
+    async_result = analytics_job.delay(**json['args'])
+    session['jobs'].append(async_result.id)
+    return jsonify({'job_id': async_result.id}), 201
 
 
-@analytics_blueprint.route('/<uuid:task_id>', methods=['GET'])
-def get_job_details(task_id):
-    task_id = str(task_id)
-    if task_id not in session['tasks']:  # access control
-        return jsonify({'error_msg': "No matching task found."}), 404
-    async_result = celery.AsyncResult(task_id)
+@analytics_blueprint.route('/<uuid:job_id>', methods=['GET'])
+def get_job_details(job_id):
+    job_id = str(job_id)
+    if job_id not in session['jobs']:  # access control
+        return jsonify({'error_msg': "No matching job found."}), 404
+    async_result = celery.AsyncResult(job_id)
     wait = request.args.get('wait') == '1'
     if wait:
         async_result.get(propagate=False)  # wait for results
@@ -66,13 +49,13 @@ def get_job_details(task_id):
                     'result': result}), 200
 
 
-@analytics_blueprint.route('/<uuid:task_id>', methods=['DELETE'])
-def cancel_job(task_id):
-    task_id = str(task_id)
-    if task_id not in session['tasks']:  # Access control
-        return jsonify({'error_msg': "No matching task found."}), 404
+@analytics_blueprint.route('/<uuid:job_id>', methods=['DELETE'])
+def cancel_job(job_id):
+    job_id = str(job_id)
+    if job_id not in session['jobs']:  # Access control
+        return jsonify({'error_msg': "No matching job found."}), 404
     wait = request.args.get('wait') == '1'
     # possibly dangerous: http://stackoverflow.com/a/29627549
-    celery.control.revoke(task_id, terminate=True, signal='SIGUSR1', wait=wait)
-    session['tasks'].remove(task_id)
-    return jsonify({'task_id': task_id}), 200
+    celery.control.revoke(job_id, terminate=True, signal='SIGUSR1', wait=wait)
+    session['jobs'].remove(job_id)
+    return jsonify({'job_id': job_id}), 200

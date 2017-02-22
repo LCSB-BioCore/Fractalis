@@ -8,6 +8,7 @@ from celery import Celery
 
 from fractalis.utils import list_classes_with_base_class
 from fractalis.data.etls.etl import ETL
+from fractalis.analytics.job import AnalyticsJob
 
 
 app = Celery(__name__)
@@ -27,3 +28,8 @@ except KeyError:
 etl_classes = list_classes_with_base_class('fractalis.data.etls', ETL)
 for etl_class in etl_classes:
     app.tasks.register(etl_class)
+
+analytics_job_classes = list_classes_with_base_class('fractalis.analytics.job',
+                                                     AnalyticsJob)
+for analytics_job_class in analytics_job_classes:
+    app.tasks.register(analytics_job_class)
