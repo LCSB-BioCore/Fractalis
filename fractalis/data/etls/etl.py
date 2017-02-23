@@ -1,6 +1,4 @@
 import abc
-import csv
-from hashlib import sha256
 
 # TODO: is there a difference between this and importing
 # fractalis.celery.app.Task ?

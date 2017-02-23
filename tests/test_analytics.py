@@ -16,7 +16,7 @@ class TestAnalytics(object):
         with app.test_client() as test_client:
             yield test_client
             # cleanup running jobs after each test
-            for job_id in flask.session['jobs']:
+            for job_id in flask.session['analytics_jobs']:
                 test_client.delete('/analytics/{}?wait=1'.format(job_id))
 
     # test POST to /analytics
@@ -114,7 +114,7 @@ class TestAnalytics(object):
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}?wait=1'.format(body['job_id'])
         with app.session_transaction() as sess:
-            sess['jobs'] = []
+            sess['analytics_jobs'] = []
         assert app.delete(new_url).status_code == 404
 
     # test GET to /analytics/{job_id}
@@ -174,5 +174,5 @@ class TestAnalytics(object):
         body = flask.json.loads(rv.get_data())
         new_url = '/analytics/{}?wait=0'.format(body['job_id'])
         with app.session_transaction() as sess:
-            sess['jobs'] = []
+            sess['analytics_jobs'] = []
         assert app.get(new_url).status_code == 404
