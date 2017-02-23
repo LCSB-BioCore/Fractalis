@@ -14,8 +14,8 @@ analytics_blueprint = Blueprint('analytics_blueprint', __name__)
 @analytics_blueprint.before_request
 def prepare_session():
     session.permanent = True
-    if 'jobs' not in session:
-        session['jobs'] = []
+    if 'analytics_jobs' not in session:
+        session['analytics_jobs'] = []
 
 
 @analytics_blueprint.route('', methods=['POST'])
@@ -28,14 +28,14 @@ def create_job():
         return jsonify({'error_msg': "Job with name '{}' not found.".format(
             json['job_name'])}), 400
     async_result = analytics_job.delay(**json['args'])
-    session['jobs'].append(async_result.id)
+    session['analytics_jobs'].append(async_result.id)
     return jsonify({'job_id': async_result.id}), 201
 
 
 @analytics_blueprint.route('/<uuid:job_id>', methods=['GET'])
 def get_job_details(job_id):
     job_id = str(job_id)
-    if job_id not in session['jobs']:  # access control
+    if job_id not in session['analytics_jobs']:  # access control
         return jsonify({'error_msg': "No matching job found."}), 404
     async_result = celery.AsyncResult(job_id)
     wait = request.args.get('wait') == '1'
@@ -52,10 +52,10 @@ def get_job_details(job_id):
 @analytics_blueprint.route('/<uuid:job_id>', methods=['DELETE'])
 def cancel_job(job_id):
     job_id = str(job_id)
-    if job_id not in session['jobs']:  # Access control
+    if job_id not in session['analytics_jobs']:  # Access control
         return jsonify({'error_msg': "No matching job found."}), 404
     wait = request.args.get('wait') == '1'
     # possibly dangerous: http://stackoverflow.com/a/29627549
     celery.control.revoke(job_id, terminate=True, signal='SIGUSR1', wait=wait)
-    session['jobs'].remove(job_id)
+    session['analytics_jobs'].remove(job_id)
     return jsonify({'job_id': job_id}), 200

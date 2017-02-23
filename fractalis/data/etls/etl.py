@@ -1,4 +1,6 @@
 import abc
+import csv
+from hashlib import sha256
 
 # TODO: is there a difference between this and importing
 # fractalis.celery.app.Task ?
@@ -23,20 +25,31 @@ class ETL(Task, metaclass=abc.ABCMeta):
         pass
 
     @classmethod
-    def can_handle(cls, params):
-        return (params['_handler'] == cls._HANDLER and
-                params['_descriptor']['data_type'] == cls._DATA_TYPE)
+    def can_handle(cls, handler, data_type):
+        return handler == cls._HANDLER and data_type == cls._DATA_TYPE
 
     @classmethod
-    def factory(cls, params):
+    def factory(cls, handler, data_type):
         from . import ETL_REGISTRY
         for etl in ETL_REGISTRY:
-            if etl.can_handle(params):
+            if etl.can_handle(handler, data_type):
                 return etl()
         raise NotImplementedError(
-            "No ETL implementation found for: '{}'"
-            .format(params))
+            "No ETL implementation found for handler '{}'' and data type '{}'"
+            .format(handler, data_type))
 
     @abc.abstractmethod
-    def run(self):
+    def extract(self, descriptor):
         pass
+
+    @abc.abstractmethod
+    def transform(self, raw_data):
+        pass
+
+    def load(self, data):
+        pass
+
+    def run(self, descriptor):
+        raw_data = self.extract(descriptor)
+        data = self.transform(raw_data)
+        self.load(data)

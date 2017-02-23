@@ -7,5 +7,8 @@ class FooETL(ETL):
     _HANDLER = 'test'
     _DATA_TYPE = 'foo'
 
-    def run(self):
-        return 42
+    def extract(self, params):
+        pass
+
+    def transform(self, raw_data):
+        pass
