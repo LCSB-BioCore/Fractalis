@@ -1,64 +1,47 @@
 """This module tests the data controller module."""
 
+import os
+from uuid import UUID
+
 import flask
 import pytest
 
+from fractalis import redis
+from fractalis import app
 
-@pytest.mark.skip(reason='notimplemented')
+
 class TestData:
 
     @pytest.fixture(scope='function')
-    def app(self):
+    def test_client(self):
         from fractalis import app
         app.testing = True
         with app.test_client() as test_client:
             yield test_client
+            redis.flushall()
+
+    @pytest.fixture(scope='function')
+    def post(self, test_client):
+        return test_client.post('/data', data=flask.json.dumps(dict(
+            handler='test',
+            server='localhost:1234',
+            token='7746391376142672192764',
+            descriptors=[
+                {
+                    'data_type': 'foo',
+                    'concept': 'abc//efg/whatever'
+                }
+            ]
+        )))
 
     # POST /
 
-    def test_201_on_POST_and_resource_exists_if_created(self, app):
-        rv = app.post('/data', data=flask.json.dumps(dict(
-            etl='transmart',
-            server='localhost:1234',
-            concept='GSE123/Demographics/Age',
-        )))
+    def test_201_on_POST_and_file_exists(self, test_client, post):
+        rv = post
         body = flask.json.loads(rv.get_data())
-        new_url = '/data/{}'.format(body['data_id'])
-        assert app.head(new_url) == 200
-
-    def test_400_on_POST_if_invalid_request(self, app):
-        assert False
-
-    def test_200_instead_of_201_on_POST_if_data_already_exists(self, app):
-        assert False
-
-    def test_data_deleted_on_expiration(self, app):
-        assert False
-
-    def test_data_in_db_after_creation(self, app):
-        assert False
-
-    # GET /data_id
-
-    def test_200_on_GET_if_resource_created_and_correct_content(self, app):
-        assert False
-
-    def test_400_on_GET_if_invalid_request(self, app):
-        assert False
-
-    def test_404_on_GET_if_dataid_not_existing(self, app):
-        assert False
-
-    def test_404_on_GET_if_no_auth(self, app):
-        assert False
-
-    # GET /
-
-    def test_200_on_GET_and_correct_summary_if_data_exist(self, app):
-        assert False
-
-    def test_200_on_GET_and_correct_summary_if_no_data_exist(self, app):
-        assert False
-
-    def test_only_permitted_data_visible(self, app):
-        assert False
+        assert len(body['data_ids']) == 1
+        data_id = body['data_ids'][0]
+        assert UUID(data_id)
+        data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        assert len(os.listdir(data_dir)) == 1
+        assert UUID(os.listdir(data_dir)[0])

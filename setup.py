@@ -12,6 +12,7 @@ setup(
         'celery[redis]',
         'redis',
         'pandas',
+        'numpy'
     ],
     setup_requires=[
         'pytest-runner',

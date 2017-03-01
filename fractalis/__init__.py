@@ -27,7 +27,9 @@ app.session_interface = RedisSessionInterface(redis)
 
 # register blueprints. Do not move the import, due to circular dependencyies.
 from fractalis.analytics.controller import analytics_blueprint  # noqa
+from fractalis.data.controller import data_blueprint  # noqa
 app.register_blueprint(analytics_blueprint, url_prefix='/analytics')
+app.register_blueprint(data_blueprint, url_prefix='/data')
 
 if __name__ == '__main__':
     handler = logging.handlers.TimedRotatingFileHandler('fractalis.log',

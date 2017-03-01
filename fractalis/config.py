@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 
 # DO NOT MODIFY THIS FILE!
@@ -12,5 +13,8 @@ PERMANENT_SESSION_LIFETIME = timedelta(days=1)
 BROKER_URL = 'amqp://'
 CELERY_RESULT_BACKEND = 'redis://{}:{}'.format(REDIS_HOST, REDIS_PORT)
 CELERY_TASK_TIME_LIMIT = 60 * 10
+
+FRACTALIS_TMP_DIR = os.path.abspath(os.path.join(
+    os.sep, 'tmp', 'fractalis'))
 
 # DO NOT MODIFY THIS FILE!
