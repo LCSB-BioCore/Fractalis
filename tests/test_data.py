@@ -5,10 +5,10 @@ import pytest
 
 
 @pytest.mark.skip(reason='notimplemented')
-class TestData(object):
+class TestData:
 
     @pytest.fixture(scope='function')
-    def app(self, app):
+    def app(self):
         from fractalis import app
         app.testing = True
         with app.test_client() as test_client:

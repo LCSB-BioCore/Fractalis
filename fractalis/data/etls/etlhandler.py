@@ -10,11 +10,18 @@ class ETLHandler(metaclass=abc.ABCMeta):
     def _HANDLER(self):
         pass
 
+    def __init__(self, server, token):
+        self._server = server
+        self._token = token
+
     def handle(self, descriptors):
         etl_job_ids = []
         for descriptor in descriptors:
-            etl = ETL.factory(self._HANDLER, descriptor['data_type'])
-            async_result = etl.delay(descriptor)
+            etl = ETL.factory(handler=self._HANDLER,
+                              data_type=descriptor['data_type'])
+            async_result = etl.delay(server=self._server,
+                                     token=self._token,
+                                     descriptor=descriptor)
             etl_job_ids.append(async_result.id)
         return etl_job_ids
 
@@ -23,7 +30,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
         from . import HANDLER_REGISTRY
         for Handler in HANDLER_REGISTRY:
             if Handler.can_handle(handler):
-                return Handler()
+                return Handler(server, token)
         raise NotImplementedError(
             "No ETLHandler implementation found for: '{}'".format(handler))
 
@@ -32,5 +39,5 @@ class ETLHandler(metaclass=abc.ABCMeta):
         return handler == cls._HANDLER
 
     @abc.abstractmethod
-    def _heartbeat(self, server, token):
+    def _heartbeat(self):
         pass

@@ -11,6 +11,7 @@ setup(
         'jsonschema',
         'celery[redis]',
         'redis',
+        'pandas',
     ],
     setup_requires=[
         'pytest-runner',

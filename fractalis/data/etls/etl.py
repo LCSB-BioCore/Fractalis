@@ -1,8 +1,14 @@
+import os
 import abc
+import json
+from uuid import uuid4
+from hashlib import sha256
 
-# TODO: is there a difference between this and importing
-# fractalis.celery.app.Task ?
 from celery import Task
+from pandas import DataFrame
+
+from fractalis import app
+from fractalis import redis
 
 
 class ETL(Task, metaclass=abc.ABCMeta):
@@ -37,17 +43,28 @@ class ETL(Task, metaclass=abc.ABCMeta):
             .format(handler, data_type))
 
     @abc.abstractmethod
-    def extract(self, descriptor):
+    def extract(self, server, token, descriptor):
         pass
 
     @abc.abstractmethod
     def transform(self, raw_data):
         pass
 
-    def load(self, data):
-        pass
+    def load(self, data_frame, server, descriptor):
+        data_dir = app.config['FRACTALIS_TMP_FOLDER']
+        os.makedirs(data_dir, exist_ok=True)
+        file_name = uuid4()
+        file_path = os.path.join(data_dir, file_name)
+        descriptor_str = json.dumps(descriptor, sort_keys=True)
+        to_hash = '{}|{}'.format(server, descriptor_str).encode('utf-8')
+        hash_key = sha256(to_hash)
+        data_frame.to_csv(file_path)
+        redis.hset(name='data', key=hash_key, value=file_path)
 
-    def run(self, descriptor):
-        raw_data = self.extract(descriptor)
-        data = self.transform(raw_data)
-        self.load(data)
+    def run(self, server, token, descriptor):
+        raw_data = self.extract(server, token, descriptor)
+        data_frame = self.transform(raw_data)
+        if not isinstance(data_frame, DataFrame):
+            raise TypeError("transform() must return 'pandas.DataFrame', but"
+                            "returned '{}' instead.".format(type(data_frame)))
+        self.load(data_frame, server, descriptor)

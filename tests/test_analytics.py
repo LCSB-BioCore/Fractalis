@@ -7,7 +7,7 @@ import flask
 import pytest
 
 
-class TestAnalytics(object):
+class TestAnalytics:
 
     @pytest.fixture(scope='function')
     def app(self):

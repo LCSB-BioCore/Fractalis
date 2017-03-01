@@ -9,7 +9,6 @@ from flask import Flask
 from redis import StrictRedis
 
 from fractalis.session import RedisSessionInterface
-from fractalis.analytics.controller import analytics_blueprint
 
 
 app = Flask(__name__)
@@ -25,6 +24,9 @@ except RuntimeError:
 redis = StrictRedis(host=app.config['REDIS_HOST'],
                     port=app.config['REDIS_PORT'])
 app.session_interface = RedisSessionInterface(redis)
+
+# register blueprints. Do not move the import, due to circular dependencyies.
+from fractalis.analytics.controller import analytics_blueprint  # noqa
 app.register_blueprint(analytics_blueprint, url_prefix='/analytics')
 
 if __name__ == '__main__':
