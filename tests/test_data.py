@@ -136,3 +136,30 @@ class TestData:
         assert len(os.listdir(data_dir)) == N
         for f in os.listdir(data_dir):
             assert UUID(f)
+
+    def test_many_big_POST_and_files_exist(self, test_client, big_post):
+        N = 10
+        data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        for i in range(N):
+            rv = big_post(random=False)
+            assert rv.status_code == 201
+            body = flask.json.loads(rv.get_data())
+            assert len(body['data_ids']) == 3
+        test_client.head('/data/?wait=1')
+        assert len(os.listdir(data_dir)) == 3
+        for f in os.listdir(data_dir):
+            assert UUID(f)
+
+    def test_many_big_random_POST_and_files_exist(
+            self, test_client, big_post):
+        N = 10
+        data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        for i in range(N):
+            rv = big_post(random=True)
+            assert rv.status_code == 201
+            body = flask.json.loads(rv.get_data())
+            assert len(body['data_ids']) == 3
+        test_client.head('/data/?wait=1')
+        assert len(os.listdir(data_dir)) == 3 * N
+        for f in os.listdir(data_dir):
+            assert UUID(f)
