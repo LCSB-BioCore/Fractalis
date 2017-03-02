@@ -69,13 +69,3 @@ def get_all_data_state():
     data_states = [get_data_by_id(data_id, wait)
                    for data_id in session['data_ids']]
     return jsonify(data_states), 200
-
-
-@data_blueprint.route('/<uuid:data_id>', methods=['DELETE'])
-def delete_data(data_id):
-    session['data_ids'].remove(data_id)
-
-
-@data_blueprint.route('', methods=['DELETE'])
-def delete_all_data():
-    session['data_ids'] = []

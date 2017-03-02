@@ -69,12 +69,77 @@ class TestData:
                 ]
             )))
 
-    # POST /
+    @pytest.fixture(scope='function', params=[
+        {
+            'handler': '',
+            'server': 'localhost',
+            'token': '1234567890',
+            'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
+        },
+        {
+            'handler': 'test',
+            'server': '',
+            'token': '1234567890',
+            'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
+        },
+        {
+            'handler': 'test',
+            'server': 'localhost',
+            'token': '',
+            'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
+        },
+        {
+            'handler': 'test',
+            'server': 'localhost',
+            'token': '1234567890',
+            'descriptors': ''
+        },
+        {
+            'handler': 'test',
+            'server': 'localhost',
+            'token': '1234567890',
+            'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
+        },
+        {
+            'handler': 'test',
+            'server': 'localhost',
+            'token': '1234567890',
+            'descriptors': '[{"concept": "GSE1234"}]'
+        },
+        {
+            'handler': 'test',
+            'server': 'localhost',
+            'token': '1234567890',
+            'descriptors': '[{"data_type": "foo"}]'
+        },
+        {
+            'handler': 'test',
+            'server': 'localhost',
+            'token': '1234567890',
+            'descriptors': '[{"data_type": "", "concept": "GSE1234"}]'
+        },
+        {
+            'handler': 'test',
+            'server': 'localhost',
+            'token': '1234567890',
+            'descriptors': '[]'
+        }
+    ])
+    def bad_post(self, test_client, request):
+        return lambda: test_client.post('/data', data=flask.json.dumps(dict(
+                handler=request.param['handler'],
+                server=request.param['server'],
+                token=request.param['token'],
+                descriptors=request.param['descriptors']
+            )))
+
+    def test_bad_POST(self, bad_post):
+        assert bad_post().status_code == 400
 
     def test_201_on_small_POST_and_valid_state(self, test_client, small_post):
         rv = small_post(random=False)
-        assert rv.status_code == 201
         body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
         assert len(body['data_ids']) == 1
         test_client.head('/data?wait=1')
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
@@ -89,8 +154,8 @@ class TestData:
 
     def test_201_on_big_POST_and_valid_state(self, test_client, big_post):
         rv = big_post(random=False)
-        assert rv.status_code == 201
         body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
         assert len(body['data_ids']) == 3
         test_client.head('/data?wait=1')
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
@@ -162,8 +227,7 @@ class TestData:
             assert data_obj['job_id']
             assert data_obj['file_path']
 
-    def test_many_big_random_POST_and_valid_state(
-            self, test_client, big_post):
+    def test_many_big_random_POST_and_valid_state(self, test_client, big_post):
         N = 10
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         for i in range(N):
