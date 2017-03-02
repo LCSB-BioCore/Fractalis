@@ -71,7 +71,7 @@ class TestData:
 
     # POST /
 
-    def test_201_on_small_POST_and_file_exists(self, test_client, small_post):
+    def test_201_on_small_POST_and_valid_state(self, test_client, small_post):
         rv = small_post(random=False)
         assert rv.status_code == 201
         body = flask.json.loads(rv.get_data())
@@ -80,8 +80,14 @@ class TestData:
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         assert len(os.listdir(data_dir)) == 1
         assert UUID(os.listdir(data_dir)[0])
+        data = redis.hgetall(name='data')
+        assert len(data) == 1
+        for key in data:
+            data_obj = json.loads(data[key].decode('utf-8'))
+            assert data_obj['job_id']
+            assert data_obj['file_path']
 
-    def test_201_on_big_POST_and_files_exist(self, test_client, big_post):
+    def test_201_on_big_POST_and_valid_state(self, test_client, big_post):
         rv = big_post(random=False)
         assert rv.status_code == 201
         body = flask.json.loads(rv.get_data())
@@ -91,18 +97,6 @@ class TestData:
         assert len(os.listdir(data_dir)) == 3
         for f in os.listdir(data_dir):
             assert UUID(f)
-
-    def test_small_POST_and_valid_db_state(self, small_post):
-        small_post(random=False)
-        data = redis.hgetall(name='data')
-        assert len(data) == 1
-        for key in data:
-            data_obj = json.loads(data[key].decode('utf-8'))
-            assert data_obj['job_id']
-            assert data_obj['file_path']
-
-    def test_big_POST_and_valid_db_state(self, big_post):
-        big_post(random=False)
         data = redis.hgetall(name='data')
         assert len(data) == 3
         for key in data:
@@ -110,7 +104,7 @@ class TestData:
             assert data_obj['job_id']
             assert data_obj['file_path']
 
-    def test_many_small_POST_and_files_exist(self, test_client, small_post):
+    def test_many_small_POST_and_valid_state(self, test_client, small_post):
         N = 10
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         for i in range(N):
@@ -122,8 +116,14 @@ class TestData:
         assert len(os.listdir(data_dir)) == 1
         for f in os.listdir(data_dir):
             assert UUID(f)
+        data = redis.hgetall(name='data')
+        assert len(data) == 1
+        for key in data:
+            data_obj = json.loads(data[key].decode('utf-8'))
+            assert data_obj['job_id']
+            assert data_obj['file_path']
 
-    def test_many_small_random_POST_and_files_exist(
+    def test_many_small_random_POST_and_valid_state(
             self, test_client, small_post):
         N = 10
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
@@ -136,8 +136,14 @@ class TestData:
         assert len(os.listdir(data_dir)) == N
         for f in os.listdir(data_dir):
             assert UUID(f)
+        data = redis.hgetall(name='data')
+        assert len(data) == N
+        for key in data:
+            data_obj = json.loads(data[key].decode('utf-8'))
+            assert data_obj['job_id']
+            assert data_obj['file_path']
 
-    def test_many_big_POST_and_files_exist(self, test_client, big_post):
+    def test_many_big_POST_and_valid_state(self, test_client, big_post):
         N = 10
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         for i in range(N):
@@ -149,8 +155,14 @@ class TestData:
         assert len(os.listdir(data_dir)) == 3
         for f in os.listdir(data_dir):
             assert UUID(f)
+        data = redis.hgetall(name='data')
+        assert len(data) == 3
+        for key in data:
+            data_obj = json.loads(data[key].decode('utf-8'))
+            assert data_obj['job_id']
+            assert data_obj['file_path']
 
-    def test_many_big_random_POST_and_files_exist(
+    def test_many_big_random_POST_and_valid_state(
             self, test_client, big_post):
         N = 10
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
@@ -163,3 +175,9 @@ class TestData:
         assert len(os.listdir(data_dir)) == 3 * N
         for f in os.listdir(data_dir):
             assert UUID(f)
+        data = redis.hgetall(name='data')
+        assert len(data) == 3 * N
+        for key in data:
+            data_obj = json.loads(data[key].decode('utf-8'))
+            assert data_obj['job_id']
+            assert data_obj['file_path']
