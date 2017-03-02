@@ -32,8 +32,9 @@ def create_data():
     return jsonify({'data_ids': data_ids}), 201
 
 
-def get_data(key, wait):
-    value = redis.hget(name='data', key=key)
+def get_data_by_id(data_id, wait=False):
+    value = redis.hget(name='data', key=data_id)
+    value = value.decode('utf-8')
     data_obj = json.loads(value)
     job_id = data_obj['job_id']
     async_result = celery.AsyncResult(job_id)
@@ -45,41 +46,34 @@ def get_data(key, wait):
         result = "{}: {}".format(type(result).__name__, str(result))
     data_obj['state'] = state
     data_obj['message'] = result
-    return data_obj
-
-
-@data_blueprint.route('/<uuid:data_id>', methods=['GET'])
-def get_data_by_id(data_id):
-    data_id = str(data_id)
-    wait = request.args.get('wait') == '1'
-    if data_id not in session['data_ids']:  # access control
-        return jsonify({'error_msg': "No matching data found."}), 404
-    data = get_data(data_id, wait)
-    return jsonify(data), 200
 
 
 @data_blueprint.route('/<string:params>', methods=['GET'])
 def get_data_by_params(params):
-    params = json.loads(params)
     wait = request.args.get('wait') == '1'
-    data_id = ETLHandler.compute_data_id(server=params['server'],
-                                         descriptor=params['descriptor'])
+    try:
+        params = json.loads(params)
+        data_id = ETLHandler.compute_data_id(server=params['server'],
+                                             descriptor=params['descriptor'])
+    except ValueError:
+        data_id = params
     if data_id not in session['data_ids']:  # access control
         return jsonify({'error_msg': "No matching data found."}), 404
-    data = get_data(data_id, wait)
-    return jsonify(data), 200
+    data_obj = get_data_by_id(data_id, wait)
+    return jsonify(data_obj), 200
 
 
 @data_blueprint.route('', methods=['GET'])
 def get_all_data_state():
-    pass
+    data_states = [get_data_by_id(data_id) for data_id in session['data_ids']]
+    return jsonify(data_states), 200
 
 
 @data_blueprint.route('/<uuid:data_id>', methods=['DELETE'])
 def delete_data(data_id):
-    pass
+    session['data_ids'].remove(data_id)
 
 
 @data_blueprint.route('', methods=['DELETE'])
 def delete_all_data():
-    pass
+    session['data_ids'] = []

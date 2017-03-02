@@ -24,13 +24,13 @@ class ETLHandler(metaclass=abc.ABCMeta):
     def compute_data_id(server, descriptor):
         descriptor_str = json.dumps(descriptor, sort_keys=True)
         to_hash = '{}|{}'.format(server, descriptor_str).encode('utf-8')
-        hash_key = sha256(to_hash)
+        hash_key = sha256(to_hash).hexdigest()
         return hash_key
 
     def handle(self, descriptors):
         data_ids = []
         for descriptor in descriptors:
-            hash_key = self.compute_data_id(self._server, descriptor)
+            data_id = self.compute_data_id(self._server, descriptor)
             tmp_dir = app.config['FRACTALIS_TMP_DIR']
             data_dir = os.path.join(tmp_dir, 'data')
             os.makedirs(data_dir, exist_ok=True)
@@ -43,8 +43,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
                                      descriptor=descriptor,
                                      file_path=file_path)
             data_obj = {'file_path': file_path, 'job_id': async_result.id}
-            redis.hset(name='data', key=hash_key, value=json.dumps(data_obj))
-            data_ids.append(async_result.id)
+            redis.hset(name='data', key=data_id, value=json.dumps(data_obj))
+            data_ids.append(data_id)
         return data_ids
 
     @classmethod

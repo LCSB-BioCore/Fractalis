@@ -32,7 +32,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
             if etl.can_handle(handler, data_type):
                 return etl()
         raise NotImplementedError(
-            "No ETL implementation found for handler '{}'' and data type '{}'"
+            "No ETL implementation found for handler '{}' and data type '{}'"
             .format(handler, data_type))
 
     @abc.abstractmethod
