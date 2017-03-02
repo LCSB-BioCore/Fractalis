@@ -34,8 +34,12 @@ class ETLHandler(metaclass=abc.ABCMeta):
             tmp_dir = app.config['FRACTALIS_TMP_DIR']
             data_dir = os.path.join(tmp_dir, 'data')
             os.makedirs(data_dir, exist_ok=True)
-            file_name = str(uuid4())
-            file_path = os.path.join(data_dir, file_name)
+            value = redis.hget('data', key=data_id)
+            if value:
+                file_path = json.loads(value.decode('utf-8'))
+            else:
+                file_name = str(uuid4())
+                file_path = os.path.join(data_dir, file_name)
             etl = ETL.factory(handler=self._HANDLER,
                               data_type=descriptor['data_type'])
             async_result = etl.delay(server=self._server,

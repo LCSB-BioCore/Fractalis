@@ -32,7 +32,7 @@ def create_data():
     return jsonify({'data_ids': data_ids}), 201
 
 
-def get_data_by_id(data_id, wait=False):
+def get_data_by_id(data_id, wait):
     value = redis.hget(name='data', key=data_id)
     value = value.decode('utf-8')
     data_obj = json.loads(value)
@@ -65,7 +65,9 @@ def get_data_by_params(params):
 
 @data_blueprint.route('', methods=['GET'])
 def get_all_data_state():
-    data_states = [get_data_by_id(data_id) for data_id in session['data_ids']]
+    wait = request.args.get('wait') == '1'
+    data_states = [get_data_by_id(data_id, wait)
+                   for data_id in session['data_ids']]
     return jsonify(data_states), 200
 
 
