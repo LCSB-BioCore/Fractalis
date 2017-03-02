@@ -141,7 +141,7 @@ class TestData:
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 201, body
         assert len(body['data_ids']) == 1
-        test_client.head('/data?wait=1')
+        assert test_client.head('/data?wait=1').status_code == 200
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         assert len(os.listdir(data_dir)) == 1
         assert UUID(os.listdir(data_dir)[0])
@@ -157,7 +157,7 @@ class TestData:
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 201, body
         assert len(body['data_ids']) == 3
-        test_client.head('/data?wait=1')
+        assert test_client.head('/data?wait=1').status_code == 200
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         assert len(os.listdir(data_dir)) == 3
         for f in os.listdir(data_dir):
@@ -177,7 +177,7 @@ class TestData:
             assert rv.status_code == 201
             body = flask.json.loads(rv.get_data())
             assert len(body['data_ids']) == 1
-        test_client.head('/data/?wait=1')
+        assert test_client.head('/data?wait=1').status_code == 200
         assert len(os.listdir(data_dir)) == 1
         for f in os.listdir(data_dir):
             assert UUID(f)
@@ -197,7 +197,7 @@ class TestData:
             assert rv.status_code == 201
             body = flask.json.loads(rv.get_data())
             assert len(body['data_ids']) == 1
-        test_client.head('/data/?wait=1')
+        assert test_client.head('/data?wait=1').status_code == 200
         assert len(os.listdir(data_dir)) == N
         for f in os.listdir(data_dir):
             assert UUID(f)
@@ -216,7 +216,7 @@ class TestData:
             assert rv.status_code == 201
             body = flask.json.loads(rv.get_data())
             assert len(body['data_ids']) == 3
-        test_client.head('/data/?wait=1')
+        assert test_client.head('/data?wait=1').status_code == 200
         assert len(os.listdir(data_dir)) == 3
         for f in os.listdir(data_dir):
             assert UUID(f)
@@ -235,7 +235,7 @@ class TestData:
             assert rv.status_code == 201
             body = flask.json.loads(rv.get_data())
             assert len(body['data_ids']) == 3
-        test_client.head('/data/?wait=1')
+        assert test_client.head('/data?wait=1').status_code == 200
         assert len(os.listdir(data_dir)) == 3 * N
         for f in os.listdir(data_dir):
             assert UUID(f)
