@@ -22,6 +22,9 @@ except KeyError:
     logger = logging.getLogger('fractalis')
     logger.warning("FRACTALIS_CONFIG is not set. Using defaults.")
 
+from fractalis.data.sync import cleanup
+app.tasks.register(cleanup)
+
 etl_classes = list_classes_with_base_class('fractalis.data.etls', ETL)
 for etl_class in etl_classes:
     app.tasks.register(etl_class)

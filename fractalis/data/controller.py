@@ -1,4 +1,5 @@
 import json
+import time
 
 from flask import Blueprint, session, request, jsonify
 
@@ -36,6 +37,11 @@ def get_data_by_id(data_id, wait):
     value = redis.hget(name='data', key=data_id)
     value = value.decode('utf-8')
     data_obj = json.loads(value)
+
+    # update last_access field
+    data_obj['last_access'] = time.time()
+    redis.hset(name='data', key=data_id, value=json.dumps(data_obj))
+
     job_id = data_obj['job_id']
     async_result = celery.AsyncResult(job_id)
     if wait:
@@ -58,7 +64,8 @@ def get_data_by_params(params):
     except ValueError:
         data_id = params
     if data_id not in session['data_ids']:  # access control
-        return jsonify({'error_msg': "No matching data found."}), 404
+        return jsonify(
+            {'error_msg': "No matching data found. Maybe expired?"}), 404
     data_obj = get_data_by_id(data_id, wait)
     return jsonify(data_obj), 200
 

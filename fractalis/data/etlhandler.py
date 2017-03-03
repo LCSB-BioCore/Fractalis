@@ -1,6 +1,7 @@
 import os
 import abc
 import json
+import time
 from hashlib import sha256
 from uuid import uuid4
 
@@ -46,7 +47,11 @@ class ETLHandler(metaclass=abc.ABCMeta):
                                      token=self._token,
                                      descriptor=descriptor,
                                      file_path=file_path)
-            data_obj = {'file_path': file_path, 'job_id': async_result.id}
+            data_obj = {
+                'file_path': file_path,
+                'job_id': async_result.id,
+                'last_access': time.time()
+            }
             redis.hset(name='data', key=data_id, value=json.dumps(data_obj))
             data_ids.append(data_id)
         return data_ids
