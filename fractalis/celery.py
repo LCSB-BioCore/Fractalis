@@ -7,7 +7,7 @@ from celery import Celery
 
 from fractalis.utils import list_classes_with_base_class
 from fractalis.utils import import_module_by_abs_path
-from fractalis.data.etls.etl import ETL
+from fractalis.data.etl import ETL
 from fractalis.analytics.job import AnalyticsJob
 
 

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from fractalis.data.etls.etl import ETL
+from fractalis.data.etl import ETL
 
 
 class FooETL(ETL):

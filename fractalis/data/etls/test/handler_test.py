@@ -1,4 +1,4 @@
-from fractalis.data.etls.etlhandler import ETLHandler
+from fractalis.data.etlhandler import ETLHandler
 
 
 class TestHandler(ETLHandler):
