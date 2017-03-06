@@ -274,6 +274,22 @@ class TestData:
             assert body['state']
             assert body['job_id']
 
+    def test_GET_by_all_and_valid_response(self, test_client, big_post):
+        rv = big_post(random=False)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        data_ids = body['data_ids']
+        assert len(data_ids) == 3
+
+        rv = test_client.get('/data')
+        body = flask.json.loads(rv.get_data())
+
+        for data_state in body:
+            assert len(data_state) == 3
+            assert not data_state['message']
+            assert data_state['state']
+            assert data_state['job_id']
+
     def test_GET_by_params_and_valid_response(self, test_client):
         data = dict(
             handler='test',
@@ -345,3 +361,19 @@ class TestData:
         rv = test_client.get('/data/{}'.format(payload))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 404, body
+
+    def test_empty_response_for_empty_session(self, test_client, small_post):
+        rv = small_post(random=False)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+
+        rv = test_client.get('/data')
+        body = flask.json.loads(rv.get_data())
+        assert body, body
+
+        with test_client.session_transaction() as sess:
+            sess['data_ids'] = []
+
+        rv = test_client.get('/data')
+        body = flask.json.loads(rv.get_data())
+        assert not body, body
