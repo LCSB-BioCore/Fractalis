@@ -16,6 +16,8 @@ def prepare_session():
     session.permanent = True
     if 'analytics_jobs' not in session:
         session['analytics_jobs'] = []
+    if 'data_ids' not in session:
+        session['data_ids'] = []
 
 
 @analytics_blueprint.route('', methods=['POST'])
@@ -27,7 +29,8 @@ def create_job():
     if analytics_job is None:
         return jsonify({'error_msg': "Job with name '{}' not found.".format(
             json['job_name'])}), 400
-    async_result = analytics_job.delay(**json['args'])
+    async_result = analytics_job.delay(accessible_data_ids=session['data_ids'],
+                                       **json['args'])
     session['analytics_jobs'].append(async_result.id)
     return jsonify({'job_id': async_result.id}), 201
 

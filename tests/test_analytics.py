@@ -5,6 +5,7 @@ import uuid
 import time
 import json
 from glob import glob
+from uuid import uuid4
 
 import flask
 import pytest
@@ -32,7 +33,7 @@ class TestAnalytics:
             # cleanup running jobs after each test
             for job_id in flask.session['analytics_jobs']:
                 test_client.delete('/analytics/{}?wait=1'.format(job_id))
-        self.cleanup()
+            self.cleanup()
 
     @pytest.fixture(scope='function')
     def small_data_post(self, test_client):
@@ -44,7 +45,7 @@ class TestAnalytics:
                 descriptors=[
                     {
                         'data_type': 'randomdf',
-                        'concept': uuid.uuid4() if random else 'concept'
+                        'concept': str(uuid4()) if random else 'concept'
                     }
                 ]
             )))
@@ -99,9 +100,24 @@ class TestAnalytics:
         new_body2 = flask.json.loads(new_response2.get_data())
         new_body2['state'] != 'FAILURE'
 
-    @pytest.mark.skip(reason="Data interface not implemented yet.")
-    def test_404_if_creating_without_auth(self, test_client):
-        pass
+    def test_404_if_creating_without_auth(self, test_client, small_data_post):
+        rv = small_data_post(random=False)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        with test_client.session_transaction() as sess:
+            sess['data_ids'] = []
+        rv = test_client.post('/analytics', data=flask.json.dumps(dict(
+            job_name='sum_df_test_job',
+            args={'a': '${}$'.format(body['data_ids'][0])}
+        )))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        url = '/analytics/{}?wait=1'.format(body['job_id'])
+        rv = test_client.get(url)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 200, body
+        assert body['state'] == 'FAILURE'
+        assert 'KeyError' in body['result']
 
     def test_resource_deleted(self, test_client):
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(
@@ -116,7 +132,7 @@ class TestAnalytics:
         assert test_client.head(new_url).status_code == 404
 
     def test_404_if_deleting_non_existing_resource(self, test_client):
-        rv = test_client.delete('/analytics/{}?wait=1'.format(uuid.uuid4()))
+        rv = test_client.delete('/analytics/{}?wait=1'.format(str(uuid4())))
         assert rv.status_code == 404
 
     def test_running_resource_deleted(self, test_client):
@@ -188,7 +204,7 @@ class TestAnalytics:
 
     def test_404_if_status_non_existing_resource(self, test_client):
         assert test_client.get('/analytics/{}?wait=1'
-                               .format(uuid.uuid4())).status_code == 404
+                               .format(str(uuid4()))).status_code == 404
 
     def test_404_if_status_without_auth(self, test_client):
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(
@@ -224,3 +240,17 @@ class TestAnalytics:
         assert new_response.status_code == 200, new_body
         assert new_body['state'] == 'SUCCESS'
         assert float(json.loads(new_body['result'])['sum'])
+
+    def test_exception_if_result_not_json(self, test_client, small_data_post):
+        rv = test_client.post('/analytics', data=flask.json.dumps(dict(
+            job_name='identity_test_job',
+            args={'a': 42}
+        )))
+        assert rv.status_code == 201
+        body = flask.json.loads(rv.get_data())
+        new_url = '/analytics/{}?wait=1'.format(body['job_id'])
+        new_response = test_client.get(new_url)
+        assert new_response.status_code == 200
+        new_body = flask.json.loads(new_response.get_data())
+        assert new_body['state'] == 'FAILURE'
+        assert 'ValueError' in new_body['result']

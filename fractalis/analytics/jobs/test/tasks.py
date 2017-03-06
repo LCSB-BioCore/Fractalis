@@ -43,3 +43,11 @@ class SumDataFrameJob(AnalyticsJob):
         result = {}
         result['sum'] = a.sum().sum()
         return json.dumps(result)
+
+
+class IdentityJob(AnalyticsJob):
+
+    name = 'identity_test_job'
+
+    def main(self, a):
+        return a

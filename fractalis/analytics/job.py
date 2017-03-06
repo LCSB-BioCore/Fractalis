@@ -27,17 +27,20 @@ class AnalyticsJob(Task, metaclass=abc.ABCMeta):
     def main(self):
         pass
 
-    def run(self, **kwargs):
+    def run(self, accessible_data_ids, **kwargs):
         args = {}
         for arg in kwargs:
             value = kwargs[arg]
             if (isinstance(value, str) and
                     value.startswith('$') and value.endswith('$')):
                 data_id = value[1:-1]
+                if data_id not in accessible_data_ids:
+                    raise KeyError("No permission to use data_id '{}'"
+                                   "for analysis".format(data_id))
                 data_obj = redis.hget(name='data', key=data_id)
                 if data_obj is None:
-                    raise KeyError("The key '" + data_id + "' does not match "
-                                   "any entries in the database.")
+                    raise KeyError("The key '{}' does not match any entries"
+                                   "in the database.".format(data_id))
                 data_obj = json.loads(data_obj.decode('utf-8'))
                 file_path = data_obj['file_path']
                 value = pd.read_csv(file_path)

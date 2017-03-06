@@ -53,6 +53,11 @@ def get_data_by_id(data_id, wait):
     data_obj['state'] = state
     data_obj['message'] = result
 
+    # remove internal information from response
+    del data_obj['file_path']
+
+    return data_obj
+
 
 @data_blueprint.route('/<string:params>', methods=['GET'])
 def get_data_by_params(params):

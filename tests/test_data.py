@@ -31,7 +31,7 @@ class TestData:
         app.testing = True
         with app.test_client() as test_client:
             yield test_client
-        self.cleanup()
+            self.cleanup()
 
     @pytest.fixture(scope='function')
     def small_post(self, test_client):
@@ -43,7 +43,7 @@ class TestData:
                 descriptors=[
                     {
                         'data_type': 'foo',
-                        'concept': uuid4() if random else 'concept'
+                        'concept': str(uuid4()) if random else 'concept'
                     }
                 ]
             )))
@@ -58,15 +58,15 @@ class TestData:
                 descriptors=[
                     {
                         'data_type': 'foo',
-                        'concept': uuid4() if random else 'concept1'
+                        'concept': str(uuid4()) if random else 'concept1'
                     },
                     {
                         'data_type': 'bar',
-                        'concept': uuid4() if random else 'concept2'
+                        'concept': str(uuid4()) if random else 'concept2'
                     },
                     {
                         'data_type': 'foo',
-                        'concept': uuid4() if random else 'concept3'
+                        'concept': str(uuid4()) if random else 'concept3'
                     },
                 ]
             )))
@@ -258,3 +258,66 @@ class TestData:
         sync.cleanup(datetime.timedelta(seconds=0))
         assert not redis.hgetall(name='data')
         assert not len(os.listdir(data_dir))
+
+    def test_GET_by_id_and_valid_response(self, test_client, big_post):
+        rv = big_post(random=False)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        data_ids = body['data_ids']
+        assert len(data_ids) == 3
+        for data_id in data_ids:
+            rv = test_client.get('/data/{}'.format(data_id))
+            body = flask.json.loads(rv.get_data())
+            assert rv.status_code == 200, body
+            assert len(body) == 4  # include only minimal data in response
+            assert not body['message']
+            assert body['state']
+            assert body['job_id']
+            assert body['last_access']
+
+    def test_GET_by_params_and_valid_response(self, test_client):
+        data = dict(
+            handler='test',
+            server='localhost:1234',
+            token='7746391376142672192764',
+            descriptors=[
+                {
+                    'data_type': 'foo',
+                    'concept': str(uuid4())
+                }
+            ]
+        )
+        rv = test_client.post('/data', data=flask.json.dumps(data))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        payload = flask.json.dumps(dict(server=data['server'],
+                                        descriptor=data['descriptors'][0]))
+        rv = test_client.get('/data/{}'.format(payload))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 200, body
+        assert len(body) == 4  # include only minimal data in response
+        assert not body['message']
+        assert body['state']
+        assert body['job_id']
+        assert body['last_access']
+
+    def test_404_on_GET_if_no_auth(self, test_client, big_post):
+        rv = big_post(random=False)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        data_ids = body['data_ids']
+        assert len(data_ids) == 3
+        with test_client.session_transaction() as sess:
+            sess['data_ids'].remove(data_ids[2])
+
+        rv = test_client.get('/data/{}'.format(data_ids[0]))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 200, body
+
+        rv = test_client.get('/data/{}'.format(data_ids[1]))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 200, body
+
+        rv = test_client.get('/data/{}'.format(data_ids[2]))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 404, body
