@@ -269,11 +269,10 @@ class TestData:
             rv = test_client.get('/data/{}'.format(data_id))
             body = flask.json.loads(rv.get_data())
             assert rv.status_code == 200, body
-            assert len(body) == 4  # include only minimal data in response
+            assert len(body) == 3  # include only minimal data in response
             assert not body['message']
             assert body['state']
             assert body['job_id']
-            assert body['last_access']
 
     def test_GET_by_params_and_valid_response(self, test_client):
         data = dict(
@@ -295,18 +294,18 @@ class TestData:
         rv = test_client.get('/data/{}'.format(payload))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 200, body
-        assert len(body) == 4  # include only minimal data in response
+        assert len(body) == 3  # include only minimal data in response
         assert not body['message']
         assert body['state']
         assert body['job_id']
-        assert body['last_access']
 
-    def test_404_on_GET_if_no_auth(self, test_client, big_post):
+    def test_404_on_GET_by_id_if_no_auth(self, test_client, big_post):
         rv = big_post(random=False)
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 201, body
         data_ids = body['data_ids']
         assert len(data_ids) == 3
+
         with test_client.session_transaction() as sess:
             sess['data_ids'].remove(data_ids[2])
 
@@ -319,5 +318,30 @@ class TestData:
         assert rv.status_code == 200, body
 
         rv = test_client.get('/data/{}'.format(data_ids[2]))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 404, body
+
+    def test_404_on_GET_by_params_if_no_auth(self, test_client, big_post):
+        data = dict(
+            handler='test',
+            server='localhost:1234',
+            token='7746391376142672192764',
+            descriptors=[
+                {
+                    'data_type': 'foo',
+                    'concept': str(uuid4())
+                }
+            ]
+        )
+        rv = test_client.post('/data', data=flask.json.dumps(data))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+
+        with test_client.session_transaction() as sess:
+            sess['data_ids'] = []
+
+        payload = flask.json.dumps(dict(server=data['server'],
+                                        descriptor=data['descriptors'][0]))
+        rv = test_client.get('/data/{}'.format(payload))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 404, body

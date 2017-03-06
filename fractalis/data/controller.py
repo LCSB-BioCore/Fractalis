@@ -55,6 +55,7 @@ def get_data_by_id(data_id, wait):
 
     # remove internal information from response
     del data_obj['file_path']
+    del data_obj['last_access']
 
     return data_obj
 
