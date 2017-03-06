@@ -3,7 +3,6 @@
 import os
 import json
 import datetime
-from glob import glob
 from uuid import UUID, uuid4
 
 import flask
@@ -16,22 +15,14 @@ from fractalis.data import sync
 
 class TestData:
 
-    def cleanup(self):
-        redis.flushall()
-        data_dir = os.path.join(
-            app.config['FRACTALIS_TMP_DIR'], 'data', '*')
-        files = glob(data_dir)
-        for f in files:
-            os.remove(f)
-
     @pytest.fixture(scope='function')
     def test_client(self):
-        self.cleanup()
+        sync.cleanup_all()
         from fractalis import app
         app.testing = True
         with app.test_client() as test_client:
             yield test_client
-            self.cleanup()
+            sync.cleanup_all()
 
     @pytest.fixture(scope='function')
     def small_post(self, test_client):

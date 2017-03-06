@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+from shutil import rmtree
 
 from fractalis.celery import app as celery
 from fractalis import redis
@@ -21,3 +22,10 @@ def cleanup(cache_expr=None):
         if delta > cache_expr:
             os.remove(data_obj['file_path'])
             redis.hdel('data', key)
+
+
+def cleanup_all():
+    redis.flushall()
+    tmp_dir = app.config['FRACTALIS_TMP_DIR']
+    if os.path.exists(tmp_dir):
+        rmtree(tmp_dir)

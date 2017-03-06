@@ -1,31 +1,21 @@
 """This module tests the analytics controller module."""
 
-import os
 import uuid
 import time
 import json
-from glob import glob
 from uuid import uuid4
 
 import flask
 import pytest
 
-from fractalis import redis, app
+from fractalis.data import sync
 
 
 class TestAnalytics:
 
-    def cleanup(self):
-        redis.flushall()
-        data_dir = os.path.join(
-            app.config['FRACTALIS_TMP_DIR'], 'data', '*')
-        files = glob(data_dir)
-        for f in files:
-            os.remove(f)
-
     @pytest.fixture(scope='function')
     def test_client(self):
-        self.cleanup()
+        sync.cleanup_all()
         from fractalis import app
         app.testing = True
         with app.test_client() as test_client:
@@ -33,7 +23,7 @@ class TestAnalytics:
             # cleanup running jobs after each test
             for job_id in flask.session['analytics_jobs']:
                 test_client.delete('/analytics/{}?wait=1'.format(job_id))
-            self.cleanup()
+            sync.cleanup_all()
 
     @pytest.fixture(scope='function')
     def small_data_post(self, test_client):
