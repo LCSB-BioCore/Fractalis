@@ -45,7 +45,7 @@ def get_job_details(job_id):
     result = async_result.result
     if isinstance(result, Exception):  # Exception -> str
         result = "{}: {}".format(type(result).__name__, str(result))
-    return jsonify({'status': state,
+    return jsonify({'state': state,
                     'result': result}), 200
 
 

@@ -31,7 +31,7 @@ class TestData:
         app.testing = True
         with app.test_client() as test_client:
             yield test_client
-            self.cleanup()
+        self.cleanup()
 
     @pytest.fixture(scope='function')
     def small_post(self, test_client):
