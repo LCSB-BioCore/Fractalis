@@ -1,5 +1,3 @@
-import importlib  # noqa
-
 from flask import Blueprint, session, request, jsonify
 
 from fractalis.celery import app as celery

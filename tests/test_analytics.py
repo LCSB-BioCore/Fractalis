@@ -81,14 +81,14 @@ class TestAnalytics:
         new_response1 = test_client.get(new_url1)
         assert new_response1.status_code == 200
         new_body1 = flask.json.loads(new_response1.get_data())
-        new_body1['state'] != 'FAILURE'
+        assert new_body1['state'] != 'FAILURE'
 
         body2 = flask.json.loads(rv2.get_data())
         new_url2 = '/analytics/{}?wait=0'.format(body2['job_id'])
         new_response2 = test_client.get(new_url2)
         assert new_response2.status_code == 200
         new_body2 = flask.json.loads(new_response2.get_data())
-        new_body2['state'] != 'FAILURE'
+        assert new_body2['state'] != 'FAILURE'
 
     def test_404_if_creating_without_auth(self, test_client, small_data_post):
         rv = small_data_post(random=False)
