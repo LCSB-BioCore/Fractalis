@@ -20,7 +20,10 @@ def cleanup(cache_expr=None):
         now = datetime.datetime.now()
         delta = now - last_access
         if delta > cache_expr:
-            os.remove(data_obj['file_path'])
+            try:
+                os.remove(data_obj['file_path'])
+            except FileNotFoundError:
+                pass
             redis.hdel('data', key)
 
 

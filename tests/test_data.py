@@ -328,7 +328,7 @@ class TestData:
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 404, body
 
-    def test_404_on_GET_by_params_if_no_auth(self, test_client, big_post):
+    def test_404_on_GET_by_params_if_no_auth(self, test_client):
         data = dict(
             handler='test',
             server='localhost:1234',
