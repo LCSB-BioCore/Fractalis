@@ -239,11 +239,12 @@ class TestData:
             assert data_obj['job_id']
             assert data_obj['file_path']
 
-    def test_valid_state_after_cleanup(self, big_post):
+    def test_valid_state_after_cleanup(self, test_client, big_post):
         rv = big_post(random=False)
         body = flask.json.loads(rv.get_data())
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         assert rv.status_code == 201, body
+        assert test_client.get('/data?wait=1').status_code == 200
         assert redis.hgetall(name='data')
         assert len(os.listdir(data_dir))
         sync.cleanup(datetime.timedelta(seconds=0))
