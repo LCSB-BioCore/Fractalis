@@ -368,3 +368,33 @@ class TestData:
         rv = test_client.get('/data')
         body = flask.json.loads(rv.get_data())
         assert not body, body
+
+    def test_exception_on_na_handler(self, test_client):
+        data = dict(
+            handler='abc',
+            server='localhost:1234',
+            token='7746391376142672192764',
+            descriptors=[
+                {
+                    'data_type': 'foo',
+                    'concept': str(uuid4())
+                }
+            ]
+        )
+        with pytest.raises(NotImplementedError):
+            test_client.post('/data', data=flask.json.dumps(data))
+
+    def test_exception_on_na_etl(self, test_client):
+        data = dict(
+            handler='test',
+            server='localhost:1234',
+            token='7746391376142672192764',
+            descriptors=[
+                {
+                    'data_type': 'abc',
+                    'concept': str(uuid4())
+                }
+            ]
+        )
+        with pytest.raises(NotImplementedError):
+            test_client.post('/data', data=flask.json.dumps(data))

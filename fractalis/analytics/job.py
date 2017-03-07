@@ -48,7 +48,7 @@ class AnalyticsJob(Task, metaclass=abc.ABCMeta):
         result = self.main(**args)
         try:
             json.loads(result)
-        except Exception as e:
+        except Exception:
             raise ValueError("The job '{}' did not return valid JSON."
                              .format(self.name))
         return result

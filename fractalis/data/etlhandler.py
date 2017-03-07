@@ -28,7 +28,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
         hash_key = sha256(to_hash).hexdigest()
         return hash_key
 
-    def handle(self, descriptors):
+    def handle(self, descriptors, wait):
         data_ids = []
         for descriptor in descriptors:
             data_id = self.compute_data_id(self._server, descriptor)
@@ -37,7 +37,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
             os.makedirs(data_dir, exist_ok=True)
             value = redis.hget('data', key=data_id)
             if value:
-                file_path = json.loads(value.decode('utf-8'))
+                file_path = json.loads(value.decode('utf-8'))['file_path']
             else:
                 file_name = str(uuid4())
                 file_path = os.path.join(data_dir, file_name)
@@ -47,6 +47,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
                                      token=self._token,
                                      descriptor=descriptor,
                                      file_path=file_path)
+            if wait:
+                async_result.get(propagate=False)  # wait for results
             data_obj = {
                 'file_path': file_path,
                 'job_id': async_result.id,
