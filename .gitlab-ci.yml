@@ -13,4 +13,3 @@ before_script:
 test:
     script:
         - python setup.py test
-        - flake8 .
