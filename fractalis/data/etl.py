@@ -112,4 +112,3 @@ class ETL(Task, metaclass=abc.ABCMeta):
             raise TypeError("transform() must return 'pandas.DataFrame', but"
                             "returned '{}' instead.".format(type(data_frame)))
         self.load(data_frame, file_path)
-        self.validate_state()
