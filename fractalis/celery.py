@@ -1,15 +1,14 @@
 """This module is responsible for the establishment and configuration of a
 Celery instance."""
-import os
 import logging
+import os
 
 from celery import Celery
 
-from fractalis.utils import list_classes_with_base_class
-from fractalis.utils import import_module_by_abs_path
-from fractalis.data.etl import ETL
 from fractalis.analytics.job import AnalyticsJob
-
+from fractalis.data.etl import ETL
+from fractalis.utils import import_module_by_abs_path
+from fractalis.utils import list_classes_with_base_class
 
 app = Celery(__name__)
 app.config_from_object('fractalis.config')
@@ -22,8 +21,10 @@ except KeyError:
     logger = logging.getLogger('fractalis')
     logger.warning("FRACTALIS_CONFIG is not set. Using defaults.")
 
-from fractalis.data.sync import cleanup  # noqa
-app.tasks.register(cleanup)
+from fractalis.sync import remove_untracked_data_files  # noqa
+from fractalis.sync import remove_expired_redis_entries  # noqa
+app.tasks.register(remove_untracked_data_files)
+app.tasks.register(remove_expired_redis_entries)
 
 etl_classes = list_classes_with_base_class('fractalis.data.etls', ETL)
 for etl_class in etl_classes:

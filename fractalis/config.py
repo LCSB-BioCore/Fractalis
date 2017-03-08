@@ -15,8 +15,12 @@ broker_url = 'amqp://'
 result_backend = 'redis://{}:{}'.format(REDIS_HOST, REDIS_PORT)
 task_soft_time_limit = 60 * 10
 beat_schedule = {
-    'cleanup-every-hour': {
-        'task': 'fractalis.data.sync.cleanup',
+    'cleanup-redis-1h-interval': {
+        'task': 'fractalis.sync.remove_expired_redis_entries',
+        'schedule': timedelta(hours=1),
+    },
+    'cleanup-fs-1h-interval': {
+        'task': 'fractalis.sync.remove_untracked_data_files',
         'schedule': timedelta(hours=1),
     }
 }

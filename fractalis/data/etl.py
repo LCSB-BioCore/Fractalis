@@ -86,7 +86,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         pass
 
-    def load(self, data_frame: DataFrame, file_path: str):
+    def load(self, data_frame: DataFrame, file_path: str) -> None:
         """Load (save) the data to the file system.
 
         :param data_frame: DataFrame to write.
@@ -95,7 +95,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         data_frame.to_csv(file_path)
 
     def run(self, server: str, token: str,
-            descriptor: dict, file_path: str):
+            descriptor: dict, file_path: str) -> None:
         """Run the current task.
         This is called by the celery worker.
 

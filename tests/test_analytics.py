@@ -1,14 +1,14 @@
 """This module tests the analytics controller module."""
 
-import uuid
-import time
 import json
+import time
+import uuid
 from uuid import uuid4
 
 import flask
 import pytest
 
-from fractalis.data import sync
+from fractalis import sync
 
 
 class TestAnalytics:
