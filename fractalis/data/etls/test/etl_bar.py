@@ -7,8 +7,8 @@ from fractalis.data.etl import ETL
 class BarETL(ETL):
 
     name = 'test_bar_task'
-    _HANDLER = 'test'
-    _DATA_TYPE = 'bar'
+    _handler = 'test'
+    _data_type = 'bar'
 
     def extract(self, server, token, descriptor):
         fake_raw_data = np.random.randn(10, 5)

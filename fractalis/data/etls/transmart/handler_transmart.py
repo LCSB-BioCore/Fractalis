@@ -3,7 +3,7 @@ from fractalis.data.etlhandler import ETLHandler
 
 class TransmartHandler(ETLHandler):
 
-    _ETL = 'transmart'
+    _handler = 'transmart'
 
     def heartbeat():
         pass

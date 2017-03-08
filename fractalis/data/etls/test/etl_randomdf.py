@@ -7,8 +7,8 @@ from fractalis.data.etl import ETL
 class RandomDFETL(ETL):
 
     name = 'test_randomdf_task'
-    _HANDLER = 'test'
-    _DATA_TYPE = 'randomdf'
+    _handler = 'test'
+    _data_type = 'randomdf'
 
     def extract(self, server, token, descriptor):
         fake_raw_data = np.random.randn(10, 5)
