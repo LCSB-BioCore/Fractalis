@@ -92,7 +92,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         :param data_frame: DataFrame to write.
         :param file_path: Path to write to.
         """
-        data_frame.to_csv(file_path)
+        data_frame.to_csv(file_path, index=False)
 
     def run(self, server: str, token: str,
             descriptor: dict, file_path: str) -> None:
