@@ -16,7 +16,9 @@ from fractalis import app
 
 @celery.task
 def remove_expired_redis_entries() -> None:
-    """Remove expired entries from the redis DB."""
+    """Remove 'data' entries from the redis DB for which 'last_access' lays back
+    longer than the timedelta defined in 'FRACTALIS_CACHE_EXP'.
+    """
     cache_expr = app.config['FRACTALIS_CACHE_EXP']
     redis_data = redis.hgetall(name='data')
     for key in redis_data:
@@ -34,8 +36,8 @@ def remove_untracked_data_files() -> None:
     """Remove files that have no record in the redis DB"""
     tmp_dir = app.config['FRACTALIS_TMP_DIR']
     data_dir = os.path.join(tmp_dir, 'data')
-    redis_data = redis.hdel('data')
-    for file_path in iglob(os.path.join(data_dir, '*.py')):
+    redis_data = redis.hgetall('data')
+    for file_path in iglob(os.path.join(data_dir, '*')):
         # check if file tracked by redis
         is_tracked = False
         for key in redis_data:
@@ -49,7 +51,8 @@ def remove_untracked_data_files() -> None:
 
 def cleanup_all() -> None:
     """Reset redis and the filesystem. This is only useful for testing and
-    should !!!NEVER!!! be used otherwise."""
+    should !!!NEVER!!! be used otherwise.
+    """
     redis.flushall()
     tmp_dir = app.config['FRACTALIS_TMP_DIR']
     if os.path.exists(tmp_dir):
