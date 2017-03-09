@@ -7,12 +7,14 @@ from fractalis.data.etl import ETL
 
 
 class DefaultETL(ETL):
+    """The default ETL for ADA."""
 
     name = 'ada_default_etl'
     _handler = 'ada'
     _data_type = 'default'
 
-    def extract(self, server: str, token: str, descriptor: dict) -> object:
+    def extract(self, server: str,
+                token: str, descriptor: dict) -> object:
         data_set = descriptor['data_set']
         projection = descriptor['projection']
         split = token.split('=')
@@ -22,7 +24,9 @@ class DefaultETL(ETL):
                          headers={'Accept': 'application/json'},
                          params={'dataSet': data_set, 'projection': projection},
                          cookies=cookie)
-        assert r.status_code == 200
+        if r.status_code != 200:
+            raise ValueError("Data extraction failed. Reason: [{}]: {}"
+                             .format(r.status_code, r.text))
         return r.json()
 
     def transform(self, raw_data: object) -> DataFrame:
