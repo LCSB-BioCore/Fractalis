@@ -25,11 +25,11 @@ def prepare_session():
 @validate_schema(create_data_schema)
 def create_data():
     wait = request.args.get('wait') == '1'
-    json = request.get_json(force=True)  # pattern enforced by decorators
-    etlhandler = ETLHandler.factory(handler=json['handler'],
-                                    server=json['server'],
-                                    token=json['token'])
-    data_ids = etlhandler.handle(descriptors=json['descriptors'], wait=wait)
+    payload = request.get_json(force=True)  # pattern enforced by decorators
+    etl_handler = ETLHandler.factory(handler=payload['handler'],
+                                     server=payload['server'],
+                                     auth=payload['auth'])
+    data_ids = etl_handler.handle(descriptors=payload['descriptors'], wait=wait)
     session['data_ids'] += data_ids
     return jsonify({'data_ids': data_ids}), 201
 

@@ -31,7 +31,7 @@ class TestAnalytics:
             '/data', data=flask.json.dumps(dict(
                 handler='test',
                 server='localhost:1234',
-                token='7746391376142672192764',
+                auth={'token': '7746391376142672192764'},
                 descriptors=[
                     {
                         'data_type': 'randomdf',

@@ -7,3 +7,7 @@ class AdaHandler(ETLHandler):
 
     def _heartbeat(self):
         pass
+
+    def _get_token_for_credentials(self, server: str,
+                                   user: str, passwd: str) -> str:
+        pass

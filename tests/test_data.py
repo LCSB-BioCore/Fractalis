@@ -29,7 +29,7 @@ class TestData:
             '/data', data=flask.json.dumps(dict(
                 handler='test',
                 server='localhost:1234',
-                token='7746391376142672192764',
+                auth={'token': '7746391376142672192764'},
                 descriptors=[
                     {
                         'data_type': 'foo',
@@ -44,7 +44,7 @@ class TestData:
             '/data', data=flask.json.dumps(dict(
                 handler='test',
                 server='localhost:1234',
-                token='7746391376142672192764',
+                auth={'token': '7746391376142672192764'},
                 descriptors=[
                     {
                         'data_type': 'foo',
@@ -65,63 +65,69 @@ class TestData:
         {
             'handler': '',
             'server': 'localhost',
-            'token': '1234567890',
+            'auth': '{"''tok"n'"" '12345678"90',
             'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
         },
         {
             'handler': 'test',
             'server': '',
-            'token': '1234567890',
+            'auth': '{"token": "1234567890"}',
             'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
         },
         {
             'handler': 'test',
             'server': 'localhost',
-            'token': '',
+            'auth': '',
             'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
         },
         {
             'handler': 'test',
             'server': 'localhost',
-            'token': '1234567890',
+            'auth': '{"token": "1234567890"}',
             'descriptors': ''
         },
         {
             'handler': 'test',
             'server': 'localhost',
-            'token': '1234567890',
+            'auth': '{"token": "1234567890"}',
             'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
         },
         {
             'handler': 'test',
             'server': 'localhost',
-            'token': '1234567890',
+            'auth': '{"token": "1234567890"}',
             'descriptors': '[{"concept": "GSE1234"}]'
         },
         {
             'handler': 'test',
             'server': 'localhost',
-            'token': '1234567890',
+            'auth': '{"token": "1234567890"}',
             'descriptors': '[{"data_type": "foo"}]'
         },
         {
             'handler': 'test',
             'server': 'localhost',
-            'token': '1234567890',
+            'auth': '{"token": "1234567890"}',
             'descriptors': '[{"data_type": "", "concept": "GSE1234"}]'
         },
         {
             'handler': 'test',
             'server': 'localhost',
-            'token': '1234567890',
+            'auth': '{"token": "234567890"}',
             'descriptors': '[]'
+        },
+        {
+            'handler': 'test',
+            'server': 'localhost',
+            'auth': '{}',
+            'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
         }
     ])
     def bad_post(self, test_client, request):
         return lambda: test_client.post('/data', data=flask.json.dumps(dict(
                 handler=request.param['handler'],
                 server=request.param['server'],
-                token=request.param['token'],
+                auth=request.param['auth'],
                 descriptors=request.param['descriptors']
             )))
 
@@ -273,7 +279,7 @@ class TestData:
         data = dict(
             handler='test',
             server='localhost:1234',
-            token='7746391376142672192764',
+            auth={'token': '7746391376142672192764'},
             descriptors=[
                 {
                     'data_type': 'foo',
@@ -320,7 +326,7 @@ class TestData:
         data = dict(
             handler='test',
             server='localhost:1234',
-            token='7746391376142672192764',
+            auth={'token': '7746391376142672192764'},
             descriptors=[
                 {
                     'data_type': 'foo',
@@ -361,7 +367,7 @@ class TestData:
         data = dict(
             handler='abc',
             server='localhost:1234',
-            token='7746391376142672192764',
+            auth={'token': '7746391376142672192764'},
             descriptors=[
                 {
                     'data_type': 'foo',
@@ -376,7 +382,7 @@ class TestData:
         data = dict(
             handler='test',
             server='localhost:1234',
-            token='7746391376142672192764',
+            auth={'token': '7746391376142672192764'},
             descriptors=[
                 {
                     'data_type': 'abc',

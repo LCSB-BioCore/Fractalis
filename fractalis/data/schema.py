@@ -3,7 +3,15 @@ create_data_schema = {
     "properties": {
         "handler": {"type": "string"},
         "server": {"type": "string"},
-        "token": {"type": "string"},
+        "auth": {
+            "type": "object",
+            "properties": {
+                "token": {"type": "string"},
+                "user": {"type": "string"},
+                "passwd": {"type": "string"}
+            },
+            "minProperties": 1
+        },
         "descriptors": {
             "type": "array",
             "items": {
@@ -16,5 +24,5 @@ create_data_schema = {
             }
         }
     },
-    "required": ["handler", "server", "token", "descriptors"]
+    "required": ["handler", "server", "auth", "descriptors"]
 }
