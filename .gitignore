@@ -9,3 +9,4 @@ __pycache__/
 *.log
 *.idea
 celerybeat-schedule
+start_fractalis_components.sh
