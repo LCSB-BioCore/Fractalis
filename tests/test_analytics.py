@@ -34,7 +34,7 @@ class TestAnalytics:
                 auth={'token': '7746391376142672192764'},
                 descriptors=[
                     {
-                        'data_type': 'randomdf',
+                        'data_type': 'default',
                         'concept': str(uuid4()) if random else 'concept'
                     }
                 ]

@@ -8,7 +8,8 @@ class RandomDFETL(ETL):
 
     name = 'test_randomdf_task'
     _handler = 'test'
-    _data_type = 'randomdf'
+    _accepts = ['default']
+    produces = 'something'
 
     def extract(self, server, token, descriptor):
         fake_raw_data = np.random.randn(10, 5)

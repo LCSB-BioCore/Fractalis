@@ -32,7 +32,7 @@ class TestData:
                 auth={'token': '7746391376142672192764'},
                 descriptors=[
                     {
-                        'data_type': 'foo',
+                        'data_type': 'default',
                         'concept': str(uuid4()) if random else 'concept'
                     }
                 ]
@@ -47,15 +47,15 @@ class TestData:
                 auth={'token': '7746391376142672192764'},
                 descriptors=[
                     {
-                        'data_type': 'foo',
+                        'data_type': 'default',
                         'concept': str(uuid4()) if random else 'concept1'
                     },
                     {
-                        'data_type': 'bar',
+                        'data_type': 'default',
                         'concept': str(uuid4()) if random else 'concept2'
                     },
                     {
-                        'data_type': 'foo',
+                        'data_type': 'default',
                         'concept': str(uuid4()) if random else 'concept3'
                     },
                 ]
@@ -66,19 +66,19 @@ class TestData:
             'handler': '',
             'server': 'localhost',
             'auth': '{"''tok"n'"" '12345678"90',
-            'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
+            'descriptors': '[{"data_type": "default", "concept": "GSE1234"}]'
         },
         {
             'handler': 'test',
             'server': '',
             'auth': '{"token": "1234567890"}',
-            'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
+            'descriptors': '[{"data_type": "default", "concept": "GSE1234"}]'
         },
         {
             'handler': 'test',
             'server': 'localhost',
             'auth': '',
-            'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
+            'descriptors': '[{"data_type": "default", "concept": "GSE1234"}]'
         },
         {
             'handler': 'test',
@@ -90,7 +90,7 @@ class TestData:
             'handler': 'test',
             'server': 'localhost',
             'auth': '{"token": "1234567890"}',
-            'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
+            'descriptors': '[{"data_type": "default", "concept": "GSE1234"}]'
         },
         {
             'handler': 'test',
@@ -102,7 +102,7 @@ class TestData:
             'handler': 'test',
             'server': 'localhost',
             'auth': '{"token": "1234567890"}',
-            'descriptors': '[{"data_type": "foo"}]'
+            'descriptors': '[{"data_type": "default"}]'
         },
         {
             'handler': 'test',
@@ -120,7 +120,7 @@ class TestData:
             'handler': 'test',
             'server': 'localhost',
             'auth': '{}',
-            'descriptors': '[{"data_type": "foo", "concept": "GSE1234"}]'
+            'descriptors': '[{"data_type": "default", "concept": "GSE1234"}]'
         }
     ])
     def bad_post(self, test_client, request):
@@ -243,6 +243,7 @@ class TestData:
             data_obj = json.loads(data[key].decode('utf-8'))
             assert data_obj['job_id']
             assert data_obj['file_path']
+            assert data_obj['data_type']
 
     def test_GET_by_id_and_valid_response(self, test_client, big_post):
         rv = big_post(random=False)
@@ -254,10 +255,11 @@ class TestData:
             rv = test_client.get('/data/{}'.format(data_id))
             body = flask.json.loads(rv.get_data())
             assert rv.status_code == 200, body
-            assert len(body) == 3  # include only minimal data in response
+            assert len(body) == 4  # include only minimal data in response
             assert not body['message']
             assert body['state']
             assert body['job_id']
+            assert body['data_type']
 
     def test_GET_by_all_and_valid_response(self, test_client, big_post):
         rv = big_post(random=False)
@@ -270,10 +272,11 @@ class TestData:
         body = flask.json.loads(rv.get_data())
 
         for data_state in body:
-            assert len(data_state) == 3
+            assert len(data_state) == 4
             assert not data_state['message']
             assert data_state['state']
             assert data_state['job_id']
+            assert data_state['data_type']
 
     def test_GET_by_params_and_valid_response(self, test_client):
         data = dict(
@@ -282,7 +285,7 @@ class TestData:
             auth={'token': '7746391376142672192764'},
             descriptors=[
                 {
-                    'data_type': 'foo',
+                    'data_type': 'default',
                     'concept': str(uuid4())
                 }
             ]
@@ -295,10 +298,11 @@ class TestData:
         rv = test_client.get('/data/{}'.format(payload))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 200, body
-        assert len(body) == 3  # include only minimal data in response
+        assert len(body) == 4  # include only minimal data in response
         assert not body['message']
         assert body['state']
         assert body['job_id']
+        assert body['data_type']
 
     def test_404_on_GET_by_id_if_no_auth(self, test_client, big_post):
         rv = big_post(random=False)
@@ -329,7 +333,7 @@ class TestData:
             auth={'token': '7746391376142672192764'},
             descriptors=[
                 {
-                    'data_type': 'foo',
+                    'data_type': 'default',
                     'concept': str(uuid4())
                 }
             ]
@@ -370,7 +374,7 @@ class TestData:
             auth={'token': '7746391376142672192764'},
             descriptors=[
                 {
-                    'data_type': 'foo',
+                    'data_type': 'default',
                     'concept': str(uuid4())
                 }
             ]

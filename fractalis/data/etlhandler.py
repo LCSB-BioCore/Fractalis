@@ -79,7 +79,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
             data_dir = os.path.join(tmp_dir, 'data')
             os.makedirs(data_dir, exist_ok=True)
             value = redis.hget('data', key=data_id)
-            if value:
+            if value:  # if value exists use existing file path
                 file_path = json.loads(value.decode('utf-8'))['file_path']
             else:
                 file_name = str(uuid4())
@@ -95,7 +95,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
             data_obj = {
                 'file_path': file_path,
                 'job_id': async_result.id,
-                'last_access': time.time()
+                'last_access': time.time(),
+                'data_type': etl.produces
             }
             redis.hset(name='data', key=data_id, value=json.dumps(data_obj))
             data_ids.append(data_id)

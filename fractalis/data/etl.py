@@ -1,6 +1,7 @@
 """This module provides the ETL class"""
 
 import abc
+from typing import List
 
 from celery import Task
 from pandas import DataFrame
@@ -31,11 +32,21 @@ class ETL(Task, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def _data_type(self) -> str:
+    def _accepts(self) -> List[str]:
         """Used by self.can_handle to check whether the current implementation
-        can handle given data type.
+        can handle the given data type. One ETL can handle multiple data types,
+        therefor this is a list.
         """
         pass
+
+    @property
+    @abc.abstractmethod
+    def produces(self) -> str:
+        """This specifies the fractalis internal format that this ETL
+        produces. Can be one of: ['categorical', 'numerical']
+        """
+        pass
+
 
     @classmethod
     def can_handle(cls, handler: str, data_type: str) -> bool:
@@ -46,12 +57,12 @@ class ETL(Task, metaclass=abc.ABCMeta):
         :param data_type: Describes the data type. E.g.: ldd, hdd
         :return: True if implementation can handle given parameters.
         """
-        return handler == cls._handler and data_type == cls._data_type
+        return handler == cls._handler and data_type in cls._accepts
 
     @classmethod
     def factory(cls, handler: str, data_type: str) -> 'ETL':
-        """Return an instance of the implementation ETL that can handle the given
-        parameters.
+        """Return an instance of the implementation ETL that can handle the
+        given parameters.
 
         :param handler: Describes the handler. E.g.: transmart, ada
         :param data_type: Describes the data type. E.g.: ldd, hdd
