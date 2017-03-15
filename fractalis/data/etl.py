@@ -57,7 +57,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         :param data_type: Describes the data type. E.g.: ldd, hdd
         :return: True if implementation can handle given parameters.
         """
-        return handler == cls._handler and data_type in cls._accepts
+        return handler == cls._handler and data_type == cls._accepts
 
     @classmethod
     def factory(cls, handler: str, data_type: str) -> 'ETL':

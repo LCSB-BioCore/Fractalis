@@ -8,7 +8,7 @@ class RandomDFETL(ETL):
 
     name = 'test_randomdf_task'
     _handler = 'test'
-    _accepts = ['default']
+    _accepts = 'default'
     produces = 'something'
 
     def extract(self, server, token, descriptor):
