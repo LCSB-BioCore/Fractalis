@@ -28,7 +28,6 @@ class ETLHandler(metaclass=abc.ABCMeta):
         """
         pass
 
-    @abc.abstractmethod
     def _get_token_for_credentials(self, server: str,
                                    user: str, passwd: str) -> str:
         """ Authenticate with the server and return a token.
@@ -37,7 +36,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
         :param user: The user id.
         :param passwd: The password.
         """
-        pass
+        raise NotImplementedError()
 
     def __init__(self, server, auth):
         self._server = server

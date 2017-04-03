@@ -12,7 +12,7 @@ class DateETL(ETL):
     name = 'ada_date_etl'
     _handler = 'ada'
     _accepts = 'Date'
-    produces = 'categorical'
+    produces = 'numerical'
 
     def extract(self, server: str,
                 token: str, descriptor: dict) -> dict:
