@@ -6,12 +6,14 @@ Modules in this package:
 import logging
 
 from flask import Flask
+from flask_cors import CORS
 from redis import StrictRedis
 
 from fractalis.session import RedisSessionInterface
 
 
 app = Flask(__name__)
+CORS(app)  # allow everyone to submit requests
 
 # Configure app
 app.config.from_object('fractalis.config')
