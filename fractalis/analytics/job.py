@@ -3,7 +3,7 @@ import json
 
 import pandas as pd
 # TODO: is there a difference between this and importing
-# fractalis.celery.app.Task ?
+# fractalis.celeryapp.app.Task ?
 from celery import Task
 
 from fractalis import redis
