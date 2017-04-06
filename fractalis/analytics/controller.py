@@ -1,6 +1,6 @@
 from flask import Blueprint, session, request, jsonify
 
-from fractalis.celery import app as celery
+from fractalis.celeryapp import app as celery
 from fractalis.validator import validate_json, validate_schema
 from .schema import create_job_schema
 from .job import AnalyticsJob
