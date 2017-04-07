@@ -13,7 +13,7 @@ from fractalis.session import RedisSessionInterface
 
 
 app = Flask(__name__)
-CORS(app)  # allow everyone to submit requests
+CORS(app, supports_credentials=True)  # allow everyone to submit requests
 
 # Configure app
 app.config.from_object('fractalis.config')
