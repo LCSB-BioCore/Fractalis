@@ -24,7 +24,7 @@ class AnalyticsJob(Task, metaclass=abc.ABCMeta):
                 return job()
 
     @abc.abstractmethod
-    def main(self):
+    def main(self, *args):
         pass
 
     def run(self, accessible_data_ids, **kwargs):
