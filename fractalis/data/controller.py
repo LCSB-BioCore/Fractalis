@@ -53,6 +53,7 @@ def get_data_by_id(data_id, wait):
         result = "{}: {}".format(type(result).__name__, str(result))
     data_obj['state'] = state
     data_obj['message'] = result
+    data_obj['data_id'] = data_id
 
     # remove internal information from response
     del data_obj['file_path']
@@ -64,6 +65,7 @@ def get_data_by_id(data_id, wait):
 @data_blueprint.route('/<string:params>', methods=['GET'])
 def get_data_by_params(params):
     wait = request.args.get('wait') == '1'
+    # params can be data_id or dict
     try:
         params = json.loads(params)
         data_id = ETLHandler.compute_data_id(server=params['server'],

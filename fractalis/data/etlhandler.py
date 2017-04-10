@@ -91,11 +91,16 @@ class ETLHandler(metaclass=abc.ABCMeta):
                                      file_path=file_path)
             if wait:
                 async_result.get(propagate=False)  # wait for results
+            try:
+                description = descriptor['description']
+            except KeyError:
+                description = str(descriptor)
             data_obj = {
                 'file_path': file_path,
                 'job_id': async_result.id,
                 'last_access': time.time(),
-                'data_type': etl.produces
+                'data_type': etl.produces,
+                'description': description
             }
             redis.hset(name='data', key=data_id, value=json.dumps(data_obj))
             data_ids.append(data_id)

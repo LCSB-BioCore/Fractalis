@@ -255,11 +255,13 @@ class TestData:
             rv = test_client.get('/data/{}'.format(data_id))
             body = flask.json.loads(rv.get_data())
             assert rv.status_code == 200, body
-            assert len(body) == 4  # include only minimal data in response
+            assert len(body) == 6  # include only minimal data in response
             assert not body['message']
             assert body['state']
             assert body['job_id']
             assert body['data_type']
+            assert body['description']
+            assert body['data_id']
 
     def test_GET_by_all_and_valid_response(self, test_client, big_post):
         rv = big_post(random=False)
@@ -272,11 +274,13 @@ class TestData:
         body = flask.json.loads(rv.get_data())
 
         for data_state in body:
-            assert len(data_state) == 4
+            assert len(data_state) == 6
             assert not data_state['message']
             assert data_state['state']
             assert data_state['job_id']
             assert data_state['data_type']
+            assert data_state['description']
+            assert data_state['data_id']
 
     def test_GET_by_params_and_valid_response(self, test_client):
         data = dict(
@@ -298,11 +302,13 @@ class TestData:
         rv = test_client.get('/data/{}'.format(payload))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 200, body
-        assert len(body) == 4  # include only minimal data in response
+        assert len(body) == 6  # include only minimal data in response
         assert not body['message']
         assert body['state']
         assert body['job_id']
         assert body['data_type']
+        assert body['description']
+        assert body['data_id']
 
     def test_404_on_GET_by_id_if_no_auth(self, test_client, big_post):
         rv = big_post(random=False)
