@@ -31,6 +31,7 @@ def create_data():
                                      auth=payload['auth'])
     data_ids = etl_handler.handle(descriptors=payload['descriptors'], wait=wait)
     session['data_ids'] += data_ids
+    session['data_ids'] = list(set(session['data_ids']))  # make unique
     return jsonify({'data_ids': data_ids}), 201
 
 

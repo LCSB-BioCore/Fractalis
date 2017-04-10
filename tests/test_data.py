@@ -402,3 +402,9 @@ class TestData:
         )
         with pytest.raises(NotImplementedError):
             test_client.post('/data', data=flask.json.dumps(data))
+
+    def test_session_data_ids_should_be_unique(self, test_client, small_post):
+        small_post(random=False)
+        small_post(random=False)
+        with test_client.session_transaction() as sess:
+            assert len(sess['data_ids']) == 1
