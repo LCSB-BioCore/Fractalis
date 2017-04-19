@@ -14,6 +14,7 @@ setup(
         'redis',
         'pandas',
         'numpy',
+        'scipy',
         'requests'
     ],
     setup_requires=[

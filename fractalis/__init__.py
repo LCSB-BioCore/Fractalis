@@ -33,10 +33,11 @@ from fractalis.data.controller import data_blueprint  # noqa
 app.register_blueprint(analytics_blueprint, url_prefix='/analytics')
 app.register_blueprint(data_blueprint, url_prefix='/data')
 
+handler = logging.handlers.TimedRotatingFileHandler('fractalis.log',
+                                                    when='midnight',
+                                                    backupCount=14)
+handler.setLevel(logging.INFO)
+app.logger.addHandler(handler)
+
 if __name__ == '__main__':
-    handler = logging.handlers.TimedRotatingFileHandler('fractalis.log',
-                                                        when='midnight',
-                                                        backupCount=14)
-    handler.setLevel(logging.INFO)
-    app.logger.addHandler(handler)
     app.run()
