@@ -9,9 +9,7 @@ import datetime
 from glob import iglob
 from shutil import rmtree
 
-from fractalis.celeryapp import app as celery
-from fractalis import redis
-from fractalis import app
+from fractalis import celery, redis, app
 
 
 @celery.task

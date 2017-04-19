@@ -6,7 +6,7 @@ from flask import Blueprint, session, request, jsonify
 from .etlhandler import ETLHandler
 from .schema import create_data_schema
 from fractalis.validator import validate_json, validate_schema
-from fractalis.celeryapp import app as celery
+from fractalis import celery
 from fractalis import redis
 
 

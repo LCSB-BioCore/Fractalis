@@ -11,10 +11,10 @@ REDIS_PORT = '6379'
 PERMANENT_SESSION_LIFETIME = timedelta(days=1)
 
 # Celery
-broker_url = 'amqp://'
-result_backend = 'redis://{}:{}'.format(REDIS_HOST, REDIS_PORT)
-task_soft_time_limit = 60 * 10
-beat_schedule = {
+BROKER_URL = 'amqp://'
+CELERY_RESULT_BACKEND = 'redis://{}:{}'.format(REDIS_HOST, REDIS_PORT)
+CELERYD_TASK_SOFT_TIME_LIMIT = 60 * 10
+CELERYBEAT_SCHEDULE = {
     'cleanup-redis-1h-interval': {
         'task': 'fractalis.sync.remove_expired_redis_entries',
         'schedule': timedelta(hours=1),
