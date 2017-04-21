@@ -231,10 +231,10 @@ class TestAnalytics:
         assert new_body['state'] == 'SUCCESS'
         assert float(json.loads(new_body['result'])['sum'])
 
-    def test_exception_if_result_not_json(self, test_client, small_data_post):
+    def test_exception_if_result_not_json(self, test_client):
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(
-            job_name='identity_test_job',
-            args={'a': 42}
+            job_name='invalid_json_job',
+            args={'a': 1}
         )))
         assert rv.status_code == 201
         body = flask.json.loads(rv.get_data())
@@ -243,4 +243,18 @@ class TestAnalytics:
         assert new_response.status_code == 200
         new_body = flask.json.loads(new_response.get_data())
         assert new_body['state'] == 'FAILURE'
-        assert 'ValueError' in new_body['result']
+        assert 'TypeError' in new_body['result']
+
+    def test_exception_if_result_not_dict(self, test_client):
+        rv = test_client.post('/analytics', data=flask.json.dumps(dict(
+            job_name='no_dict_job',
+            args={'a': 1}
+        )))
+        assert rv.status_code == 201
+        body = flask.json.loads(rv.get_data())
+        new_url = '/analytics/{}?wait=1'.format(body['job_id'])
+        new_response = test_client.get(new_url)
+        assert new_response.status_code == 200
+        new_body = flask.json.loads(new_response.get_data())
+        assert new_body['state'] == 'FAILURE'
+        assert 'TypeError' in new_body['result']

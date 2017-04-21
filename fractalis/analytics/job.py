@@ -1,5 +1,6 @@
 import abc
 import json
+import re
 
 import pandas as pd
 from celery import Task
@@ -45,8 +46,13 @@ class AnalyticsJob(Task, metaclass=abc.ABCMeta):
             args[arg] = value
         result = self.main(**args)
         try:
-            json.loads(result)
+            if type(result) != dict:
+                raise ValueError("The job '{}' "
+                                 "returned an object with type '{}', "
+                                 "instead of expected type 'dict'.")
+            result = json.dumps(result)
         except Exception:
-            raise ValueError("The job '{}' did not return valid JSON."
+            raise TypeError("The job '{}' result could not be JSON serialized."
                              .format(self.name))
+        result = re.sub(r': NaN', ': null', result)
         return result

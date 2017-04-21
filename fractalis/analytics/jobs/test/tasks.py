@@ -1,4 +1,3 @@
-import json
 import time
 
 from fractalis.analytics.job import AnalyticsJob
@@ -11,7 +10,7 @@ class AddJob(AnalyticsJob):
     def main(self, a, b):
         result = {}
         result['sum'] = a + b
-        return json.dumps(result)
+        return result
 
 
 class DoNothingJob(AnalyticsJob):
@@ -22,7 +21,7 @@ class DoNothingJob(AnalyticsJob):
         result = {}
         time.sleep(seconds)
         result['foo'] = 'bar'
-        return json.dumps(result)
+        return result
 
 
 class DivJob(AnalyticsJob):
@@ -32,7 +31,7 @@ class DivJob(AnalyticsJob):
     def main(self, a, b):
         result = {}
         result['div'] = a / b
-        return json.dumps(result)
+        return result
 
 
 class SumDataFrameJob(AnalyticsJob):
@@ -42,12 +41,19 @@ class SumDataFrameJob(AnalyticsJob):
     def main(self, a):
         result = {}
         result['sum'] = a.sum().sum()
-        return json.dumps(result)
+        return result
 
 
-class IdentityJob(AnalyticsJob):
+class InvalidReturnJob(AnalyticsJob):
 
-    name = 'identity_test_job'
+    name = 'no_dict_job'
 
-    def main(self, a):
-        return a
+    def main(self):
+        return 123
+
+
+class InvalidJSONJob(AnalyticsJob):
+    name = 'invalid_json_job'
+
+    def main(self):
+        return {'a': lambda: 1}

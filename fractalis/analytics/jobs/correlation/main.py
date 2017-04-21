@@ -1,5 +1,3 @@
-import json
-
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -21,7 +19,7 @@ class CorrelationJob(AnalyticsJob):
         y_list = df_noid.ix[:, 1].values.tolist()
         corr_coef, p_value = stats.pearsonr(x_list, y_list)
         slope, intercept, *_ = np.polyfit(x_list, y_list, deg=1)
-        return json.dumps({
+        return {
             'coef': corr_coef,
             'p_value': p_value,
             'slope': slope,
@@ -30,4 +28,4 @@ class CorrelationJob(AnalyticsJob):
             'data': df.to_json(),
             'x_label': list(df_noid)[0],
             'y_label': list(df_noid)[1]
-        })
+        }
