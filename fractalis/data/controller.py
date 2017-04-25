@@ -77,7 +77,7 @@ def get_data_by_params(params):
         return jsonify(
             {'error_msg': "No matching data found. Maybe expired?"}), 404
     data_obj = get_data_by_id(data_id, wait)
-    return jsonify(data_obj), 200
+    return jsonify({'data_state': data_obj}), 200
 
 
 @data_blueprint.route('', methods=['GET'])
@@ -85,4 +85,4 @@ def get_all_data_state():
     wait = request.args.get('wait') == '1'
     data_states = [get_data_by_id(data_id, wait)
                    for data_id in session['data_ids']]
-    return jsonify(data_states), 200
+    return jsonify({'data_states': data_states}), 200

@@ -2,8 +2,8 @@ swagger: '2.0'
 info:
   title: Fractalis API
   description: foobar
-  version: '0.0.0'
-host: 127.0.0.1:5000
+  version: 0.0.0
+host: '127.0.0.1:5000'
 schemes:
   - http
 produces:
@@ -11,117 +11,92 @@ produces:
 paths:
   /data:
     post:
-      summary: Add data to current session
+      summary: Add data to session
       parameters:
-        - name: etl
+        - name: handler
           in: query
-          description: ETL to use for moving data from source to Fractalis
-          required: false
-          type: string
-        - name: data
-          in: query
-          description: Data in Fractalis standard format
-          required: false
-          type: string
-        - name: action
-          in: query
-          description: Action to extract the data from the source system
-          required: false
-          type: string
-      responses:
-        201:
-          description: Accepted
-          schema:
-            type: object
-            properties:
-              data_id:
-                type: string
-    get:
-      summary: Get all completed and running ETLs for current session
-      responses:
-        200:
-          description: OK
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/ETLStatus'
-  /data/{data_id}:
-    parameters:
-      - name: data_id
-        in: path
-        description: ID given on launching an ETL
-        required: true
-        type: string
-    get:
-      summary: Get status of ETL associated with data_id
-      responses:
-        200:
-          description: OK
-          schema:
-            $ref: '#/definitions/ETLStatus'
-  /data/{data_id}/subsets:
-    parameters:
-      - name: data_id
-        in: path
-        description: ID given on launching an ETL
-        required: true
-        type: string
-    post:
-      summary: Create a new subset for the loaded data
-      parameters:
-        - name: subjects
-          in: query
-          description: List of subjects that define a new subset
+          description: Handler to use for moving data from source to Fractalis
           required: true
           type: string
+        - name: server
+          in: query
+          description: Server that is used as a data source
+          required: true
+          type: string
+        - name: auth
+          in: query
+          description: Contains necessary information to authenticate with server API
+          required: true
+          type: object
+        - name: descriptors
+          in: query
+          description: >-
+            Contains information necessary to request certain data from the
+            server
+          required: true
+          type: object
       responses:
-        201:
-          description: Created
+        '201':
+          description: CREATED
           schema:
             type: object
             properties:
-              subset_id:
-                type: integer
-  /data/{data_id}/subsets/{subset_id}:
+              data_ids:
+                type: array
+                items:
+                  type: string
+    get:
+      summary: Get all completed and running data jobs for session
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              data_states:
+                type: array
+                items:
+                  $ref: '#/definitions/DataState'
+  '/data/{data_id}':
     parameters:
       - name: data_id
         in: path
-        description: ID given on launching an ETL
+        description: ID given on launching a data job
         required: true
         type: string
-      - name: subset_id
-        in: path
-        description: ID given when creating subset
-        required: true
-        type: string
-    delete:
-      summary: Delete subset definition
+    get:
+      summary: Get status of data job associated with data_id
       responses:
-        200:
+        '200':
           description: OK
+          schema:
+            type: object
+            properties:
+              data_state:
+                $ref: '#/definitions/DataState'
   /analytics:
     post:
-      summary: Launch analytical script
+      summary: Submit analysis job
       parameters:
-        - name: script
+        - name: job_name
           in: query
-          description: Analysis script to run
+          description: Analysis job to run
           required: true
           type: string
-        - name: arguments
+        - name: args
           in: query
-          description: String describing the arguments to the analysis script
+          description: Arguments passed to the analysis job
           required: true
-          type: string
+          type: object
       responses:
-        201:
-          description: Created
+        '201':
+          description: CREATED
           schema:
             type: object
             properties:
               job_id:
                 type: string
-  /analytics/{job_id}:
+  '/analytics/{job_id}':
     parameters:
       - name: job_id
         in: path
@@ -131,35 +106,35 @@ paths:
     get:
       summary: Get job status information for given job id
       responses:
-        200:
+        '200':
           description: OK
           schema:
-            $ref: '#/definitions/JobStatus'
+            $ref: '#/definitions/JobState'
     delete:
       summary: Attempts to kill all processes associated with the job
       responses:
-        200:
+        '200':
           description: OK
-    
 definitions:
-  ETLStatus:
+  DataState:
     type: object
     properties:
       data_id:
         type: string
-      status:
+      data_type:
         type: string
-  JobStatus:
+      description:
+        type: string
+      job_id:
+        type: string
+      message:
+        type: string
+      state:
+        type: string
+  JobState:
     type: object
     properties:
-      status: 
-        type: string
-      warnings:
+      state:
         type: string
       result:
-        type: string
-  Error:
-    type: object
-    properties:
-      error_msg:
         type: string

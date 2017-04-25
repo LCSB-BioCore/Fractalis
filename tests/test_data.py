@@ -254,14 +254,15 @@ class TestData:
         for data_id in data_ids:
             rv = test_client.get('/data/{}'.format(data_id))
             body = flask.json.loads(rv.get_data())
-            assert rv.status_code == 200, body
-            assert len(body) == 6  # include only minimal data in response
-            assert not body['message']
-            assert body['state']
-            assert body['job_id']
-            assert body['data_type']
-            assert body['description']
-            assert body['data_id']
+            data_state = body['data_state']
+            assert rv.status_code == 200, data_state
+            assert len(data_state) == 6  # include only minimal data in response
+            assert not data_state['message']
+            assert data_state['state']
+            assert data_state['job_id']
+            assert data_state['data_type']
+            assert data_state['description']
+            assert data_state['data_id']
 
     def test_GET_by_all_and_valid_response(self, test_client, big_post):
         rv = big_post(random=False)
@@ -273,7 +274,7 @@ class TestData:
         rv = test_client.get('/data')
         body = flask.json.loads(rv.get_data())
 
-        for data_state in body:
+        for data_state in body['data_states']:
             assert len(data_state) == 6
             assert not data_state['message']
             assert data_state['state']
@@ -301,14 +302,15 @@ class TestData:
                                         descriptor=data['descriptors'][0]))
         rv = test_client.get('/data/{}'.format(payload))
         body = flask.json.loads(rv.get_data())
-        assert rv.status_code == 200, body
-        assert len(body) == 6  # include only minimal data in response
-        assert not body['message']
-        assert body['state']
-        assert body['job_id']
-        assert body['data_type']
-        assert body['description']
-        assert body['data_id']
+        data_state = body['data_state']
+        assert rv.status_code == 200, data_state
+        assert len(data_state) == 6  # include only minimal data in response
+        assert not data_state['message']
+        assert data_state['state']
+        assert data_state['job_id']
+        assert data_state['data_type']
+        assert data_state['description']
+        assert data_state['data_id']
 
     def test_404_on_GET_by_id_if_no_auth(self, test_client, big_post):
         rv = big_post(random=False)
@@ -371,7 +373,7 @@ class TestData:
 
         rv = test_client.get('/data')
         body = flask.json.loads(rv.get_data())
-        assert not body, body
+        assert not body['data_states'], body
 
     def test_exception_on_na_handler(self, test_client):
         data = dict(
@@ -408,3 +410,30 @@ class TestData:
         small_post(random=False)
         with test_client.session_transaction() as sess:
             assert len(sess['data_ids']) == 1
+
+    def test_no_access_on_failure(self, test_client, small_post):
+        rv = test_client.post(
+            '/data', data=flask.json.dumps(dict(
+                handler='test',
+                server='localhost:1234',
+                auth={'token': '7746391376142672192764'},
+                descriptors=[
+                    {
+                        'data_type': 'default',
+                        'concept': 'test'
+                    }
+                ]
+            )))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        assert len(body['data_ids']) == 1
+        data_id = body['data_ids'][0]
+
+        rv = test_client.get('/data/{}'.format(data_id))
+        assert rv.status_code == 200
+
+        with test_client.session_transaction() as sess:
+            sess['data_ids'] = []
+
+        rv = test_client.get('/data/{}'.format(data_id))
+        assert rv.status_code == 404
