@@ -9,8 +9,6 @@ from flask import Flask
 from flask_cors import CORS
 from redis import StrictRedis
 
-from fractalis.session import RedisSessionInterface
-
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  # allow everyone to submit requests
@@ -26,8 +24,12 @@ except RuntimeError:
                        "Using defaults for Flask app.")
 
 redis = StrictRedis(host=app.config['REDIS_HOST'],
-                    port=app.config['REDIS_PORT'])
-app.session_interface = RedisSessionInterface(redis)
+                    port=app.config['REDIS_PORT'],
+                    charset='utf-8',
+                    decode_responses=True)
+
+from fractalis.session import RedisSessionInterface  # noqa
+app.session_interface = RedisSessionInterface()
 
 from fractalis.celeryapp import make_celery, register_tasks  # noqa
 celery = make_celery(app)

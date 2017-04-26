@@ -28,11 +28,6 @@ def make_celery(app):
 
 def register_tasks():
     from fractalis import celery
-    from fractalis.sync import remove_untracked_data_files
-    from fractalis.sync import remove_expired_redis_entries
-
-    celery.tasks.register(remove_untracked_data_files)
-    celery.tasks.register(remove_expired_redis_entries)
 
     etl_classes = list_classes_with_base_class('fractalis.data.etls', ETL)
     for etl_class in etl_classes:

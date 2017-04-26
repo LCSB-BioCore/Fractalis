@@ -23,28 +23,33 @@ class AnalyticsJob(Task, metaclass=abc.ABCMeta):
                 return job()
 
     @abc.abstractmethod
-    def main(self, *args):
+    def main(self):
         pass
 
-    def run(self, accessible_data_ids, **kwargs):
-        args = {}
-        for arg in kwargs:
-            value = kwargs[arg]
+    @staticmethod
+    def prepare_args(session_id, args):
+        arguments = {}
+        for arg in args:
+            value = args[arg]
             if (isinstance(value, str) and
                     value.startswith('$') and value.endswith('$')):
                 data_id = value[1:-1]
-                if data_id not in accessible_data_ids:
-                    raise KeyError("No permission to use data_id '{}'"
-                                   "for analysis".format(data_id))
-                data_obj = redis.hget(name='data', key=data_id)
+                data_obj = redis.get('data:{}'.format(data_id))
                 if data_obj is None:
                     raise KeyError("The key '{}' does not match any entries"
                                    "in the database.".format(data_id))
-                data_obj = json.loads(data_obj.decode('utf-8'))
+                data_obj = json.loads(data_obj)
+                if session_id not in data_obj['access']:  # access check
+                    raise KeyError("No permission to use data_id '{}'"
+                                   "for analysis".format(data_id))
                 file_path = data_obj['file_path']
                 value = pd.read_csv(file_path)
-            args[arg] = value
-        result = self.main(**args)
+            arguments[arg] = value
+        return arguments
+
+    def run(self, session_id, args):
+        arguments = self.prepare_args(session_id, args)
+        result = self.main(**arguments)
         try:
             if type(result) != dict:
                 raise ValueError("The job '{}' "

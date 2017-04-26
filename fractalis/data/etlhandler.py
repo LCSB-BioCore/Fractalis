@@ -3,14 +3,14 @@
 import os
 import abc
 import json
-import time
-from hashlib import sha256
 from uuid import uuid4
+from hashlib import sha256
 from typing import List
 
+from celery import uuid
+
+from fractalis import app, redis
 from fractalis.data.etl import ETL
-from fractalis import app
-from fractalis import redis
 
 
 class ETLHandler(metaclass=abc.ABCMeta):
@@ -61,12 +61,14 @@ class ETLHandler(metaclass=abc.ABCMeta):
         hash_key = sha256(to_hash).hexdigest()
         return hash_key
 
-    def handle(self, descriptors: List[dict], wait: bool = False) -> List[str]:
+    def handle(self, descriptors: List[dict],
+               session_id: str, wait: bool = False) -> List[str]:
         """Create instances of ETL for the given descriptors and submit them
         (ETL implements celery.Task) to the broker. The task ids are returned to
         keep track of them.
 
         :param descriptors: A list of items describing the data to download.
+        :param session_id: The id of the current session
         :param wait: Makes this method synchronous by waiting for the tasks to
         return.
         :return: The list of task ids for the submitted tasks.
@@ -77,33 +79,44 @@ class ETLHandler(metaclass=abc.ABCMeta):
             tmp_dir = app.config['FRACTALIS_TMP_DIR']
             data_dir = os.path.join(tmp_dir, 'data')
             os.makedirs(data_dir, exist_ok=True)
-            value = redis.hget('data', key=data_id)
-            if value:  # if value exists use existing file path
-                file_path = json.loads(value.decode('utf-8'))['file_path']
+            value = redis.get('data:{}'.format(data_id))
+            # if data already exist we keep file_path and access rights
+            if value:
+                data_obj = json.loads(value)
+                file_path = data_obj['file_path']
+                access = data_obj['access']
             else:
                 file_name = str(uuid4())
                 file_path = os.path.join(data_dir, file_name)
-            etl = ETL.factory(handler=self._handler,
-                              data_type=descriptor['data_type'])
-            async_result = etl.delay(server=self._server,
-                                     token=self._token,
-                                     descriptor=descriptor,
-                                     file_path=file_path)
-            if wait:
-                async_result.get(propagate=False)  # wait for results
+                access = []
+            # test if description for data is specified
             try:
                 description = descriptor['description']
             except KeyError:
                 description = str(descriptor)
+            etl = ETL.factory(handler=self._handler,
+                              data_type=descriptor['data_type'])
+            task_id = uuid()
             data_obj = {
                 'file_path': file_path,
-                'job_id': async_result.id,
-                'last_access': time.time(),
+                'job_id': task_id,
                 'data_type': etl.produces,
-                'description': description
+                'description': description,
+                'access': access
             }
-            redis.hset(name='data', key=data_id, value=json.dumps(data_obj))
+            redis.setex(name='data:{}'.format(data_id),
+                        time=app.config['FRACTALIS_CACHE_EXP'],
+                        value=json.dumps(data_obj))
+            kwargs = dict(server=self._server,
+                          token=self._token,
+                          descriptor=descriptor,
+                          session_id=session_id,
+                          data_id=data_id,
+                          file_path=file_path)
+            async_result = etl.apply_async(kwargs=kwargs, task_id=task_id)
             data_ids.append(data_id)
+            if wait:
+                async_result.get(propagate=False)  # wait for results
         return data_ids
 
     @classmethod

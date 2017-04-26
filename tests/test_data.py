@@ -7,9 +7,7 @@ from uuid import UUID, uuid4
 import flask
 import pytest
 
-from fractalis import app
-from fractalis import redis
-from fractalis import sync
+from fractalis import app, redis, sync
 
 
 class TestData:
@@ -143,10 +141,10 @@ class TestData:
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         assert len(os.listdir(data_dir)) == 1
         assert UUID(os.listdir(data_dir)[0])
-        data = redis.hgetall(name='data')
+        data = redis.keys('data:*')
         assert len(data) == 1
         for key in data:
-            data_obj = json.loads(data[key].decode('utf-8'))
+            data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
 
@@ -160,10 +158,10 @@ class TestData:
         assert len(os.listdir(data_dir)) == 3
         for f in os.listdir(data_dir):
             assert UUID(f)
-        data = redis.hgetall(name='data')
+        data = redis.keys('data:*')
         assert len(data) == 3
         for key in data:
-            data_obj = json.loads(data[key].decode('utf-8'))
+            data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
 
@@ -179,10 +177,10 @@ class TestData:
         assert len(os.listdir(data_dir)) == 1
         for f in os.listdir(data_dir):
             assert UUID(f)
-        data = redis.hgetall(name='data')
+        data = redis.keys('data:*')
         assert len(data) == 1
         for key in data:
-            data_obj = json.loads(data[key].decode('utf-8'))
+            data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
 
@@ -199,10 +197,10 @@ class TestData:
         assert len(os.listdir(data_dir)) == N
         for f in os.listdir(data_dir):
             assert UUID(f)
-        data = redis.hgetall(name='data')
+        data = redis.keys('data:*')
         assert len(data) == N
         for key in data:
-            data_obj = json.loads(data[key].decode('utf-8'))
+            data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
 
@@ -218,10 +216,10 @@ class TestData:
         assert len(os.listdir(data_dir)) == 3
         for f in os.listdir(data_dir):
             assert UUID(f)
-        data = redis.hgetall(name='data')
+        data = redis.keys('data:*')
         assert len(data) == 3
         for key in data:
-            data_obj = json.loads(data[key].decode('utf-8'))
+            data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
 
@@ -237,10 +235,10 @@ class TestData:
         assert len(os.listdir(data_dir)) == 3 * N
         for f in os.listdir(data_dir):
             assert UUID(f)
-        data = redis.hgetall(name='data')
+        data = redis.keys('data:*')
         assert len(data) == 3 * N
         for key in data:
-            data_obj = json.loads(data[key].decode('utf-8'))
+            data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
             assert data_obj['data_type']

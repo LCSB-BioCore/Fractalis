@@ -1,5 +1,4 @@
 import json
-import time
 
 from flask import Blueprint, session, request, jsonify
 
@@ -29,20 +28,17 @@ def create_data():
     etl_handler = ETLHandler.factory(handler=payload['handler'],
                                      server=payload['server'],
                                      auth=payload['auth'])
-    data_ids = etl_handler.handle(descriptors=payload['descriptors'], wait=wait)
+    data_ids = etl_handler.handle(descriptors=payload['descriptors'],
+                                  session_id=session.sid,
+                                  wait=wait)
     session['data_ids'] += data_ids
     session['data_ids'] = list(set(session['data_ids']))  # make unique
     return jsonify({'data_ids': data_ids}), 201
 
 
 def get_data_by_id(data_id, wait):
-    value = redis.hget(name='data', key=data_id)
-    value = value.decode('utf-8')
+    value = redis.get('data:{}'.format(data_id))
     data_obj = json.loads(value)
-
-    # update last_access field
-    data_obj['last_access'] = time.time()
-    redis.hset(name='data', key=data_id, value=json.dumps(data_obj))
 
     job_id = data_obj['job_id']
     async_result = celery.AsyncResult(job_id)
@@ -58,7 +54,7 @@ def get_data_by_id(data_id, wait):
 
     # remove internal information from response
     del data_obj['file_path']
-    del data_obj['last_access']
+    del data_obj['access']
 
     return data_obj
 

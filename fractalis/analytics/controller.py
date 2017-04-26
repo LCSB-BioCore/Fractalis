@@ -27,8 +27,8 @@ def create_job():
     if analytics_job is None:
         return jsonify({'error_msg': "Job with name '{}' not found.".format(
             json['job_name'])}), 400
-    async_result = analytics_job.delay(accessible_data_ids=session['data_ids'],
-                                       **json['args'])
+    async_result = analytics_job.delay(session_id=session.sid,
+                                       args=json['args'])
     session['analytics_jobs'].append(async_result.id)
     return jsonify({'job_id': async_result.id}), 201
 

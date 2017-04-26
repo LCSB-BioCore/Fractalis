@@ -9,6 +9,7 @@ setup(
     install_requires=[
         'Flask',
         'flask-cors',
+        'Flask-Script',
         'jsonschema',
         'celery[redis]',
         'redis',

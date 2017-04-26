@@ -9,6 +9,7 @@ import flask
 import pytest
 
 from fractalis import sync
+from fractalis.data.etl import ETL
 
 
 class TestAnalytics:
@@ -91,6 +92,25 @@ class TestAnalytics:
         assert new_body2['state'] != 'FAILURE'
 
     def test_404_if_creating_without_auth(self, test_client, small_data_post):
+        rv = small_data_post(random=False)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        with test_client.session_transaction() as sess:
+            sess['data_ids'] = []
+        rv = test_client.post('/analytics', data=flask.json.dumps(dict(
+            job_name='sum_df_test_job',
+            args={'a': '${}$'.format(body['data_ids'][0])}
+        )))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        url = '/analytics/{}?wait=1'.format(body['job_id'])
+        rv = test_client.get(url)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 200, body
+        assert body['state'] == 'FAILURE'
+        assert 'KeyError' in body['result']
+
+    def test_404_if_creating_without_auth_2(self, test_client, small_data_post):
         rv = small_data_post(random=False)
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 201, body
@@ -218,6 +238,10 @@ class TestAnalytics:
 
         assert len(data_ids) == 1
 
+        with test_client.session_transaction() as sess:
+            sess['data_ids'] = [data_ids[0]]
+            ETL.grant_access(data_id=data_ids[0], session_id=sess.sid)
+
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(
             job_name='sum_df_test_job',
             args={'a': '${}$'.format(data_ids[0])}
@@ -228,7 +252,7 @@ class TestAnalytics:
         new_response = test_client.get(new_url)
         new_body = flask.json.loads(new_response.get_data())
         assert new_response.status_code == 200, new_body
-        assert new_body['state'] == 'SUCCESS'
+        assert new_body['state'] == 'SUCCESS', new_body
         assert float(json.loads(new_body['result'])['sum'])
 
     def test_exception_if_result_not_json(self, test_client):

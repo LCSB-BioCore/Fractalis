@@ -1,10 +1,13 @@
 """This module provides the ETL class"""
 
 import abc
+import json
 from typing import List
 
 from celery import Task
 from pandas import DataFrame
+
+from fractalis import redis, app
 
 
 class ETL(Task, metaclass=abc.ABCMeta):
@@ -46,7 +49,6 @@ class ETL(Task, metaclass=abc.ABCMeta):
         produces. Can be one of: ['categorical', 'numerical']
         """
         pass
-
 
     @classmethod
     def can_handle(cls, handler: str, data_type: str) -> bool:
@@ -97,7 +99,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         pass
 
-    def load(self, data_frame: DataFrame, file_path: str) -> None:
+    @staticmethod
+    def load(data_frame: DataFrame, file_path: str) -> None:
         """Load (save) the data to the file system.
 
         :param data_frame: DataFrame to write.
@@ -105,17 +108,36 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         data_frame.to_csv(file_path, index=False)
 
-    def run(self, server: str, token: str,
-            descriptor: dict, file_path: str) -> None:
+    @staticmethod
+    def grant_access(data_id, session_id):
+        """Makes an entry in redis that reflects the permission of the session
+        to access/read the data. This entry is removed when the data expire via
+        sync.py. Individual session ids are never removed as long as the data 
+        object lives.
+        :param data_id: The id of the data
+        :param session_id: The id of the session
+        """
+        key = 'data:{}'.format(data_id)
+        data_obj = redis.get(key)
+        data_obj = json.loads(data_obj)
+        data_obj['access'].append(session_id)
+        data_obj['access'] = list(set(data_obj['access']))  # make ids unique
+        # we have to setex here because a set would remove the expire on the key
+        redis.setex(name=key,
+                    time=app.config['FRACTALIS_CACHE_EXP'],
+                    value=json.dumps(data_obj))
+
+    def run(self, server: str, token: str, descriptor: dict,
+            file_path: str, session_id: str, data_id: str) -> None:
         """Run the current task.
         This is called by the celery worker.
-
-        Only overwrite this method if you really know what you are doing.
-
+        
         :param server: The server on which the data are located.
         :param token: The token used for authentication.
         :param descriptor: Contains all necessary information to download data.
         :param file_path: The path to where the file is written.
+        :param session_id: The id of the session that requested this job
+        :param data_id: The id of the data object that is related to this ETL
         """
         raw_data = self.extract(server, token, descriptor)
         data_frame = self.transform(raw_data)
@@ -123,3 +145,6 @@ class ETL(Task, metaclass=abc.ABCMeta):
             raise TypeError("transform() must return 'pandas.DataFrame', but"
                             "returned '{}' instead.".format(type(data_frame)))
         self.load(data_frame, file_path)
+        # at this point we know that the session has permission to read the data
+        # otherwise authentication with target API would have failed
+        self.grant_access(data_id, session_id)
