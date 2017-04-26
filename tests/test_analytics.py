@@ -8,8 +8,7 @@ from uuid import uuid4
 import flask
 import pytest
 
-from fractalis import sync
-from fractalis.data.etl import ETL
+from fractalis import sync, redis
 
 
 class TestAnalytics:
@@ -28,8 +27,8 @@ class TestAnalytics:
 
     @pytest.fixture(scope='function')
     def small_data_post(self, test_client):
-        return lambda random: test_client.post(
-            '/data', data=flask.json.dumps(dict(
+        return lambda random, wait=0: test_client.post(
+            '/data?wait={}'.format(wait), data=flask.json.dumps(dict(
                 handler='test',
                 server='localhost:1234',
                 auth={'token': '7746391376142672192764'},
@@ -91,7 +90,7 @@ class TestAnalytics:
         new_body2 = flask.json.loads(new_response2.get_data())
         assert new_body2['state'] != 'FAILURE'
 
-    def test_404_if_creating_without_auth(self, test_client, small_data_post):
+    def test_404_if_no_session_auth(self, test_client, small_data_post):
         rv = small_data_post(random=False)
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 201, body
@@ -107,27 +106,57 @@ class TestAnalytics:
         rv = test_client.get(url)
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 200, body
-        assert body['state'] == 'FAILURE'
-        assert 'KeyError' in body['result']
+        assert body['state'] == 'FAILURE', body
+        assert 'KeyError' in body['result'], body
 
-    def test_404_if_creating_without_auth_2(self, test_client, small_data_post):
-        rv = small_data_post(random=False)
+    def test_403_if_no_data_access_auth(self, test_client):
+        rv = test_client.post(
+            '/data?wait=1', data=flask.json.dumps(dict(
+                handler='test',
+                server='localhost:1234',
+                auth={'token': '7746391376142672192764'},
+                descriptors=[
+                    {
+                        'data_type': 'default',
+                        'concept': 'concept'
+                    }
+                ]
+            )))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 201, body
+        assert len(body['data_ids']) == 1
+        data_id = body['data_ids'][0]
+        assert redis.get('data:{}'.format(data_id))
         with test_client.session_transaction() as sess:
-            sess['data_ids'] = []
-        rv = test_client.post('/analytics', data=flask.json.dumps(dict(
-            job_name='sum_df_test_job',
-            args={'a': '${}$'.format(body['data_ids'][0])}
-        )))
+            sess.sid = str(uuid4())  # we are someone else now
+        rv = test_client.post(
+            '/data?wait=1', data=flask.json.dumps(dict(
+                handler='test',
+                server='localhost:1234',
+                auth={'token': 'fail'},  # we make the ETL fail on purpose
+                descriptors=[
+                    {
+                        'data_type': 'default',
+                        'concept': 'concept',
+                    }
+                ]
+            )))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 201, body
+        assert len(body['data_ids']) == 1
+        assert body['data_ids'][0] == data_id
+        rv = test_client.post('/analytics?wait=1', data=flask.json.dumps(dict(
+            job_name='sum_df_test_job',
+            args={'a': '${}$'.format(data_id)}
+        )))
+        assert rv.status_code == 201
+        body = flask.json.loads(rv.get_data())
         url = '/analytics/{}?wait=1'.format(body['job_id'])
         rv = test_client.get(url)
         body = flask.json.loads(rv.get_data())
-        assert rv.status_code == 200, body
+        assert rv.status_code == 200
         assert body['state'] == 'FAILURE'
-        assert 'KeyError' in body['result']
+        assert 'No permission' in body['result']
 
     def test_resource_deleted(self, test_client):
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(
@@ -231,16 +260,12 @@ class TestAnalytics:
     def test_float_when_summing_up_df(self, test_client, small_data_post):
         data_ids = []
 
-        data_rv1 = small_data_post(random=True)
+        data_rv1 = small_data_post(random=True, wait=1)
         data_body1 = flask.json.loads(data_rv1.get_data())
         assert data_rv1.status_code == 201, data_body1
         data_ids += data_body1['data_ids']
 
         assert len(data_ids) == 1
-
-        with test_client.session_transaction() as sess:
-            sess['data_ids'] = [data_ids[0]]
-            ETL.grant_access(data_id=data_ids[0], session_id=sess.sid)
 
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(
             job_name='sum_df_test_job',

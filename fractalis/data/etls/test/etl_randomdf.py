@@ -12,6 +12,8 @@ class RandomDFETL(ETL):
     produces = 'something'
 
     def extract(self, server, token, descriptor):
+        if 'fail' in token:
+            raise Exception('Throwing because I was told to.')
         fake_raw_data = np.random.randn(10, 5)
         return fake_raw_data
 

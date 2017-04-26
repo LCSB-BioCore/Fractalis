@@ -27,7 +27,7 @@ class AnalyticsJob(Task, metaclass=abc.ABCMeta):
         pass
 
     @staticmethod
-    def prepare_args(session_id, args):
+    def prepare_args(session_id, session_data_ids, args):
         arguments = {}
         for arg in args:
             value = args[arg]
@@ -39,7 +39,8 @@ class AnalyticsJob(Task, metaclass=abc.ABCMeta):
                     raise KeyError("The key '{}' does not match any entries"
                                    "in the database.".format(data_id))
                 data_obj = json.loads(data_obj)
-                if session_id not in data_obj['access']:  # access check
+                if session_id not in data_obj['access'] \
+                        or data_id not in session_data_ids:  # access check
                     raise KeyError("No permission to use data_id '{}'"
                                    "for analysis".format(data_id))
                 file_path = data_obj['file_path']
@@ -47,8 +48,8 @@ class AnalyticsJob(Task, metaclass=abc.ABCMeta):
             arguments[arg] = value
         return arguments
 
-    def run(self, session_id, args):
-        arguments = self.prepare_args(session_id, args)
+    def run(self, session_id, session_data_ids, args):
+        arguments = self.prepare_args(session_id, session_data_ids, args)
         result = self.main(**arguments)
         try:
             if type(result) != dict:

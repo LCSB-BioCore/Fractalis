@@ -28,6 +28,7 @@ def create_job():
         return jsonify({'error_msg': "Job with name '{}' not found.".format(
             json['job_name'])}), 400
     async_result = analytics_job.delay(session_id=session.sid,
+                                       session_data_ids=session['data_ids'],
                                        args=json['args'])
     session['analytics_jobs'].append(async_result.id)
     return jsonify({'job_id': async_result.id}), 201
@@ -35,13 +36,13 @@ def create_job():
 
 @analytics_blueprint.route('/<uuid:job_id>', methods=['GET'])
 def get_job_details(job_id):
+    wait = request.args.get('wait') == '1'
     job_id = str(job_id)
     if job_id not in session['analytics_jobs']:  # access control
         return jsonify({'error_msg': "No matching job found."}), 404
     async_result = celery.AsyncResult(job_id)
-    wait = request.args.get('wait') == '1'
     if wait:
-        async_result.get(propagate=False)  # wait for results
+        async_result.get(propagate=False)  # make job synchronous
     state = async_result.state
     result = async_result.result
     if isinstance(result, Exception):  # Exception -> str
