@@ -7,7 +7,7 @@ from typing import List
 from celery import Task
 from pandas import DataFrame
 
-from fractalis import redis, app
+from fractalis import redis
 
 
 class ETL(Task, metaclass=abc.ABCMeta):
@@ -77,7 +77,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
                 return etl()
         raise NotImplementedError(
             "No ETL implementation found for handler '{}' and data type '{}'"
-            .format(handler, data_type))
+                .format(handler, data_type))
 
     @abc.abstractmethod
     def extract(self, server: str, token: str, descriptor: dict) -> object:
@@ -122,10 +122,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         data_obj = json.loads(data_obj)
         data_obj['access'].append(session_id)
         data_obj['access'] = list(set(data_obj['access']))  # make ids unique
-        # we have to setex here because a set would remove the expire on the key
-        redis.setex(name=key,
-                    time=app.config['FRACTALIS_CACHE_EXP'],
-                    value=json.dumps(data_obj))
+        redis.set(name=key, value=json.dumps(data_obj))
 
     def run(self, server: str, token: str, descriptor: dict,
             file_path: str, session_id: str, data_id: str) -> None:

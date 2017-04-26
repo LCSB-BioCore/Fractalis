@@ -104,9 +104,12 @@ class ETLHandler(metaclass=abc.ABCMeta):
                 'description': description,
                 'access': access
             }
-            redis.setex(name='data:{}'.format(data_id),
+            redis.set(name='data:{}'.format(data_id),
+                      value=json.dumps(data_obj))
+            # http://stackoverflow.com/a/28647773
+            redis.setex(name='shadow:data:{}'.format(data_id),
                         time=app.config['FRACTALIS_CACHE_EXP'],
-                        value=json.dumps(data_obj))
+                        value='')
             kwargs = dict(server=self._server,
                           token=self._token,
                           descriptor=descriptor,

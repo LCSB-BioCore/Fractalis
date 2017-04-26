@@ -73,9 +73,6 @@ class TestSession(object):
                 sess.permanent = True
                 sess['foo'] = 'bar'
                 session_id = sess.sid
+        assert redis.get('session:{}'.format(session_id))
         sleep(2)
         assert not redis.get('session:{}'.format(session_id))
-
-    def test_exception_when_manipulating_session_data(self, app):
-        # No need to test this atm because we store nothing in the cookie
-        assert True

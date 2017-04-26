@@ -147,6 +147,7 @@ class TestData:
             data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
+            assert redis.exists('shadow:{}'.format(key))
 
     def test_201_on_big_POST_and_valid_state(self, test_client, big_post):
         rv = big_post(random=False)
@@ -164,6 +165,7 @@ class TestData:
             data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
+            assert redis.exists('shadow:{}'.format(key))
 
     def test_many_small_POST_and_valid_state(self, test_client, small_post):
         N = 10
@@ -183,6 +185,7 @@ class TestData:
             data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
+            assert redis.exists('shadow:{}'.format(key))
 
     def test_many_small_random_POST_and_valid_state(
             self, test_client, small_post):
@@ -203,6 +206,7 @@ class TestData:
             data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
+            assert redis.exists('shadow:{}'.format(key))
 
     def test_many_big_POST_and_valid_state(self, test_client, big_post):
         N = 10
@@ -222,6 +226,7 @@ class TestData:
             data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
+            assert redis.exists('shadow:{}'.format(key))
 
     def test_many_big_random_POST_and_valid_state(self, test_client, big_post):
         N = 10
@@ -241,6 +246,7 @@ class TestData:
             data_obj = json.loads(redis.get(key))
             assert data_obj['job_id']
             assert data_obj['file_path']
+            assert redis.exists('shadow:{}'.format(key))
             assert data_obj['data_type']
 
     def test_GET_by_id_and_valid_response(self, test_client, big_post):
