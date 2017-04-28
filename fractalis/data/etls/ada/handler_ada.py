@@ -30,4 +30,6 @@ class AdaHandler(ETLHandler):
         cookie = r.headers['Set-Cookie']
         token = [s for s in cookie.split(';')
                  if s.startswith('PLAY2AUTH_SESS_ID')][0]
+        token = '='.join(token.split('=')[1:])  # remove PLAY2AUTH_SESS_ID=
+        token = token[1:-1]  # remove surrounding ''
         return token

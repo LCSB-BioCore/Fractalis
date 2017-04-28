@@ -6,10 +6,7 @@ import requests
 
 
 def make_cookie(token: str) -> dict:
-    split = token.split('=')
-    assert len(split) == 2
-    cookie = {split[0]: split[1][1:-1]}
-    return cookie
+    return {'PLAY2AUTH_SESS_ID': token}
 
 
 def get_field(server: str, data_set: str,
@@ -22,9 +19,14 @@ def get_field(server: str, data_set: str,
                      },
                      cookies=cookie)
     if r.status_code != 200:
-        raise ValueError("Data extraction failed. Reason: [{}]: {}"
-                         .format(r.status_code, r.text))
-    return r.json()
+        raise ValueError("Data extraction failed. Target server responded with "
+                         "status code {}.".format(r.status_code))
+    try:
+        field_data = r.json()
+    except Exception:
+        raise ValueError("Data extraction failed. Target server did not return "
+                         "expected data. Possible authentication error.")
+    return field_data
 
 
 def get_dictionary(server: str, data_set: str,

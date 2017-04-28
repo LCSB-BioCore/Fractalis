@@ -25,7 +25,10 @@ def janitor():
                 print('deleting file: ', file_path)
                 print('deleting redis key: ', expired_key)
                 redis.delete(expired_key)
-                os.remove(file_path)
+                try:
+                    os.remove(file_path)
+                except FileNotFoundError:
+                    pass
 
 
 if __name__ == "__main__":
