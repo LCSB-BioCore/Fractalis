@@ -6,9 +6,18 @@ db and the file system.
 import os
 from shutil import rmtree
 
-from fractalis import redis, app
+from fractalis import redis, app, celery
 
 
+@celery.task
+def remove_file(file_path: str) -> None:
+    try:
+        os.remove(file_path)
+    except FileNotFoundError:
+        pass
+
+
+@celery.task
 def cleanup_all() -> None:
     """Reset redis and the filesystem. This is only useful for testing and
     should !!!NEVER!!! be used otherwise.

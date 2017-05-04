@@ -38,7 +38,6 @@ def get_dictionary(server: str, data_set: str,
                      cookies=cookie)
     if r.status_code != 200:
         dictionary = None
-        # TODO: Log this
         pass
     else:
         dictionary = r.json()

@@ -89,11 +89,11 @@ class ETLHandler(metaclass=abc.ABCMeta):
                 file_name = str(uuid4())
                 file_path = os.path.join(data_dir, file_name)
                 access = []
-            # test if description for data is specified
+            # test if label for data is specified
             try:
-                description = descriptor['description']
+                label = descriptor['label']
             except KeyError:
-                description = str(descriptor)
+                label = str(descriptor)
             etl = ETL.factory(handler=self._handler,
                               data_type=descriptor['data_type'])
             task_id = uuid()
@@ -101,7 +101,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
                 'file_path': file_path,
                 'job_id': task_id,
                 'data_type': etl.produces,
-                'description': description,
+                'label': label,
+                'descriptor': descriptor,
                 'access': access
             }
             redis.set(name='data:{}'.format(data_id),

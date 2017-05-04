@@ -4,6 +4,7 @@ import json
 from flask_script import Manager
 
 from fractalis import app, redis
+from fractalis.sync import remove_file
 
 
 manager = Manager(app)
@@ -25,10 +26,7 @@ def janitor():
                 print('deleting file: ', file_path)
                 print('deleting redis key: ', expired_key)
                 redis.delete(expired_key)
-                try:
-                    os.remove(file_path)
-                except FileNotFoundError:
-                    pass
+                remove_file.delay()
 
 
 if __name__ == "__main__":

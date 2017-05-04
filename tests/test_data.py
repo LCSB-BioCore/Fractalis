@@ -260,12 +260,13 @@ class TestData:
             body = flask.json.loads(rv.get_data())
             data_state = body['data_state']
             assert rv.status_code == 200, data_state
-            assert len(data_state) == 6  # include only minimal data in response
+            assert len(data_state) == 7  # include only minimal data in response
             assert not data_state['message']
             assert data_state['state']
             assert data_state['job_id']
             assert data_state['data_type']
-            assert data_state['description']
+            assert data_state['label']
+            assert data_state['descriptor']
             assert data_state['data_id']
 
     def test_GET_by_all_and_valid_response(self, test_client, big_post):
@@ -279,12 +280,13 @@ class TestData:
         body = flask.json.loads(rv.get_data())
 
         for data_state in body['data_states']:
-            assert len(data_state) == 6
+            assert len(data_state) == 7
             assert not data_state['message']
             assert data_state['state']
             assert data_state['job_id']
             assert data_state['data_type']
-            assert data_state['description']
+            assert data_state['label']
+            assert data_state['descriptor']
             assert data_state['data_id']
 
     def test_GET_by_params_and_valid_response(self, test_client):
@@ -308,12 +310,13 @@ class TestData:
         body = flask.json.loads(rv.get_data())
         data_state = body['data_state']
         assert rv.status_code == 200, data_state
-        assert len(data_state) == 6  # include only minimal data in response
+        assert len(data_state) == 7  # include only minimal data in response
         assert not data_state['message']
         assert data_state['state']
         assert data_state['job_id']
         assert data_state['data_type']
-        assert data_state['description']
+        assert data_state['label']
+        assert data_state['descriptor']
         assert data_state['data_id']
 
     def test_404_on_GET_by_id_if_no_auth(self, test_client, big_post):
@@ -415,7 +418,7 @@ class TestData:
         with test_client.session_transaction() as sess:
             assert len(sess['data_ids']) == 1
 
-    def test_no_access_on_failure(self, test_client, small_post):
+    def test_no_access_on_failure(self, test_client):
         rv = test_client.post(
             '/data', data=flask.json.dumps(dict(
                 handler='test',
@@ -440,4 +443,59 @@ class TestData:
             sess['data_ids'] = []
 
         rv = test_client.get('/data/{}'.format(data_id))
+        assert rv.status_code == 404
+
+    def test_delete_and_no_db_entries(self, test_client, small_post):
+        rv = small_post(random=True)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        data_ids = body['data_ids']
+        assert len(data_ids) == 1
+        data_id = data_ids[0]
+        data_obj = redis.get('data:{}'.format(data_id))
+        assert data_obj
+        assert redis.exists('shadow:data:{}'.format(data_id))
+        test_client.delete('/data/{}?wait=1'.format(data_id))
+        assert not redis.exists('data:{}'.format(data_id))
+        assert not redis.exists('shadow:data:{}'.format(data_id))
+
+    def test_delete_and_no_files(self, test_client, small_post):
+        rv = small_post(random=True)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        data_ids = body['data_ids']
+        assert len(data_ids) == 1
+        data_id = data_ids[0]
+        test_client.get('/data/{}?wait=1'.format(data_id))
+        data_obj = json.loads(redis.get('data:{}'.format(data_id)))
+        assert os.path.exists(data_obj['file_path'])
+        test_client.delete('/data/{}?wait=1'.format(data_id))
+        assert not os.path.exists(data_obj['file_path'])
+
+    def test_delete_and_no_id_in_session(self, test_client, small_post):
+        rv = small_post(random=True)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        data_ids = body['data_ids']
+        assert len(data_ids) == 1
+        data_id = data_ids[0]
+        test_client.get('/data/{}?wait=1'.format(data_id))
+        with test_client.session_transaction() as sess:
+            assert data_id in sess['data_ids']
+        test_client.delete('/data/{}?wait=1'.format(data_id))
+        test_client.get('/data/{}?wait=1'.format(data_id))
+        with test_client.session_transaction() as sess:
+            assert data_id not in sess['data_ids']
+
+    def test_cannot_delete_without_auth(self, test_client, small_post):
+        rv = small_post(random=True)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        data_ids = body['data_ids']
+        assert len(data_ids) == 1
+        data_id = data_ids[0]
+        test_client.get('/data/{}?wait=1'.format(data_id))
+        with test_client.session_transaction() as sess:
+            sess['data_ids'] = []
+        rv = test_client.delete('/data/{}?wait=1'.format(data_id))
         assert rv.status_code == 404
