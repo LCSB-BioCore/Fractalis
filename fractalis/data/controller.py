@@ -115,7 +115,7 @@ def delete_data(params):
     return '', 200
 
 
-@data_blueprint.route('/', methods=['DELETE'])
+@data_blueprint.route('', methods=['DELETE'])
 def delete_all_data():
     for data_id in session['data_ids']:
         delete_data(data_id)
