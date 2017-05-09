@@ -13,7 +13,8 @@ data_blueprint = Blueprint('data_blueprint', __name__)
 
 
 def get_data_by_id(data_id, wait):
-    data_obj = json.loads(redis.get('data:{}'.format(data_id)))
+    value = redis.get('data:{}'.format(data_id))
+    data_obj = json.loads(value.decode('utf-8'))
 
     job_id = data_obj['job_id']
     async_result = celery.AsyncResult(job_id)
@@ -103,7 +104,8 @@ def delete_data(params):
     if data_id not in session['data_ids']:  # access control
         return jsonify(
             {'error_msg': "No matching data found. Maybe expired?"}), 404
-    data_obj = json.loads(redis.get('data:{}'.format(data_id)))
+    value = redis.get('data:{}'.format(data_id))
+    data_obj = json.loads(value.decode('utf-8'))
     file_path = data_obj['file_path']
     async_result = remove_file.delay(file_path)
     if wait:

@@ -26,8 +26,7 @@ class TestSession(object):
                 sess.permanent = True
                 sess['foo'] = 'bar'
                 session_id = sess.sid
-        value = redis.get('session:{}'.format(session_id))
-        assert flask.json.loads(value)['foo'] == 'bar'
+        assert redis.exists('session:{}'.format(session_id))
 
     def test_add_data_to_session_and_expect_sid_to_be_uuid(self, app):
         with app.test_client() as c:
@@ -56,15 +55,14 @@ class TestSession(object):
                 sess.permanent = True
                 sess['foo'] = 'bar'
             session_id = sess.sid
-        value = redis.get('session:{}'.format(session_id))
-        assert flask.json.loads(value)['foo'] == 'bar'
+        value_1 = redis.get('session:{}'.format(session_id))
         with app.test_client() as c:
             with c.session_transaction() as sess:
                 sess.permanent = True
                 sess['foo'] = 'baz'
             session_id = sess.sid
-        value = redis.get('session:{}'.format(session_id))
-        assert flask.json.loads(value)['foo'] == 'baz'
+        value_2 = redis.get('session:{}'.format(session_id))
+        assert value_1 != value_2
 
     def test_session_data_not_in_db_when_expired(self, app, redis):
         app.config['PERMANENT_SESSION_LIFETIME'] = 1
@@ -73,6 +71,6 @@ class TestSession(object):
                 sess.permanent = True
                 sess['foo'] = 'bar'
                 session_id = sess.sid
-        assert redis.get('session:{}'.format(session_id))
+        assert redis.exists('session:{}'.format(session_id))
         sleep(2)
-        assert not redis.get('session:{}'.format(session_id))
+        assert not redis.exists('session:{}'.format(session_id))

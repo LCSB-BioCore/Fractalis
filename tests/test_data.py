@@ -144,7 +144,9 @@ class TestData:
         data = redis.keys('data:*')
         assert len(data) == 1
         for key in data:
-            data_obj = json.loads(redis.get(key))
+            key = key.decode('utf-8')
+            value = redis.get(key)
+            data_obj = json.loads(value.decode('utf-8'))
             assert data_obj['job_id']
             assert data_obj['file_path']
             assert redis.exists('shadow:{}'.format(key))
@@ -162,7 +164,9 @@ class TestData:
         data = redis.keys('data:*')
         assert len(data) == 3
         for key in data:
-            data_obj = json.loads(redis.get(key))
+            key = key.decode('utf-8')
+            value = redis.get(key)
+            data_obj = json.loads(value.decode('utf-8'))
             assert data_obj['job_id']
             assert data_obj['file_path']
             assert redis.exists('shadow:{}'.format(key))
@@ -182,7 +186,9 @@ class TestData:
         data = redis.keys('data:*')
         assert len(data) == 1
         for key in data:
-            data_obj = json.loads(redis.get(key))
+            key = key.decode('utf-8')
+            value = redis.get(key)
+            data_obj = json.loads(value.decode('utf-8'))
             assert data_obj['job_id']
             assert data_obj['file_path']
             assert redis.exists('shadow:{}'.format(key))
@@ -203,7 +209,9 @@ class TestData:
         data = redis.keys('data:*')
         assert len(data) == N
         for key in data:
-            data_obj = json.loads(redis.get(key))
+            key = key.decode('utf-8')
+            value = redis.get(key)
+            data_obj = json.loads(value.decode('utf-8'))
             assert data_obj['job_id']
             assert data_obj['file_path']
             assert redis.exists('shadow:{}'.format(key))
@@ -223,7 +231,9 @@ class TestData:
         data = redis.keys('data:*')
         assert len(data) == 3
         for key in data:
-            data_obj = json.loads(redis.get(key))
+            key = key.decode('utf-8')
+            value = redis.get(key)
+            data_obj = json.loads(value.decode('utf-8'))
             assert data_obj['job_id']
             assert data_obj['file_path']
             assert redis.exists('shadow:{}'.format(key))
@@ -243,7 +253,9 @@ class TestData:
         data = redis.keys('data:*')
         assert len(data) == 3 * N
         for key in data:
-            data_obj = json.loads(redis.get(key))
+            key = key.decode('utf-8')
+            value = redis.get(key)
+            data_obj = json.loads(value.decode('utf-8'))
             assert data_obj['job_id']
             assert data_obj['file_path']
             assert redis.exists('shadow:{}'.format(key))
@@ -467,7 +479,8 @@ class TestData:
         assert len(data_ids) == 1
         data_id = data_ids[0]
         test_client.get('/data/{}?wait=1'.format(data_id))
-        data_obj = json.loads(redis.get('data:{}'.format(data_id)))
+        value = redis.get('data:{}'.format(data_id))
+        data_obj = json.loads(value.decode('utf-8'))
         assert os.path.exists(data_obj['file_path'])
         test_client.delete('/data/{}?wait=1'.format(data_id))
         assert not os.path.exists(data_obj['file_path'])

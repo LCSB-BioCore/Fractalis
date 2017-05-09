@@ -7,14 +7,17 @@ import logging
 
 from flask import Flask
 from flask_cors import CORS
+from flask_session import Session
 from redis import StrictRedis
 
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)  # allow everyone to submit requests
 
-# Configure app
+# allow everyone to submit requests
+CORS(app, supports_credentials=True)
+# Configure app with defaults
 app.config.from_object('fractalis.config')
+# Configure app with manually settings
 try:
     app.config.from_envvar('FRACTALIS_CONFIG')
     app.logger.info("FRACTALIS_CONFIG environment variable is set and was "
@@ -23,13 +26,17 @@ except RuntimeError:
     app.logger.warning("FRACTALIS_CONFIG environment variable is not set. "
                        "Using defaults for Flask app.")
 
+# create a redis instance
 redis = StrictRedis(host=app.config['REDIS_HOST'],
-                    port=app.config['REDIS_PORT'],
-                    charset='utf-8',
-                    decode_responses=True)
+                    port=app.config['REDIS_PORT'])
 
-from fractalis.session import RedisSessionInterface  # noqa
-app.session_interface = RedisSessionInterface()
+# Configure app with composed configurations to save admin some work
+app.config['SESSION_REDIS'] = redis
+app.config['CELERY_RESULT_BACKEND'] = 'redis://{}:{}'.format(
+        app.config['REDIS_HOST'], app.config['REDIS_PORT'])
+
+# Set new session interface for app
+Session(app)
 
 from fractalis.celeryapp import make_celery, register_tasks  # noqa
 celery = make_celery(app)

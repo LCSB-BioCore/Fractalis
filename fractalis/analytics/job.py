@@ -34,11 +34,11 @@ class AnalyticsJob(Task, metaclass=abc.ABCMeta):
             if (isinstance(value, str) and
                     value.startswith('$') and value.endswith('$')):
                 data_id = value[1:-1]
-                data_obj = redis.get('data:{}'.format(data_id))
-                if data_obj is None:
+                value = redis.get('data:{}'.format(data_id))
+                if value is None:
                     raise KeyError("The key '{}' does not match any entries"
                                    " in the database.".format(data_id))
-                data_obj = json.loads(data_obj)
+                data_obj = json.loads(value.decode('utf-8'))
                 if session_id not in data_obj['access'] \
                         or data_id not in session_data_ids:  # access check
                     raise KeyError("No permission to use data_id '{}'"

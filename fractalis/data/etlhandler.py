@@ -82,7 +82,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
             value = redis.get('data:{}'.format(data_id))
             # if data already exist we keep file_path and access rights
             if value:
-                data_obj = json.loads(value)
+                data_obj = json.loads(value.decode('utf-8'))
                 file_path = data_obj['file_path']
                 access = data_obj['access']
             else:

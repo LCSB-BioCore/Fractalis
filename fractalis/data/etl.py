@@ -118,8 +118,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
         :param session_id: The id of the session
         """
         key = 'data:{}'.format(data_id)
-        data_obj = redis.get(key)
-        data_obj = json.loads(data_obj)
+        value = redis.get(key)
+        data_obj = json.loads(value.decode('utf-8'))
         data_obj['access'].append(session_id)
         data_obj['access'] = list(set(data_obj['access']))  # make ids unique
         redis.set(name=key, value=json.dumps(data_obj))

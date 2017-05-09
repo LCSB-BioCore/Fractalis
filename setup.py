@@ -10,6 +10,7 @@ setup(
         'Flask',
         'flask-cors',
         'Flask-Script',
+        'Flask-Session',
         'jsonschema',
         'celery[redis]',
         'redis',

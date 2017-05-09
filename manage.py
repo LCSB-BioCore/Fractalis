@@ -21,7 +21,7 @@ def janitor():
             if 'shadow' == split[1] and 'data' == split[2]:
                 expired_key = ':'.join(split[2:])
                 expired_value = redis.get(expired_key)
-                expired_value = json.loads(expired_value)
+                expired_value = json.loads(expired_value.decode('utf-8'))
                 file_path = expired_value['file_path']
                 print('deleting file: ', file_path)
                 print('deleting redis key: ', expired_key)
