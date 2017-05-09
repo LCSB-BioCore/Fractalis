@@ -91,6 +91,12 @@ def get_data_state(params):
     return jsonify({'data_state': data_obj}), 200
 
 
+def delete_data_id(data_id):
+    redis.delete('data:{}'.format(data_id))
+    redis.delete('shadow:data:{}'.format(data_id))
+    session['data_ids'].remove(data_id)
+
+
 @data_blueprint.route('/<string:params>', methods=['DELETE'])
 def delete_data(params):
     wait = request.args.get('wait') == '1'
@@ -110,13 +116,12 @@ def delete_data(params):
     async_result = remove_file.delay(file_path)
     if wait:
         async_result.get(propagate=False)
-    redis.delete('data:{}'.format(data_id))
-    redis.delete('shadow:data:{}'.format(data_id))
+    delete_data_id(data_id)
     return '', 200
 
 
 @data_blueprint.route('', methods=['DELETE'])
 def delete_all_data():
     for data_id in session['data_ids']:
-        delete_data(data_id)
+        delete_data_id(data_id)
     return '', 200

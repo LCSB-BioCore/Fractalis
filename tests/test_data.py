@@ -512,3 +512,18 @@ class TestData:
             sess['data_ids'] = []
         rv = test_client.delete('/data/{}?wait=1'.format(data_id))
         assert rv.status_code == 404
+
+    def test_delete_all_and_no_id_in_session(self, test_client, small_post):
+        rv = small_post(random=True)
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        data_ids = body['data_ids']
+        assert len(data_ids) == 1
+        data_id = data_ids[0]
+        test_client.get('/data/{}?wait=1'.format(data_id))
+        with test_client.session_transaction() as sess:
+            assert data_id in sess['data_ids']
+        test_client.delete('/data/{}?wait=1'.format(data_id))
+        test_client.get('/data/{}?wait=1'.format(data_id))
+        with test_client.session_transaction() as sess:
+            assert data_id not in sess['data_ids']
