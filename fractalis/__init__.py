@@ -3,56 +3,74 @@
 Modules in this package:
     - config -- Manages Fractalis Flask app configuration
 """
-import logging
+import logging.config
 
+import yaml
 from flask import Flask
 from flask_cors import CORS
 from flask_session import Session
 from redis import StrictRedis
-
+from celery.signals import after_setup_logger, after_setup_task_logger
 
 app = Flask(__name__)
 
-# allow everyone to submit requests
-CORS(app, supports_credentials=True)
 # Configure app with defaults
 app.config.from_object('fractalis.config')
 # Configure app with manually settings
 try:
     app.config.from_envvar('FRACTALIS_CONFIG')
-    app.logger.info("FRACTALIS_CONFIG environment variable is set and was "
-                    "applied to Flask app.")
+    default_config = False
 except RuntimeError:
-    app.logger.warning("FRACTALIS_CONFIG environment variable is not set. "
-                       "Using defaults for Flask app.")
+    default_config = True
+    pass
+
+# setup logging
+with open('logging.yaml', 'rt') as f:
+    log_config = yaml.safe_load(f.read())
+logging.config.dictConfig(log_config)
+log = logging.getLogger(__name__)
+
+# we can't log this earlier because the logger depends on the loaded app config
+if default_config:
+    log.error("Environment Variable FRACTALIS_CONFIG not set. Falling back "
+              "to default settings. This is not a good idea in production!")
 
 # create a redis instance
+log.info("Creating Redis connection.")
 redis = StrictRedis(host=app.config['REDIS_HOST'],
                     port=app.config['REDIS_PORT'])
 
 # Configure app with composed configurations to save admin some work
 app.config['SESSION_REDIS'] = redis
 app.config['CELERY_RESULT_BACKEND'] = 'redis://{}:{}'.format(
-        app.config['REDIS_HOST'], app.config['REDIS_PORT'])
+    app.config['REDIS_HOST'], app.config['REDIS_PORT'])
 
 # Set new session interface for app
+log.info("Replacing default session interface.")
 Session(app)
 
+# allow everyone to submit requests
+log.info("Setting up CORS.")
+CORS(app, supports_credentials=True)
+
+# create celery app
+log.info("Creating celery app.")
 from fractalis.celeryapp import make_celery, register_tasks  # noqa
 celery = make_celery(app)
 
 # register blueprints
 from fractalis.analytics.controller import analytics_blueprint  # noqa
 from fractalis.data.controller import data_blueprint  # noqa
+log.info("Registering Flask blueprints.")
 app.register_blueprint(analytics_blueprint, url_prefix='/analytics')
 app.register_blueprint(data_blueprint, url_prefix='/data')
 
+log.info("Registering celery tasks.")
 register_tasks()
 
+log.info("Initialisation of service complete.")
+
 if __name__ == '__main__':
-    handler = logging.handlers.TimedRotatingFileHandler('fractalis.log',
-                                                        when='midnight',
-                                                        backupCount=14)
-    handler.setLevel(logging.INFO)
-    app.logger.addHandler(handler)
+    log.info("Starting builtin web server.")
     app.run()
+    log.info("Builtin web server started.")

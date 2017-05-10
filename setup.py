@@ -17,7 +17,8 @@ setup(
         'pandas',
         'numpy',
         'scipy',
-        'requests'
+        'requests',
+        'PyYAML'
     ],
     setup_requires=[
         'pytest-runner',

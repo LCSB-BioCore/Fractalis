@@ -2,12 +2,16 @@
 
 import abc
 import json
+import logging
 from typing import List
 
 from celery import Task
 from pandas import DataFrame
 
 from fractalis import redis
+
+
+logger = logging.getLogger(__name__)
 
 
 class ETL(Task, metaclass=abc.ABCMeta):
@@ -136,11 +140,19 @@ class ETL(Task, metaclass=abc.ABCMeta):
         :param session_id: The id of the session that requested this job
         :param data_id: The id of the data object that is related to this ETL
         """
+        logger.info("Starting ETL process ...")
+        logger.info("(E)xtracting data from server '{}'.".format(server))
         raw_data = self.extract(server, token, descriptor)
+        logger.info("(T)ransforming data to Fractalis format.")
         data_frame = self.transform(raw_data)
         if not isinstance(data_frame, DataFrame):
-            raise TypeError("transform() must return 'pandas.DataFrame', but"
-                            "returned '{}' instead.".format(type(data_frame)))
+            try:
+                raise TypeError(
+                    "transform() must return 'pandas.DataFrame', but returned "
+                    "'{}' instead.".format(type(data_frame)))
+            except TypeError as e:
+                logging.exception(e)
+                raise
         self.load(data_frame, file_path)
         # at this point we know that the session has permission to read the data
         # otherwise authentication with target API would have failed

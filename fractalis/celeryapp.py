@@ -1,11 +1,16 @@
 """This module is responsible for the establishment and configuration of a
 Celery instance."""
 
+import logging
+
 from celery import Celery
 
 from fractalis.analytics.job import AnalyticsJob
 from fractalis.data.etl import ETL
 from fractalis.utils import list_classes_with_base_class
+
+
+logger = logging.getLogger(__name__)
 
 
 def make_celery(app):
@@ -29,13 +34,17 @@ def make_celery(app):
 def register_tasks():
     from fractalis import celery
 
+    logger.info("Registering ETLs ...")
     etl_classes = list_classes_with_base_class('fractalis.data.etls', ETL)
     for etl_class in etl_classes:
+        logger.info("Registering task: {}".format(etl_class.name))
         celery.tasks.register(etl_class)
 
+    logger.info("Registering analysis tasks ...")
     analytics_job_classes = list_classes_with_base_class(
         'fractalis.analytics.job', AnalyticsJob)
     for analytics_job_class in analytics_job_classes:
+        logger.info("Registering task: {}".format(analytics_job_class.name))
         celery.tasks.register(analytics_job_class)
 
 
