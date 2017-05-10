@@ -146,13 +146,10 @@ class ETL(Task, metaclass=abc.ABCMeta):
         logger.info("(T)ransforming data to Fractalis format.")
         data_frame = self.transform(raw_data)
         if not isinstance(data_frame, DataFrame):
-            try:
-                raise TypeError(
-                    "transform() must return 'pandas.DataFrame', but returned "
-                    "'{}' instead.".format(type(data_frame)))
-            except TypeError as e:
-                logging.exception(e)
-                raise
+            error = "transform() must return 'pandas.DataFrame', " \
+                    "but returned '{}' instead.".format(type(data_frame))
+            logging.error(error, exc_info=1)
+            raise TypeError(error)
         self.load(data_frame, file_path)
         # at this point we know that the session has permission to read the data
         # otherwise authentication with target API would have failed

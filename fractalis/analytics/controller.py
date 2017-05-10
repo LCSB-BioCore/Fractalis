@@ -19,8 +19,7 @@ logger = logging.getLogger(__name__)
 
 @analytics_blueprint.before_request
 def prepare_session() -> None:
-    """Make sure the session dict is properly initialized before each request.
-    """
+    """Make sure the session is properly initialized before each request."""
     session.permanent = True
     if 'analytics_jobs' not in session:
         logger.debug("Initializing analytics_jobs field in session dict.")
