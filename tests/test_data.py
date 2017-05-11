@@ -10,6 +10,7 @@ import pytest
 from fractalis import app, redis, sync
 
 
+# noinspection PyMissingOrEmptyDocstring, PyMissingTypeHints
 class TestData:
 
     @pytest.fixture(scope='function')

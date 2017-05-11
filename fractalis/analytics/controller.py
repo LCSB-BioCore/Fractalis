@@ -21,9 +21,9 @@ logger = logging.getLogger(__name__)
 def prepare_session() -> None:
     """Make sure the session is properly initialized before each request."""
     session.permanent = True
-    if 'analytics_jobs' not in session:
-        logger.debug("Initializing analytics_jobs field in session dict.")
-        session['analytics_jobs'] = []
+    if 'jobs' not in session:
+        logger.debug("Initializing jobs field in session dict.")
+        session['jobs'] = []
     if 'data_ids' not in session:
         logger.debug("Initializing data_ids field in session dict.")
         session['data_ids'] = []
@@ -41,14 +41,13 @@ def create_job() -> Tuple[Response, int]:
     json = request.get_json(force=True)  # pattern enforced by decorators
     analytics_job = AnalyticsJob.factory(json['job_name'])
     if analytics_job is None:
-        logger.error("Could not create job for unknown job: "
+        logger.error("Could not submit job for unknown job name: "
                      "'{}'".format(json['job_name']))
         return jsonify({'error_msg': "Job with name '{}' not found.".format(
             json['job_name'])}), 400
-    async_result = analytics_job.delay(session_id=session.sid,
-                                       session_data_ids=session['data_ids'],
+    async_result = analytics_job.delay(accessible_data_ids=session['data_ids'],
                                        args=json['args'])
-    session['analytics_jobs'].append(async_result.id)
+    session['jobs'].append(async_result.id)
     logger.debug("Job successfully submitted. Sending response.")
     return jsonify({'job_id': async_result.id}), 201
 
@@ -63,20 +62,17 @@ def get_job_details(job_id: UUID) -> Tuple[Response, int]:
     logger.debug("Received GET request on /analytics/job_id.")
     wait = request.args.get('wait') == '1'
     job_id = str(job_id)
-    if job_id not in session['analytics_jobs']:  # access control
-        logger.error("Job ID '{}' not found in session. "
-                     "Refusing access.".format(job_id))
-        return jsonify({'error_msg': "No matching job found."}), 404
+    if job_id not in session['jobs']:
+        error = "Job ID '{}' not found in session. " \
+                "Refusing access.".format(job_id)
+        logger.warning(error)
+        return jsonify({'error': error}), 403
     async_result = celery.AsyncResult(job_id)
     if wait:
         async_result.get(propagate=False)  # make job synchronous
-    state = async_result.state
-    result = async_result.result
-    if isinstance(result, Exception):  # Exception -> str
-        result = "{}: {}".format(type(result).__name__, str(result))
     logger.debug("Job found and has access. Sending response.")
-    return jsonify({'state': state,
-                    'result': result}), 200
+    return jsonify({'state': async_result.state,
+                    'result': async_result.result}), 200
 
 
 @analytics_blueprint.route('/<uuid:job_id>', methods=['DELETE'])
@@ -88,13 +84,13 @@ def cancel_job(job_id: UUID) -> Tuple[Response, int]:
     """
     logger.debug("Received DELETE request on /analytics/job_id.")
     job_id = str(job_id)
-    if job_id not in session['analytics_jobs']:  # Access control
-        logger.error("Job ID '{}' not found in session. "
-                     "Refusing access.".format(job_id))
-        return jsonify({'error_msg': "No matching job found."}), 404
+    if job_id not in session['jobs']:
+        error = "Job ID '{}' not found in session. " \
+                "Refusing access.".format(job_id)
+        logger.warning(error)
+        return jsonify({'error': error}), 403
     wait = request.args.get('wait') == '1'
     # possibly dangerous: http://stackoverflow.com/a/29627549
     celery.control.revoke(job_id, terminate=True, signal='SIGUSR1', wait=wait)
-    session['analytics_jobs'].remove(job_id)
     logger.debug("Successfully send term signal to task. Sending response.")
-    return jsonify({'job_id': job_id}), 200
+    return jsonify(''), 200

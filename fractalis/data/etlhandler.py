@@ -1,15 +1,9 @@
 """This module provides the ETLHandler class."""
 
-import os
 import abc
-import json
-from uuid import uuid4
-from hashlib import sha256
 from typing import List
 
-from celery import uuid
-
-from fractalis import app, redis
+from fractalis import app
 from fractalis.data.etl import ETL
 
 
@@ -31,7 +25,6 @@ class ETLHandler(metaclass=abc.ABCMeta):
     def _get_token_for_credentials(self, server: str,
                                    user: str, passwd: str) -> str:
         """ Authenticate with the server and return a token.
-
         :param server: The server to authenticate with.
         :param user: The user id.
         :param passwd: The password.
@@ -47,87 +40,33 @@ class ETLHandler(metaclass=abc.ABCMeta):
             self._token = self._get_token_for_credentials(
                 server, auth['user'], auth['passwd'])
 
-    @staticmethod
-    def compute_data_id(server: str, descriptor: dict) -> str:
-        """Return a hash key based on the given parameters.
-        Parameters are automatically sorted before the hash is computed.
-
-        :param server: The server which is being handled.
-        :param descriptor: A dict describing the data.
-        :return: The computed hash key.
-        """
-        descriptor_str = json.dumps(descriptor, sort_keys=True)
-        to_hash = '{}|{}'.format(server, descriptor_str).encode('utf-8')
-        hash_key = sha256(to_hash).hexdigest()
-        return hash_key
-
-    def handle(self, descriptors: List[dict],
-               session_id: str, wait: bool = False) -> List[str]:
+    def handle(self, descriptors: List[dict], wait: bool = False) -> List[str]:
         """Create instances of ETL for the given descriptors and submit them
         (ETL implements celery.Task) to the broker. The task ids are returned to
         keep track of them.
-
         :param descriptors: A list of items describing the data to download.
-        :param session_id: The id of the current session
         :param wait: Makes this method synchronous by waiting for the tasks to
         return.
         :return: The list of task ids for the submitted tasks.
         """
-        data_ids = []
+        job_ids = []
         for descriptor in descriptors:
-            data_id = self.compute_data_id(self._server, descriptor)
-            tmp_dir = app.config['FRACTALIS_TMP_DIR']
-            data_dir = os.path.join(tmp_dir, 'data')
-            os.makedirs(data_dir, exist_ok=True)
-            value = redis.get('data:{}'.format(data_id))
-            # if data already exist we keep file_path and access rights
-            if value:
-                data_obj = json.loads(value.decode('utf-8'))
-                file_path = data_obj['file_path']
-                access = data_obj['access']
-            else:
-                file_name = str(uuid4())
-                file_path = os.path.join(data_dir, file_name)
-                access = []
-            # test if label for data is specified
-            try:
-                label = descriptor['label']
-            except KeyError:
-                label = str(descriptor)
             etl = ETL.factory(handler=self._handler,
                               data_type=descriptor['data_type'])
-            task_id = uuid()
-            data_obj = {
-                'file_path': file_path,
-                'job_id': task_id,
-                'data_type': etl.produces,
-                'label': label,
-                'descriptor': descriptor,
-                'access': access
-            }
-            redis.set(name='data:{}'.format(data_id),
-                      value=json.dumps(data_obj))
-            # http://stackoverflow.com/a/28647773
-            redis.setex(name='shadow:data:{}'.format(data_id),
-                        time=app.config['FRACTALIS_CACHE_EXP'],
-                        value='')
             kwargs = dict(server=self._server,
                           token=self._token,
                           descriptor=descriptor,
-                          session_id=session_id,
-                          data_id=data_id,
-                          file_path=file_path)
-            async_result = etl.apply_async(kwargs=kwargs, task_id=task_id)
-            data_ids.append(data_id)
+                          tmp_dir=app.config['FRACTALIS_TMP_DIR'])
+            async_result = etl.apply_async(kwargs=kwargs)
+            job_ids.append(async_result.id)
             if wait:
                 async_result.get(propagate=False)  # wait for results
-        return data_ids
+        return job_ids
 
     @classmethod
     def factory(cls, handler: str, server: str, auth: dict) -> 'ETLHandler':
         """Return an instance of the implementation of ETLHandler that can
         handle the given parameters.
-
         :param handler: Describes the handler. E.g.: transmart, ada
         :param server: The server to download data from.
         :param auth: Contains credentials to authenticate with the API.
@@ -145,7 +84,6 @@ class ETLHandler(metaclass=abc.ABCMeta):
     def can_handle(cls, handler: str) -> bool:
         """Check whether this implementation of ETLHandler can handle the given
         parameters.
-
         :param handler: Describes the handler. E.g.: transmart, ada
         :return: True if this implementation can handle the given parameters.
         """
