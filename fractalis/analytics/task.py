@@ -51,14 +51,14 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                             "Value probably expired.".format(data_task_id)
                     logger.error(error)
                     raise LookupError(error)
-                data_obj = json.loads(entry.decode('utf-8'))
-                if not data_obj['loaded']:
+                data_state = json.loads(entry.decode('utf-8'))
+                if not data_state['loaded']:
                     error = "The data task '{}' has not been loaded, yet." \
                             "Wait for it to complete before using it in an " \
                             "analysis task.".format(data_task_id)
                     logger.error(error)
                     raise ValueError(error)
-                file_path = data_obj['file_path']
+                file_path = data_state['file_path']
                 value = pd.read_csv(file_path)
             arguments[arg] = value
         return arguments

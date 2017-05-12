@@ -3,11 +3,9 @@
 import os
 import abc
 import json
-import time
 import logging
 from uuid import uuid4
 from typing import List
-from hashlib import sha256
 
 
 from fractalis import app, redis
@@ -50,19 +48,6 @@ class ETLHandler(metaclass=abc.ABCMeta):
             self._token = self._get_token_for_credentials(
                 server, auth['user'], auth['passwd'])
 
-    @staticmethod
-    def compute_task_id(server: str, descriptor: dict) -> str:
-        """Return a hash key based on the given parameters.
-        Parameters are automatically sorted before the hash is computed.
-        :param server: The server which is being handled.
-        :param descriptor: A dict describing the data.
-        :return: The computed hash key.
-        """
-        descriptor_str = json.dumps(descriptor, sort_keys=True)
-        to_hash = '{}|{}'.format(server, descriptor_str).encode('utf-8')
-        hash_key = sha256(to_hash).hexdigest()
-        return hash_key
-
     @classmethod
     def create_redis_entry(cls, task_id: str, file_path: str,
                            descriptor: dict, data_type: str) -> None:
@@ -78,6 +63,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
         except KeyError:
             label = str(descriptor)
         data_state = {
+            'task_id': task_id,
             'file_path': file_path,
             'label': label,
             'descriptor': descriptor,
@@ -111,7 +97,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
             task_ids.append(async_result.id)
             if wait:
                 logger.debug("'wait' was set. Waiting for tasks to finish ...")
-                async_result.get(propagate=False)  # wait for results
+                async_result.get(propagate=False)
         return task_ids
 
     @classmethod

@@ -1,9 +1,9 @@
 import time
 
-from fractalis.analytics.job import AnalyticsJob
+from fractalis.analytics.task import AnalyticTask
 
 
-class AddJob(AnalyticsJob):
+class AddJob(AnalyticTask):
 
     name = 'add_test_job'
 
@@ -13,7 +13,7 @@ class AddJob(AnalyticsJob):
         return result
 
 
-class DoNothingJob(AnalyticsJob):
+class DoNothingJob(AnalyticTask):
 
     name = 'nothing_test_job'
 
@@ -24,7 +24,7 @@ class DoNothingJob(AnalyticsJob):
         return result
 
 
-class DivJob(AnalyticsJob):
+class DivJob(AnalyticTask):
 
     name = 'div_test_job'
 
@@ -34,7 +34,7 @@ class DivJob(AnalyticsJob):
         return result
 
 
-class SumDataFrameJob(AnalyticsJob):
+class SumDataFrameJob(AnalyticTask):
 
     name = 'sum_df_test_job'
 
@@ -44,7 +44,7 @@ class SumDataFrameJob(AnalyticsJob):
         return result
 
 
-class InvalidReturnJob(AnalyticsJob):
+class InvalidReturnJob(AnalyticTask):
 
     name = 'no_dict_job'
 
@@ -52,7 +52,7 @@ class InvalidReturnJob(AnalyticsJob):
         return 123
 
 
-class InvalidJSONJob(AnalyticsJob):
+class InvalidJSONJob(AnalyticTask):
     name = 'invalid_json_job'
 
     def main(self):

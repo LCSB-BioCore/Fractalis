@@ -38,7 +38,7 @@ def create_task() -> Tuple[Response, int]:
     :return: Flask Response 
     """
     logger.debug("Received POST request on /analytics.")
-    json = request.get_json(force=True)  # pattern enforced by decorators
+    json = request.get_json(force=True)
     analytic_task = AnalyticTask.factory(json['task_name'])
     if analytic_task is None:
         logger.error("Could not submit task for unknown task name: "
@@ -69,7 +69,7 @@ def get_task_details(task_id: UUID) -> Tuple[Response, int]:
         return jsonify({'error': error}), 403
     async_result = celery.AsyncResult(task_id)
     if wait:
-        async_result.get(propagate=False)  # make task synchronous
+        async_result.get(propagate=False)
     logger.debug("Task found and has access. Sending response.")
     return jsonify({'state': async_result.state,
                     'result': async_result.result}), 200

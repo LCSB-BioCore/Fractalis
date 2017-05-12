@@ -72,7 +72,6 @@ def get_all_data() -> Tuple[Response, int]:
         data_state = json.loads(value.decode('utf-8'))
         # remove internal information from response
         del data_state['file_path']
-        del data_state['last_access']
         # add additional information to response
         data_state['etl_state'] = async_result.state
         data_state['etl_message'] = async_result.result
@@ -89,9 +88,12 @@ def delete_data(task_id: str) -> Tuple[Response, int]:
     :return: Empty response.
     """
     logger.debug("Received DELETE request on /data/task_id.")
+    wait = request.args.get('wait') == '1'
     if task_id in session['data_tasks']:
         session['data_tasks'].remove(task_id)
-    remove_data.delay(task_id)
+    async_result = remove_data.delay(task_id)
+    if wait:
+        async_result.get(propagate=False)
     logger.debug("Successfully removed data from session. Sending response.")
     return jsonify(''), 200
 
@@ -102,8 +104,11 @@ def delete_all_data() -> Tuple[Response, int]:
     :return: Empty response.
     """
     logger.debug("Received DELETE request on /data.")
+    wait = request.args.get('wait') == '1'
     for task_id in session['data_tasks']:
-        remove_data.delay(task_id)
+        async_result = remove_data.delay(task_id)
+        if wait:
+            async_result.get(propagate=False)
     session['data_tasks'] = []
     logger.debug("Successfully removed all data from session. "
                  "Sending response.")
