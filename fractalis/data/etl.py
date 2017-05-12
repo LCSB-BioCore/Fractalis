@@ -3,10 +3,8 @@
 import os
 import abc
 import json
-import time
 import logging
 from typing import List
-from hashlib import sha256
 
 from celery import Task
 from pandas import DataFrame
@@ -102,65 +100,30 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         pass
 
-    @staticmethod
-    def load(data_frame: DataFrame, file_path: str) -> None:
+    def load(self, data_frame: DataFrame, file_path: str) -> None:
         """Load (save) the data to the file system.
         :param data_frame: DataFrame to write.
         :param file_path: File to write to.
         """
         data_frame.to_csv(file_path, index=False)
-
-    @staticmethod
-    def compute_data_id(server: str, descriptor: dict) -> str:
-        """Return a hash key based on the given parameters.
-        Parameters are automatically sorted before the hash is computed.
-        :param server: The server which is being handled.
-        :param descriptor: A dict describing the data.
-        :return: The computed hash key.
-        """
-        descriptor_str = json.dumps(descriptor, sort_keys=True)
-        to_hash = '{}|{}'.format(server, descriptor_str).encode('utf-8')
-        hash_key = sha256(to_hash).hexdigest()
-        return hash_key
-
-    @classmethod
-    def create_redis_entry(cls, data_id: str,
-                           file_path: str, descriptor: dict) -> None:
-        """Creates an entry in Redis that reflects all meta data surrounding the
-        downloaded data. E.g. last access, data type, file system location, ...
-        :param data_id: Id associated with the loaded data. 
-        :param file_path: Location of the data on the file system
-        :param descriptor: Describes the data and is used to download them
-        """
-        try:
-            label = descriptor['label']
-        except KeyError:
-            label = str(descriptor)
-        data_obj = {
-            'file_path': file_path,
-            'last_access': time.time(),
-            'label': label,
-            'descriptor': descriptor,
-            'data_type': cls.produces
-        }
-        redis.set(name='data:{}'.format(data_id),
-                  value=json.dumps(data_obj))
+        value = redis.get(name='data:{}'.format(self.request.id))
+        data_state = json.loads(value.decode('utf-8'))
+        data_state['loaded'] = True
+        redis.set(name='data:{}'.format(self.request.id), value=data_state)
 
     def run(self, server: str, token: str,
-            descriptor: dict, tmp_dir: str) -> str:
-        """Run the current task, that is running extract, transform and load.
+            descriptor: dict, file_path: str) -> None:
+        """Run extract, transform and load. This is called by the celery worker.
         This is called by the celery worker.
+        :param
         :param server: The server on which the data are located.
         :param token: The token used for authentication.
         :param descriptor: Contains all necessary information to download data
-        :param tmp_dir: The directory where the files are stored 
+        :param file_path: The location where the data will be stored
         :return: The data id. Used to access the associated redis entry later on
         """
         logger.info("Starting ETL process ...")
-        data_id = self.compute_data_id(server, descriptor)
-        data_dir = os.path.join(tmp_dir, 'data')
-        os.makedirs(data_dir, exist_ok=True)
-        file_path = os.path.join(data_dir, data_id)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         logger.info("(E)xtracting data from server '{}'.".format(server))
         raw_data = self.extract(server, token, descriptor)
         logger.info("(T)ransforming data to Fractalis format.")
@@ -171,5 +134,3 @@ class ETL(Task, metaclass=abc.ABCMeta):
             logging.error(error, exc_info=1)
             raise TypeError(error)
         self.load(data_frame, file_path)
-        self.create_redis_entry(data_id, file_path, descriptor)
-        return data_id

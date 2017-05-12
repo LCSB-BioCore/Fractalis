@@ -4,7 +4,7 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from fractalis.analytics.jobs.correlation.main import CorrelationJob
+from fractalis.analytics.tasks.correlation.main import CorrelationJob
 
 
 class TestCorrelation:

@@ -1,10 +1,20 @@
 """This module provides the ETLHandler class."""
 
+import os
 import abc
+import json
+import time
+import logging
+from uuid import uuid4
 from typing import List
+from hashlib import sha256
 
-from fractalis import app
+
+from fractalis import app, redis
 from fractalis.data.etl import ETL
+
+
+logger = logging.getLogger(__name__)
 
 
 class ETLHandler(metaclass=abc.ABCMeta):
@@ -40,6 +50,43 @@ class ETLHandler(metaclass=abc.ABCMeta):
             self._token = self._get_token_for_credentials(
                 server, auth['user'], auth['passwd'])
 
+    @staticmethod
+    def compute_task_id(server: str, descriptor: dict) -> str:
+        """Return a hash key based on the given parameters.
+        Parameters are automatically sorted before the hash is computed.
+        :param server: The server which is being handled.
+        :param descriptor: A dict describing the data.
+        :return: The computed hash key.
+        """
+        descriptor_str = json.dumps(descriptor, sort_keys=True)
+        to_hash = '{}|{}'.format(server, descriptor_str).encode('utf-8')
+        hash_key = sha256(to_hash).hexdigest()
+        return hash_key
+
+    @classmethod
+    def create_redis_entry(cls, task_id: str, file_path: str,
+                           descriptor: dict, data_type: str) -> None:
+        """Creates an entry in Redis that reflects all meta data surrounding the
+        downloaded data. E.g. data type, file system location, ...
+        :param task_id: Id associated with the loaded data. 
+        :param file_path: Location of the data on the file system
+        :param descriptor: Describes the data and is used to download them
+        :param data_type: The fractalis internal data type of the loaded data
+        """
+        try:
+            label = descriptor['label']
+        except KeyError:
+            label = str(descriptor)
+        data_state = {
+            'file_path': file_path,
+            'label': label,
+            'descriptor': descriptor,
+            'data_type': data_type,
+            'loaded': False
+        }
+        redis.set(name='data:{}'.format(task_id),
+                  value=json.dumps(data_state))
+
     def handle(self, descriptors: List[dict], wait: bool = False) -> List[str]:
         """Create instances of ETL for the given descriptors and submit them
         (ETL implements celery.Task) to the broker. The task ids are returned to
@@ -49,19 +96,23 @@ class ETLHandler(metaclass=abc.ABCMeta):
         return.
         :return: The list of task ids for the submitted tasks.
         """
-        job_ids = []
+        data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        task_ids = []
         for descriptor in descriptors:
+            task_id = str(uuid4())
+            file_path = os.path.join(data_dir, task_id)
             etl = ETL.factory(handler=self._handler,
                               data_type=descriptor['data_type'])
-            kwargs = dict(server=self._server,
-                          token=self._token,
-                          descriptor=descriptor,
-                          tmp_dir=app.config['FRACTALIS_TMP_DIR'])
-            async_result = etl.apply_async(kwargs=kwargs)
-            job_ids.append(async_result.id)
+            self.create_redis_entry(task_id, file_path,
+                                    descriptor, etl.produces)
+            kwargs = dict(server=self._server, token=self._token,
+                          descriptor=descriptor, file_path=file_path)
+            async_result = etl.apply_async(kwargs=kwargs, task_id=task_id)
+            task_ids.append(async_result.id)
             if wait:
+                logger.debug("'wait' was set. Waiting for tasks to finish ...")
                 async_result.get(propagate=False)  # wait for results
-        return job_ids
+        return task_ids
 
     @classmethod
     def factory(cls, handler: str, server: str, auth: dict) -> 'ETLHandler':

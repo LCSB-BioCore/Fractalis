@@ -15,50 +15,45 @@ class TestData:
 
     @pytest.fixture(scope='function')
     def test_client(self):
-        sync.cleanup_all()
         from fractalis import app
         app.testing = True
         with app.test_client() as test_client:
             yield test_client
             sync.cleanup_all()
 
-    @pytest.fixture(scope='function')
-    def small_post(self, test_client):
-        return lambda random: test_client.post(
-            '/data', data=flask.json.dumps(dict(
-                handler='test',
-                server='localhost:1234',
-                auth={'token': '7746391376142672192764'},
-                descriptors=[
-                    {
-                        'data_type': 'default',
-                        'concept': str(uuid4()) if random else 'concept'
-                    }
-                ]
-            )))
+    @staticmethod
+    def small_payload(random=True):
+        return flask.json.dumps({
+            'handler': 'test',
+            'server': 'localhost:1234',
+            'auth': {'token': '7746391376142672192764'},
+            'descriptors': [{
+                'data_type': 'default',
+                'concept': str(uuid4()) if random else 'concept'
+            }]
+        })
 
-    @pytest.fixture(scope='function')
-    def big_post(self, test_client):
-        return lambda random: test_client.post(
-            '/data', data=flask.json.dumps(dict(
-                handler='test',
-                server='localhost:1234',
-                auth={'token': '7746391376142672192764'},
-                descriptors=[
-                    {
-                        'data_type': 'default',
-                        'concept': str(uuid4()) if random else 'concept1'
-                    },
-                    {
-                        'data_type': 'default',
-                        'concept': str(uuid4()) if random else 'concept2'
-                    },
-                    {
-                        'data_type': 'default',
-                        'concept': str(uuid4()) if random else 'concept3'
-                    },
-                ]
-            )))
+    @staticmethod
+    def big_payload(random=True):
+        return flask.json.dumps({
+            'handler': 'test',
+            'server': 'localhost:1234',
+            'auth': {'token': '7746391376142672192764'},
+            'descriptors': [
+                {
+                    'data_type': 'default',
+                    'concept': str(uuid4()) if random else 'concept'
+                },
+                {
+                    'data_type': 'default',
+                    'concept': str(uuid4()) if random else 'concept'
+                },
+                {
+                    'data_type': 'default',
+                    'concept': str(uuid4()) if random else 'concept'
+                }
+            ]
+        })
 
     @pytest.fixture(scope='function', params=[
         {
@@ -123,34 +118,89 @@ class TestData:
         }
     ])
     def bad_post(self, test_client, request):
-        return lambda: test_client.post('/data', data=flask.json.dumps(dict(
-                handler=request.param['handler'],
-                server=request.param['server'],
-                auth=request.param['auth'],
-                descriptors=request.param['descriptors']
-            )))
+        return lambda: test_client.post('/data', data=flask.json.dumps({
+                'handler': request.param['handler'],
+                'server': request.param['server'],
+                'auth': request.param['auth'],
+                'descriptors': request.param['descriptors']
+        }))
 
-    def test_bad_POST(self, bad_post):
+    def test_400_on_invalid_payload(self, bad_post):
         assert bad_post().status_code == 400
 
-    def test_201_on_small_POST_and_valid_state(self, test_client, small_post):
-        rv = small_post(random=False)
+    def test_valid_response_on_post_small_payload(
+            self, test_client, small_payload):
+        rv = test_client.post('/data?wait=1', small_payload())
+        assert rv.status_code == 201
         body = flask.json.loads(rv.get_data())
-        assert rv.status_code == 201, body
-        assert len(body['data_ids']) == 1
-        assert test_client.head('/data?wait=1').status_code == 200
+        assert len(body['job_ids']) == 1
+        assert UUID(body['job_ids'][0])
+
+    def test_valid_redis_on_post_small_payload(
+            self, test_client, small_payload):
+        test_client.post('/data?wait=1', small_payload())
+        keys = redis.keys('data:*')
+        assert len(keys) == 1
+        value = redis.get(keys[0])
+        data_obj = json.loads(value.decode('utf-8'))
+        assert 'file_path' in data_obj
+        assert 'last_access' in data_obj
+        assert 'label' in data_obj
+        assert 'descriptor' in data_obj
+        assert 'data_type' in data_obj
+
+    def test_valid_filesystem_on_post_small_payload(
+            self, test_client, small_payload):
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        test_client.post('/data?wait=1', small_payload())
+        keys = redis.keys('data:*')
+        value = redis.get(keys[0])
+        data_obj = json.loads(value.decode('utf-8'))
         assert len(os.listdir(data_dir)) == 1
-        assert UUID(os.listdir(data_dir)[0])
-        data = redis.keys('data:*')
-        assert len(data) == 1
-        for key in data:
-            key = key.decode('utf-8')
+        assert os.path.exists(data_obj['file_path'])
+
+    def test_valid_response_on_post_big_payload(
+            self, test_client, big_payload):
+        rv = test_client.post('/data?wait=1', big_payload())
+        assert rv.status_code == 201
+        body = flask.json.loads(rv.get_data())
+        assert len(body['job_ids']) == 3
+        assert UUID(body['job_ids'][0])
+        assert UUID(body['job_ids'][1])
+        assert UUID(body['job_ids'][2])
+
+    def test_valid_redis_on_post_big_payload(
+            self, test_client, big_payload):
+        test_client.post('/data?wait=1', big_payload())
+        keys = redis.keys('data:*')
+        assert len(keys) == 3
+        for key in keys:
             value = redis.get(key)
             data_obj = json.loads(value.decode('utf-8'))
-            assert data_obj['job_id']
-            assert data_obj['file_path']
-            assert redis.exists('shadow:{}'.format(key))
+            assert 'file_path' in data_obj
+            assert 'last_access' in data_obj
+            assert 'label' in data_obj
+            assert 'descriptor' in data_obj
+            assert 'data_type' in data_obj
+
+    def test_valid_filesystem_on_post_big_payload(
+            self, test_client, big_payload):
+        data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        test_client.post('/data?wait=1', big_payload())
+        assert len(os.listdir(data_dir)) == 3
+        keys = redis.keys('data:*')
+        for key in keys:
+            value = redis.get(key)
+            data_obj = json.loads(value.decode('utf-8'))
+            assert os.path.exists(data_obj['file_path'])
+
+
+
+
+
+
+
+
 
     def test_201_on_big_POST_and_valid_state(self, test_client, big_post):
         rv = big_post(random=False)

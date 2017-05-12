@@ -10,6 +10,11 @@ from fractalis import redis, app, celery
 
 
 @celery.task
+def remove_data(task_id: str) -> None:
+    pass
+
+
+@celery.task
 def remove_file(file_path: str) -> None:
     try:
         os.remove(file_path)

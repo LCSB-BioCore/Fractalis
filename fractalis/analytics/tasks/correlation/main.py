@@ -2,10 +2,10 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 
-from fractalis.analytics.job import AnalyticsJob
+from fractalis.analytics.task import AnalyticTask
 
 
-class CorrelationJob(AnalyticsJob):
+class CorrelationTask(AnalyticTask):
 
     name = 'compute-correlation'
 

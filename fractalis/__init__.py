@@ -40,13 +40,9 @@ log.info("Creating Redis connection.")
 redis = StrictRedis(host=app.config['REDIS_HOST'],
                     port=app.config['REDIS_PORT'])
 
-# Configure app with composed configurations to save admin some work
-app.config['SESSION_REDIS'] = redis
-app.config['CELERY_RESULT_BACKEND'] = 'redis://{}:{}'.format(
-    app.config['REDIS_HOST'], app.config['REDIS_PORT'])
-
 # Set new session interface for app
 log.info("Replacing default session interface.")
+app.config['SESSION_REDIS'] = redis
 Session(app)
 
 # allow everyone to submit requests

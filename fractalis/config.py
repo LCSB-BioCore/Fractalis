@@ -7,7 +7,7 @@ from datetime import timedelta
 
 
 # Flask
-SECRET_KEY = str(uuid4())  # set me manually in production
+SECRET_KEY = 'OVERWRITE ME IN PRODUCTION!!!'
 DEBUG = False
 TESTING = False
 REDIS_HOST = '127.0.0.1'
@@ -24,7 +24,9 @@ SESSION_USE_SIGNER = False
 
 # Celery
 BROKER_URL = 'amqp://'
+CELERY_RESULT_BACKEND = 'redis://{}:{}'.format(REDIS_HOST, REDIS_PORT)
 CELERYD_TASK_SOFT_TIME_LIMIT = 60 * 10
+CELERY_TASK_RESULT_EXPIRES = timedelta(hours=1)
 CELERYD_HIJACK_ROOT_LOGGER = False
 
 # Fractalis
