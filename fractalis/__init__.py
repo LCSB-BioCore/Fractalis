@@ -5,12 +5,12 @@ Modules in this package:
 """
 import logging.config
 
+import os
 import yaml
 from flask import Flask
 from flask_cors import CORS
 from flask_session import Session
 from redis import StrictRedis
-from celery.signals import after_setup_logger, after_setup_task_logger
 
 app = Flask(__name__)
 
@@ -25,15 +25,15 @@ except RuntimeError:
     pass
 
 # setup logging
-with open('logging.yaml', 'rt') as f:
+with open(os.path.join(os.path.dirname(__file__), 'logging.yaml'), 'rt') as f:
     log_config = yaml.safe_load(f.read())
 logging.config.dictConfig(log_config)
 log = logging.getLogger(__name__)
 
 # we can't log this earlier because the logger depends on the loaded app config
 if default_config:
-    log.error("Environment Variable FRACTALIS_CONFIG not set. Falling back "
-              "to default settings. This is not a good idea in production!")
+    log.warning("Environment Variable FRACTALIS_CONFIG not set. Falling back "
+                "to default settings. This is not a good idea in production!")
 
 # create a redis instance
 log.info("Creating Redis connection.")

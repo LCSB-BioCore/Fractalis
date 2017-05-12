@@ -3,9 +3,9 @@ import time
 from fractalis.analytics.task import AnalyticTask
 
 
-class AddJob(AnalyticTask):
+class AddTask(AnalyticTask):
 
-    name = 'add_test_job'
+    name = 'add_test_task'
 
     def main(self, a, b):
         result = {}
@@ -13,9 +13,9 @@ class AddJob(AnalyticTask):
         return result
 
 
-class DoNothingJob(AnalyticTask):
+class DoNothingTask(AnalyticTask):
 
-    name = 'nothing_test_job'
+    name = 'nothing_test_task'
 
     def main(self, seconds):
         result = {}
@@ -24,9 +24,9 @@ class DoNothingJob(AnalyticTask):
         return result
 
 
-class DivJob(AnalyticTask):
+class DivTask(AnalyticTask):
 
-    name = 'div_test_job'
+    name = 'div_test_task'
 
     def main(self, a, b):
         result = {}
@@ -34,9 +34,9 @@ class DivJob(AnalyticTask):
         return result
 
 
-class SumDataFrameJob(AnalyticTask):
+class SumDataFrameTask(AnalyticTask):
 
-    name = 'sum_df_test_job'
+    name = 'sum_df_test_task'
 
     def main(self, a):
         result = {}
@@ -44,16 +44,16 @@ class SumDataFrameJob(AnalyticTask):
         return result
 
 
-class InvalidReturnJob(AnalyticTask):
+class InvalidReturnTask(AnalyticTask):
 
-    name = 'no_dict_job'
+    name = 'no_dict_task'
 
     def main(self):
         return 123
 
 
-class InvalidJSONJob(AnalyticTask):
-    name = 'invalid_json_job'
+class InvalidJSONTask(AnalyticTask):
+    name = 'invalid_json_task'
 
     def main(self):
         return {'a': lambda: 1}

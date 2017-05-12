@@ -5,7 +5,7 @@ import logging
 
 from celery import Celery
 
-from fractalis.analytics.job import AnalyticsJob
+from fractalis.analytics.task import AnalyticTask
 from fractalis.data.etl import ETL
 from fractalis.utils import list_classes_with_base_class
 
@@ -41,11 +41,11 @@ def register_tasks():
         celery.tasks.register(etl_class)
 
     logger.info("Registering analysis tasks ...")
-    analytics_job_classes = list_classes_with_base_class(
-        'fractalis.analytics.job', AnalyticsJob)
-    for analytics_job_class in analytics_job_classes:
-        logger.info("Registering task: {}".format(analytics_job_class.name))
-        celery.tasks.register(analytics_job_class)
+    analytics_task_classes = list_classes_with_base_class(
+        'fractalis.analytics.task', AnalyticTask)
+    for analytics_task_class in analytics_task_classes:
+        logger.info("Registering task: {}".format(analytics_task_class.name))
+        celery.tasks.register(analytics_task_class)
 
 
 

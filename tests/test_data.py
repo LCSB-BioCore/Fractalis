@@ -22,7 +22,7 @@ class TestData:
             sync.cleanup_all()
 
     @staticmethod
-    def small_payload(fail=False):
+    def small_load(fail=False):
         return {
             'handler': 'test',
             'server': 'localhost:1234',
@@ -34,7 +34,7 @@ class TestData:
         }
 
     @staticmethod
-    def big_payload(fail=False):
+    def big_load(fail=False):
         return {
             'handler': 'test',
             'server': 'localhost:1234',
@@ -55,15 +55,18 @@ class TestData:
             ]
         }
 
-    @pytest.fixture(scope='function', params=[small_payload, big_payload])
+    @pytest.fixture(scope='function', params=['small', 'big'])
     def payload(self, request):
-        return {'size': len(request()['descriptors']),
-                'serialized': flask.json.dumps(request())}
+        load = self.small_load() if request == 'small' else self.big_load()
+        return {'size': len(load['descriptors']),
+                'serialized': flask.json.dumps(load)}
 
-    @pytest.fixture(scope='function', params=[small_payload, big_payload])
+    @pytest.fixture(scope='function', params=['small', 'big'])
     def faiload(self, request):
-        return {'size': len(request(fail=True)['descriptors']),
-                'serialized': flask.json.dumps(request(fail=True))}
+        load = self.small_load(True) \
+            if request == 'small' else self.big_load(True)
+        return {'size': len(load['descriptors']),
+                'serialized': flask.json.dumps(load)}
 
     @pytest.fixture(scope='function', params=[
         {
@@ -139,13 +142,13 @@ class TestData:
         assert bad_post().status_code == 400
 
     def test_valid_response_on_post(self, test_client, payload):
-        rv = test_client.post('/data', payload['serialized'])
+        rv = test_client.post('/data', data=payload['serialized'])
         assert rv.status_code == 201
         body = flask.json.loads(rv.get_data())
         assert not body
 
     def test_valid_redis_before_loaded_on_post(self, test_client, payload):
-        test_client.post('/data', payload['serialized'])
+        test_client.post('/data', data=payload['serialized'])
         keys = redis.keys('data:*')
         assert len(keys) == payload['size']
         for key in keys:
@@ -159,7 +162,7 @@ class TestData:
             assert not data_state['loaded']
 
     def test_valid_redis_after_loaded_on_post(self, test_client, payload):
-        test_client.post('/data?wait=1', payload['serialized'])
+        test_client.post('/data?wait=1', data=payload['serialized'])
         keys = redis.keys('data:*')
         assert len(keys) == payload['size']
         for key in keys:
@@ -175,7 +178,7 @@ class TestData:
     def test_valid_filesystem_before_loaded_on_post(
             self, test_client, payload):
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
-        test_client.post('/data', payload['serialized'])
+        test_client.post('/data', data=payload['serialized'])
         assert len(os.listdir(data_dir)) == 0
         keys = redis.keys('data:*')
         for key in keys:
@@ -186,7 +189,7 @@ class TestData:
     def test_valid_filesystem_after_loaded_on_post(
             self, test_client, payload):
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
-        test_client.post('/data?wait=1', payload['serialized'])
+        test_client.post('/data?wait=1', data=payload['serialized'])
         assert len(os.listdir(data_dir)) == payload['size']
         for f in os.listdir(data_dir):
             assert UUID(f)
@@ -197,13 +200,13 @@ class TestData:
             assert os.path.exists(data_state['file_path'])
 
     def test_valid_session_on_post(self, test_client, payload):
-        test_client.post('/data', payload['serialized'])
+        test_client.post('/data', data=payload['serialized'])
         with test_client.session_transaction() as sess:
             assert len(sess['data_tasks']) == payload['size']
 
     def test_session_matched_redis_in_post_big_payload(
             self, test_client, payload):
-        test_client.post('/data', payload['serialized'])
+        test_client.post('/data', data=payload['serialized'])
         with test_client.session_transaction() as sess:
             for task_id in sess['data_tasks']:
                 assert redis.exists('data:{}'.format(task_id))
@@ -212,13 +215,13 @@ class TestData:
         requests = 5
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         for i in range(requests):
-            rv = test_client.post('/data?wait=1', payload['serialized'])
+            rv = test_client.post('/data?wait=1', data=payload['serialized'])
             assert rv.status_code == 201
         assert len(os.listdir(data_dir)) == requests * payload['size']
         assert len(redis.keys('data:*')) == requests * payload['size']
 
     def test_valid_response_before_loaded_on_get(self, test_client, payload):
-        test_client.post('/data', payload['serialized'])
+        test_client.post('/data', data=payload['serialized'])
         rv = test_client.get('/data')
         assert rv.status_code == 200
         body = flask.json.loads(rv.get_data())
@@ -232,7 +235,7 @@ class TestData:
             assert 'task_id' in data_state
 
     def test_valid_response_after_loaded_on_get(self, test_client, payload):
-        test_client.post('/data', payload['serialized'])
+        test_client.post('/data', data=payload['serialized'])
         rv = test_client.get('/data?wait=1')
         assert rv.status_code == 200
         body = flask.json.loads(rv.get_data())
@@ -246,7 +249,7 @@ class TestData:
             assert 'task_id' in data_state
 
     def test_valid_response_if_failing_on_get(self, test_client, faiload):
-        test_client.post('/data', faiload['serialized'])
+        test_client.post('/data', data=faiload['serialized'])
         rv = test_client.get('/data?wait=1')
         assert rv.status_code == 200
         body = flask.json.loads(rv.get_data())
@@ -260,7 +263,7 @@ class TestData:
             assert 'task_id' in data_state
 
     def test_valid_state_for_finished_etl_on_delete(self, test_client, payload):
-        test_client.post('/data?wait=1', payload['serialized'])
+        test_client.post('/data?wait=1', data=payload['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
             data_state = json.loads(value.decode('utf-8'))
@@ -272,7 +275,7 @@ class TestData:
                 assert data_state['task_id'] not in sess['data_tasks']
 
     def test_valid_state_for_running_etl_on_delete(self, test_client, payload):
-        test_client.post('/data', payload['serialized'])
+        test_client.post('/data', data=payload['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
             data_state = json.loads(value.decode('utf-8'))
@@ -284,7 +287,7 @@ class TestData:
                 assert data_state['task_id'] not in sess['data_tasks']
 
     def test_valid_state_for_failed_etl_on_delete(self, test_client, faiload):
-        test_client.post('/data?wait=1', faiload['serialized'])
+        test_client.post('/data?wait=1', data=faiload['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
             data_state = json.loads(value.decode('utf-8'))
@@ -298,7 +301,7 @@ class TestData:
     def test_valid_state_for_finished_etl_on_delete_all(
             self, test_client, payload):
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
-        test_client.post('/data?wait=1', payload['serialized'])
+        test_client.post('/data?wait=1', data=payload['serialized'])
         test_client.delete('/data?wait=1')
         assert not redis.keys('data:*')
         assert len(os.listdir(data_dir)) == 0
