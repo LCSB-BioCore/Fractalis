@@ -15,12 +15,11 @@ class TestData:
 
     @pytest.fixture(scope='function')
     def test_client(self):
-        sync.cleanup_all.apply()
         from fractalis import app
         app.testing = True
         with app.test_client() as test_client:
             yield test_client
-            sync.cleanup_all.apply()
+            sync.cleanup_all()
 
     @staticmethod
     def small_load(fail=False):

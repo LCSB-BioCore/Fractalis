@@ -94,5 +94,6 @@ def cancel_task(task_id: UUID) -> Tuple[Response, int]:
     wait = request.args.get('wait') == '1'
     # possibly dangerous: http://stackoverflow.com/a/29627549
     celery.control.revoke(task_id, terminate=True, signal='SIGUSR1', wait=wait)
+    session['analytic_tasks'].remove(task_id)
     logger.debug("Successfully send term signal to task. Sending response.")
     return jsonify(''), 200

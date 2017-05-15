@@ -8,7 +8,7 @@ from uuid import uuid4
 import flask
 import pytest
 
-from fractalis import sync, redis
+from fractalis import sync
 
 
 # noinspection PyMissingOrEmptyDocstring,PyMissingTypeHints
@@ -16,7 +16,6 @@ class TestAnalytics:
 
     @pytest.fixture(scope='function')
     def test_client(self):
-        sync.cleanup_all()
         from fractalis import app
         app.testing = True
         with app.test_client() as test_client:
@@ -107,35 +106,6 @@ class TestAnalytics:
         assert rv.status_code == 200, body
         assert body['state'] == 'FAILURE', body
         assert 'PermissionError' in body['result'], body
-
-    def test_403_if_no_data_access_auth(self, test_client):
-        test_client.post(
-            '/data?wait=1', data=flask.json.dumps(dict(
-                handler='test',
-                server='localhost:1234',
-                auth={'token': 'fail'},  # we make the ETL fail on purpose
-                descriptors=[
-                    {
-                        'data_type': 'default',
-                        'concept': 'concept',
-                    }
-                ]
-            )))
-        with test_client.session_transaction() as sess:
-            assert len(sess['data_tasks']) == 1
-            task_id = sess['data_tasks'][0]
-        rv = test_client.post('/analytics?wait=1', data=flask.json.dumps(dict(
-            task_name='sum_df_test_task',
-            args={'a': '${}$'.format(task_id)}
-        )))
-        assert rv.status_code == 201
-        body = flask.json.loads(rv.get_data())
-        url = '/analytics/{}?wait=1'.format(body['task_id'])
-        rv = test_client.get(url)
-        body = flask.json.loads(rv.get_data())
-        assert rv.status_code == 200
-        assert body['state'] == 'FAILURE'
-        assert 'No permission' in body['result']
 
     def test_resource_deleted(self, test_client):
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(
@@ -239,12 +209,10 @@ class TestAnalytics:
     def test_float_when_summing_up_df(self, test_client, small_data_post):
         data_tasks = []
 
-        data_rv1 = small_data_post(random=True, wait=1)
-        data_body1 = flask.json.loads(data_rv1.get_data())
-        assert data_rv1.status_code == 201, data_body1
-        data_tasks += data_body1['data_tasks']
-
-        assert len(data_tasks) == 1
+        small_data_post(random=True, wait=1)
+        with test_client.session_transaction() as sess:
+            data_tasks += sess['data_tasks']
+            assert len(data_tasks) == 1
 
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(
             task_name='sum_df_test_task',

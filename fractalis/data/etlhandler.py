@@ -94,7 +94,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
             kwargs = dict(server=self._server, token=self._token,
                           descriptor=descriptor, file_path=file_path)
             async_result = etl.apply_async(kwargs=kwargs, task_id=task_id)
-            task_ids.append(async_result.id)
+            assert async_result.id == task_id
+            task_ids.append(task_id)
             if wait:
                 logger.debug("'wait' was set. Waiting for tasks to finish ...")
                 async_result.get(propagate=False)

@@ -105,8 +105,10 @@ class ETL(Task, metaclass=abc.ABCMeta):
         :param data_frame: DataFrame to write.
         :param file_path: File to write to.
         """
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         data_frame.to_csv(file_path, index=False)
         value = redis.get(name='data:{}'.format(self.request.id))
+        assert value is not None
         data_state = json.loads(value.decode('utf-8'))
         data_state['loaded'] = True
         redis.set(name='data:{}'.format(self.request.id),
@@ -124,7 +126,6 @@ class ETL(Task, metaclass=abc.ABCMeta):
         :return: The data id. Used to access the associated redis entry later on
         """
         logger.info("Starting ETL process ...")
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         logger.info("(E)xtracting data from server '{}'.".format(server))
         raw_data = self.extract(server, token, descriptor)
         logger.info("(T)ransforming data to Fractalis format.")
