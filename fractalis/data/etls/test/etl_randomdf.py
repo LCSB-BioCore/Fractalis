@@ -1,3 +1,5 @@
+import time
+
 import pandas as pd
 import numpy as np
 
@@ -15,6 +17,7 @@ class RandomDFETL(ETL):
         if 'fail' in token:
             raise Exception('Throwing because I was told to.')
         fake_raw_data = np.random.randn(10, 5)
+        time.sleep(0.5)
         return fake_raw_data
 
     def transform(self, raw_data):

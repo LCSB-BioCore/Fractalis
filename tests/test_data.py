@@ -15,11 +15,12 @@ class TestData:
 
     @pytest.fixture(scope='function')
     def test_client(self):
+        sync.cleanup_all.apply()
         from fractalis import app
         app.testing = True
         with app.test_client() as test_client:
             yield test_client
-            sync.cleanup_all()
+            sync.cleanup_all.apply()
 
     @staticmethod
     def small_load(fail=False):
@@ -57,14 +58,15 @@ class TestData:
 
     @pytest.fixture(scope='function', params=['small', 'big'])
     def payload(self, request):
-        load = self.small_load() if request == 'small' else self.big_load()
+        load = self.small_load() if request.param == 'small' \
+            else self.big_load()
         return {'size': len(load['descriptors']),
                 'serialized': flask.json.dumps(load)}
 
     @pytest.fixture(scope='function', params=['small', 'big'])
     def faiload(self, request):
-        load = self.small_load(True) \
-            if request == 'small' else self.big_load(True)
+        load = self.small_load(True) if request.param == 'small' \
+            else self.big_load(True)
         return {'size': len(load['descriptors']),
                 'serialized': flask.json.dumps(load)}
 
@@ -179,7 +181,8 @@ class TestData:
             self, test_client, payload):
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         test_client.post('/data', data=payload['serialized'])
-        assert len(os.listdir(data_dir)) == 0
+        if os.path.exists(data_dir):
+            assert len(os.listdir(data_dir)) == 0
         keys = redis.keys('data:*')
         for key in keys:
             value = redis.get(key)
@@ -297,6 +300,20 @@ class TestData:
             assert not os.path.exists(data_state['file_path'])
             with test_client.session_transaction() as sess:
                 assert data_state['task_id'] not in sess['data_tasks']
+
+    def test_403_if_no_auth_on_delete(self, test_client, payload):
+        test_client.post('/data?wait=1', data=payload['serialized'])
+        with test_client.session_transaction() as sess:
+            sess['data_tasks'] = []
+        for key in redis.keys('data:*'):
+            value = redis.get(key)
+            data_state = json.loads(value.decode('utf-8'))
+            os.path.exists(data_state['file_path'])
+            rv = test_client.delete('/data/{}?wait=1'
+                                    .format(data_state['task_id']))
+            assert rv.status_code == 403
+            assert redis.exists(key)
+            assert os.path.exists(data_state['file_path'])
 
     def test_valid_state_for_finished_etl_on_delete_all(
             self, test_client, payload):

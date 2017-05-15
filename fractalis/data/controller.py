@@ -73,8 +73,11 @@ def get_all_data() -> Tuple[Response, int]:
         # remove internal information from response
         del data_state['file_path']
         # add additional information to response
+        result = async_result.result
+        if isinstance(result, Exception):  # Exception -> str
+            result = "{}: {}".format(type(result).__name__, str(result))
+        data_state['etl_message'] = result
         data_state['etl_state'] = async_result.state
-        data_state['etl_message'] = async_result.result
         data_states.append(data_state)
     logger.debug("Data states collected. Sending response.")
     return jsonify({'data_states': data_states}), 200
@@ -89,8 +92,14 @@ def delete_data(task_id: str) -> Tuple[Response, int]:
     """
     logger.debug("Received DELETE request on /data/task_id.")
     wait = request.args.get('wait') == '1'
-    if task_id in session['data_tasks']:
-        session['data_tasks'].remove(task_id)
+    if task_id not in session['data_tasks']:
+        error = "Task ID '{}' not found in session. " \
+                "Refusing access.".format(task_id)
+        logger.warning(error)
+        return jsonify({'error': error}), 403
+    session['data_tasks'].remove(task_id)
+    # possibly dangerous: http://stackoverflow.com/a/29627549
+    celery.control.revoke(task_id, terminate=True, signal='SIGUSR1', wait=wait)
     async_result = remove_data.delay(task_id)
     if wait:
         async_result.get(propagate=False)
@@ -107,6 +116,9 @@ def delete_all_data() -> Tuple[Response, int]:
     wait = request.args.get('wait') == '1'
     for task_id in session['data_tasks']:
         async_result = remove_data.delay(task_id)
+        # possibly dangerous: http://stackoverflow.com/a/29627549
+        celery.control.revoke(task_id, terminate=True,
+                              signal='SIGUSR1', wait=wait)
         if wait:
             async_result.get(propagate=False)
     session['data_tasks'] = []

@@ -109,7 +109,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
         value = redis.get(name='data:{}'.format(self.request.id))
         data_state = json.loads(value.decode('utf-8'))
         data_state['loaded'] = True
-        redis.set(name='data:{}'.format(self.request.id), value=data_state)
+        redis.set(name='data:{}'.format(self.request.id),
+                  value=json.dumps(data_state))
 
     def run(self, server: str, token: str,
             descriptor: dict, file_path: str) -> None:

@@ -70,9 +70,11 @@ def get_task_details(task_id: UUID) -> Tuple[Response, int]:
     async_result = celery.AsyncResult(task_id)
     if wait:
         async_result.get(propagate=False)
+    result = async_result.result
+    if isinstance(result, Exception):  # Exception -> str
+        result = "{}: {}".format(type(result).__name__, str(result))
     logger.debug("Task found and has access. Sending response.")
-    return jsonify({'state': async_result.state,
-                    'result': async_result.result}), 200
+    return jsonify({'state': async_result.state, 'result': result}), 200
 
 
 @analytics_blueprint.route('/<uuid:task_id>', methods=['DELETE'])
