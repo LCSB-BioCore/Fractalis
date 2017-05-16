@@ -1,3 +1,4 @@
+"""This module provides tests for the session interface of Fractalis."""
 from uuid import UUID
 from time import sleep
 
@@ -6,6 +7,7 @@ import flask
 from redis import StrictRedis
 
 
+# noinspection PyMissingOrEmptyDocstring,PyMissingTypeHints
 class TestSession(object):
 
     @pytest.fixture(scope='module')

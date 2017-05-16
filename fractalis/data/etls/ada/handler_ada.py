@@ -7,7 +7,7 @@ from fractalis.data.etlhandler import ETLHandler
 
 class AdaHandler(ETLHandler):
     """This ETLHandler provides integration with ADA.
-    'Ada provides key infrastructure for secured integration, vizualization,
+    'Ada provides key infrastructure for secured integration, visualization,
     and analysis of anonymized clinical and experimental data stored in CSV
     and tranSMART format, or provided by RedCAP and Synapse apps.'
 
