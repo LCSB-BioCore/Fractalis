@@ -7,7 +7,7 @@ from uuid import UUID, uuid4
 import flask
 import pytest
 
-from fractalis import app, redis, sync
+from fractalis import app, redis, sync, celery
 
 
 # noinspection PyMissingOrEmptyDocstring, PyMissingTypeHints
@@ -15,6 +15,7 @@ class TestData:
 
     @pytest.fixture(scope='function')
     def test_client(self):
+        sync.cleanup_all()
         from fractalis import app
         app.testing = True
         with app.test_client() as test_client:

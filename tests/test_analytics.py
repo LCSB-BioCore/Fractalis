@@ -16,6 +16,7 @@ class TestAnalytics:
 
     @pytest.fixture(scope='function')
     def test_client(self):
+        sync.cleanup_all()
         from fractalis import app
         app.testing = True
         with app.test_client() as test_client:

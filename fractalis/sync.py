@@ -55,7 +55,9 @@ def cleanup_all() -> None:
     for key in redis.keys('data:*'):
         value = redis.get(key)
         data_state = json.loads(value.decode('utf-8'))
-        celery.control.revoke(data_state['task_id'], terminate=True, wait=True)
+        celery.AsyncResult(data_state['task_id']).get(propagate=False)
+        # celery.control.revoke(data_state['task_id'], terminate=True,
+        #                       signal='SIGUSR1', wait=True)
     redis.flushall()
     tmp_dir = app.config['FRACTALIS_TMP_DIR']
     if os.path.exists(tmp_dir):
