@@ -70,8 +70,9 @@ class ETLHandler(metaclass=abc.ABCMeta):
             'data_type': data_type,
             'loaded': False
         }
-        redis.set(name='data:{}'.format(task_id),
-                  value=json.dumps(data_state))
+        redis.setex(name='data:{}'.format(task_id),
+                    value=json.dumps(data_state),
+                    time=app.config['FRACTALIS_CACHE_EXP'])
 
     def handle(self, descriptors: List[dict], wait: bool = False) -> List[str]:
         """Create instances of ETL for the given descriptors and submit them

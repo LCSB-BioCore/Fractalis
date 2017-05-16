@@ -9,7 +9,7 @@ from typing import List
 from celery import Task
 from pandas import DataFrame
 
-from fractalis import redis
+from fractalis import app, redis
 
 
 logger = logging.getLogger(__name__)
@@ -111,8 +111,9 @@ class ETL(Task, metaclass=abc.ABCMeta):
         assert value is not None
         data_state = json.loads(value.decode('utf-8'))
         data_state['loaded'] = True
-        redis.set(name='data:{}'.format(self.request.id),
-                  value=json.dumps(data_state))
+        redis.setex(name='data:{}'.format(self.request.id),
+                    value=json.dumps(data_state),
+                    time=app.config['FRACTALIS_CACHE_EXP'])
 
     def run(self, server: str, token: str,
             descriptor: dict, file_path: str) -> None:

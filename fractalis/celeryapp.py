@@ -4,6 +4,7 @@ Celery instance."""
 import logging
 
 from celery import Celery
+from flask import Flask
 
 from fractalis.analytics.task import AnalyticTask
 from fractalis.data.etl import ETL
@@ -13,7 +14,12 @@ from fractalis.utils import list_classes_with_base_class
 logger = logging.getLogger(__name__)
 
 
-def make_celery(app):
+def make_celery(app: Flask) -> Celery:
+    """Create a celery instance which executes its tasks in the application
+    context of our service.
+    :param app: The instance of our web service. This holds our configuration.
+    :return A celery instance that can submit tasks.
+    """
     celery = Celery(app.import_name,
                     backend=app.config['CELERY_RESULT_BACKEND'],
                     broker=app.config['BROKER_URL'])
@@ -31,7 +37,8 @@ def make_celery(app):
     return celery
 
 
-def register_tasks():
+def register_tasks() -> None:
+    """Register all of our Task classes with celery."""
     from fractalis import celery
 
     logger.info("Registering ETLs ...")

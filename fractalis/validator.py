@@ -1,4 +1,6 @@
-# http://stackoverflow.com/questions/24238743/flask-decorator-to-verify-json-and-json-schema
+"""
+Documentation: http://stackoverflow.com/questions/24238743/flask-decorator-to-verify-json-and-json-schema
+"""
 from functools import wraps
 
 from flask import request, jsonify

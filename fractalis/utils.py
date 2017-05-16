@@ -2,9 +2,14 @@ import os
 import glob
 import inspect
 import importlib
+from typing import List
 
 
-def import_module_by_abs_path(module_path):
+def import_module_by_abs_path(module_path: str) -> object:
+    """Import the module for the given path.
+    :param module_path: The absolute path to the module. 
+    :return: A reference to the imported module.
+    """
     module_name = os.path.splitext(os.path.basename(module_path))[0]
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     module = importlib.util.module_from_spec(spec)
@@ -12,7 +17,14 @@ def import_module_by_abs_path(module_path):
     return module
 
 
-def list_classes_with_base_class(package, base_class):
+def list_classes_with_base_class(
+        package: str, base_class: object) -> List[object]:
+    """For the given base_class list classes in the given package that do
+    implement it.
+    :param package: The package to search. 
+    :param base_class: The base class.
+    :return: A list of classes that implement the base class.
+    """
     package = importlib.import_module(package)
     abs_path = os.path.dirname(os.path.abspath(package.__file__))
     class_list = []
