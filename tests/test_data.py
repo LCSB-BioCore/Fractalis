@@ -155,7 +155,7 @@ class TestData:
         assert len(keys) == payload['size']
         for key in keys:
             value = redis.get(key)
-            data_state = json.loads(value.decode('utf-8'))
+            data_state = json.loads(value)
             assert 'file_path' in data_state
             assert 'label' in data_state
             assert 'descriptor' in data_state
@@ -169,7 +169,7 @@ class TestData:
         assert len(keys) == payload['size']
         for key in keys:
             value = redis.get(key)
-            data_state = json.loads(value.decode('utf-8'))
+            data_state = json.loads(value)
             assert 'file_path' in data_state
             assert 'label' in data_state
             assert 'descriptor' in data_state
@@ -186,7 +186,7 @@ class TestData:
         keys = redis.keys('data:*')
         for key in keys:
             value = redis.get(key)
-            data_state = json.loads(value.decode('utf-8'))
+            data_state = json.loads(value)
             assert not os.path.exists(data_state['file_path'])
 
     def test_valid_filesystem_after_loaded_on_post(
@@ -199,7 +199,7 @@ class TestData:
         keys = redis.keys('data:*')
         for key in keys:
             value = redis.get(key)
-            data_state = json.loads(value.decode('utf-8'))
+            data_state = json.loads(value)
             assert os.path.exists(data_state['file_path'])
 
     def test_valid_session_on_post(self, test_client, payload):
@@ -269,7 +269,7 @@ class TestData:
         test_client.post('/data?wait=1', data=payload['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
-            data_state = json.loads(value.decode('utf-8'))
+            data_state = json.loads(value)
             os.path.exists(data_state['file_path'])
             test_client.delete('/data/{}?wait=1'.format(data_state['task_id']))
             assert not redis.exists(key)
@@ -281,7 +281,7 @@ class TestData:
         test_client.post('/data', data=payload['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
-            data_state = json.loads(value.decode('utf-8'))
+            data_state = json.loads(value)
             os.path.exists(data_state['file_path'])
             test_client.delete('/data/{}?wait=1'.format(data_state['task_id']))
             assert not redis.exists(key)
@@ -293,7 +293,7 @@ class TestData:
         test_client.post('/data?wait=1', data=faiload['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
-            data_state = json.loads(value.decode('utf-8'))
+            data_state = json.loads(value)
             os.path.exists(data_state['file_path'])
             test_client.delete('/data/{}?wait=1'.format(data_state['task_id']))
             assert not redis.exists(key)
@@ -307,7 +307,7 @@ class TestData:
             sess['data_tasks'] = []
         for key in redis.keys('data:*'):
             value = redis.get(key)
-            data_state = json.loads(value.decode('utf-8'))
+            data_state = json.loads(value)
             os.path.exists(data_state['file_path'])
             rv = test_client.delete('/data/{}?wait=1'
                                     .format(data_state['task_id']))

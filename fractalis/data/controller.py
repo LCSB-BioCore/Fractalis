@@ -58,6 +58,7 @@ def get_all_data() -> Tuple[Response, int]:
     logger.debug("Received GET request on /data.")
     wait = request.args.get('wait') == '1'
     data_states = []
+    expired_entries = []
     for task_id in session['data_tasks']:
         async_result = celery.AsyncResult(task_id)
         if wait:
@@ -68,8 +69,9 @@ def get_all_data() -> Tuple[Response, int]:
             error = "Could not find data entry in Redis for task_id: " \
                     "'{}'. The entry probably expired.".format(task_id)
             logger.warning(error)
+            expired_entries.append(task_id)
             continue
-        data_state = json.loads(value.decode('utf-8'))
+        data_state = json.loads(value)
         # remove internal information from response
         del data_state['file_path']
         # add additional information to response
@@ -79,6 +81,8 @@ def get_all_data() -> Tuple[Response, int]:
         data_state['etl_message'] = result
         data_state['etl_state'] = async_result.state
         data_states.append(data_state)
+    session['data_tasks'] = [x for x in session['data_tasks']
+                             if x not in expired_entries]
     logger.debug("Data states collected. Sending response.")
     return jsonify({'data_states': data_states}), 200
 

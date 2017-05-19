@@ -73,7 +73,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                             "Value probably expired.".format(data_task_id)
                     logger.error(error)
                     raise LookupError(error)
-                data_state = json.loads(entry.decode('utf-8'))
+                data_state = json.loads(entry)
                 if not data_state['loaded']:
                     error = "The data task '{}' has not been loaded, yet." \
                             "Wait for it to complete before using it in an " \

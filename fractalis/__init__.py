@@ -9,8 +9,10 @@ import os
 import yaml
 from flask import Flask
 from flask_cors import CORS
-from flask_session import Session
+from flask_request_id import RequestID
 from redis import StrictRedis
+
+from fractalis.session import RedisSessionInterface
 
 app = Flask(__name__)
 
@@ -35,15 +37,19 @@ if default_config:
     log.warning("Environment Variable FRACTALIS_CONFIG not set. Falling back "
                 "to default settings. This is not a good idea in production!")
 
+# Plugin that assigns every request an id
+RequestID(app)
+
 # create a redis instance
 log.info("Creating Redis connection.")
 redis = StrictRedis(host=app.config['REDIS_HOST'],
-                    port=app.config['REDIS_PORT'])
+                    port=app.config['REDIS_PORT'],
+                    charset='utf-8',
+                    decode_responses=True)
 
 # Set new session interface for app
 log.info("Replacing default session interface.")
-app.config['SESSION_REDIS'] = redis
-Session(app)
+app.session_interface = RedisSessionInterface(redis)
 
 # allow everyone to submit requests
 log.info("Setting up CORS.")

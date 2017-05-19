@@ -25,7 +25,7 @@ def remove_data(task_id: str, wait: bool=False) -> None:
     celery.control.revoke(task_id, terminate=True, signal='SIGUSR1')
     redis.delete(key)
     if value:
-        data_state = json.loads(value.decode('utf-8'))
+        data_state = json.loads(value)
         async_result = remove_file.delay(data_state['file_path'])
         if wait:
             async_result.get(propagate=False)
@@ -54,7 +54,7 @@ def cleanup_all() -> None:
     celery.control.purge()
     for key in redis.keys('data:*'):
         value = redis.get(key)
-        data_state = json.loads(value.decode('utf-8'))
+        data_state = json.loads(value)
         celery.AsyncResult(data_state['task_id']).get(propagate=False)
         # celery.control.revoke(data_state['task_id'], terminate=True,
         #                       signal='SIGUSR1', wait=True)

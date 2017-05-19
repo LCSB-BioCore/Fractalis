@@ -109,7 +109,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         data_frame.to_csv(file_path, index=False)
         value = redis.get(name='data:{}'.format(self.request.id))
         assert value is not None
-        data_state = json.loads(value.decode('utf-8'))
+        data_state = json.loads(value)
         data_state['loaded'] = True
         redis.setex(name='data:{}'.format(self.request.id),
                     value=json.dumps(data_state),
