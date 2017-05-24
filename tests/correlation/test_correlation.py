@@ -23,10 +23,10 @@ class TestCorrelation:
         assert result['slope']
         assert result['intercept']
         assert result['subsets']
-        assert result['method']
+        assert result['method'] == 'pearson'
         assert result['data']
-        assert result['x_label']
-        assert result['y_label']
+        assert result['x_label'] == 'A'
+        assert result['y_label'] == 'B'
 
     def test_returns_expected_output_2(self):
         task = CorrelationTask()
@@ -45,9 +45,11 @@ class TestCorrelation:
         arr_2 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
-        with pytest.raises(ValueError):
-            task.main(x=x, y=y, id_filter=list(range(20)),
-                      method='pearson', subsets=[])
+        result_1 = task.main(x=x, y=y, id_filter=list(range(20)),
+                             method='pearson', subsets=[])
+        result_2 = task.main(x=x, y=y, id_filter=list(range(20)),
+                             method='pearson', subsets=[list(range(20))])
+        assert result_1 == result_2
 
     def test_returns_expected_output_4(self):
         task = CorrelationTask()

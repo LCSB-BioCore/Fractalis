@@ -19,8 +19,6 @@ class CorrelationTask(AnalyticTask):
             raise ValueError("X or Y are malformed.")
         if method not in ['pearson', 'spearman', 'kendall']:
             raise ValueError("Unknown method '{}'".format(method))
-        if len(subsets) == 0:
-            raise ValueError("No subsets specified.")
 
         df = pd.merge(x, y, on='id')
         df = df.dropna()
@@ -31,6 +29,9 @@ class CorrelationTask(AnalyticTask):
             df = df[df['id'].isin(id_filter)]
         if df.shape[0] == 0:
             raise ValueError("The current selection does not match any data.")
+
+        if not subsets:
+            subsets = [df['id']]
 
         output = {
             'subsets': {}
@@ -55,6 +56,7 @@ class CorrelationTask(AnalyticTask):
         output.update(global_stats)
         output['method'] = method
         output['data'] = df.to_json()
+        df = df.drop('id', 1)
         output['x_label'] = list(df)[0]
         output['y_label'] = list(df)[1]
         return output
