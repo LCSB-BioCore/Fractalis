@@ -6,7 +6,7 @@ import re
 import logging
 from typing import List
 
-import pandas as pd
+from pandas import read_csv
 from celery import Task
 
 from fractalis import redis
@@ -38,7 +38,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                 return task()
 
     @abc.abstractmethod
-    def main(self) -> dict:
+    def main(self, *args, **kwargs) -> dict:
         """Since we hijack run(), we need a new entry point for every task.
         This method is called by our modified run method with all parsed 
         arguments.
@@ -52,7 +52,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         data frame located on the file system.
 
         :param data_tasks: We use this list to check access.
-        :param args: The arguments submitted to run()
+        :param args: The arguments submitted to run().
         :return: The new parsed arguments
         """
         arguments = {}
@@ -63,7 +63,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                 data_task_id = value[1:-1]
 
                 if data_task_id not in data_tasks:
-                    error = "No permission to use data_task_id '{}'" \
+                    error = "No permission to use data_task_id '{}' " \
                             "for analysis".format(data_task_id)
                     logger.error(error)
                     raise PermissionError(error)
@@ -75,13 +75,13 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                     raise LookupError(error)
                 data_state = json.loads(entry)
                 if not data_state['loaded']:
-                    error = "The data task '{}' has not been loaded, yet." \
+                    error = "The data task '{}' has not been loaded, yet. " \
                             "Wait for it to complete before using it in an " \
                             "analysis task.".format(data_task_id)
                     logger.error(error)
                     raise ValueError(error)
                 file_path = data_state['file_path']
-                value = pd.read_csv(file_path)
+                value = read_csv(file_path)
             arguments[arg] = value
         return arguments
 
@@ -89,7 +89,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         """This is called by the celery worker. This method calls other helper
         methods to prepare and validate the in and output of a task.
         :param data_tasks: List of data task ids from session to check access.
-        :param args: This is the dict of arguments submitted to the task.
+        :param args: The dict of arguments submitted to the task.
         :return: The result of the task.
         """
         arguments = self.prepare_args(data_tasks, args)
@@ -104,5 +104,6 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         except TypeError as e:
             logging.exception(e)
             raise
+        # NaN is invalid JSON and JS can't parse it. null on the other hand...
         result = re.sub(r': NaN', ': null', result)
         return result

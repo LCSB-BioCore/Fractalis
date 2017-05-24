@@ -17,18 +17,6 @@ analytics_blueprint = Blueprint('analytics_blueprint', __name__)
 logger = logging.getLogger(__name__)
 
 
-@analytics_blueprint.before_request
-def prepare_session() -> None:
-    """Make sure the session is properly initialized before each request."""
-    session.permanent = True
-    if 'analytic_tasks' not in session:
-        logger.debug("Initializing analytic_tasks field in session dict.")
-        session['analytic_tasks'] = []
-    if 'data_tasks' not in session:
-        logger.debug("Initializing data_tasks field in session dict.")
-        session['data_tasks'] = []
-
-
 @analytics_blueprint.route('', methods=['POST'])
 @validate_json
 @validate_schema(create_task_schema)
@@ -97,3 +85,4 @@ def cancel_task(task_id: UUID) -> Tuple[Response, int]:
     session['analytic_tasks'].remove(task_id)
     logger.debug("Successfully send term signal to task. Sending response.")
     return jsonify(''), 200
+

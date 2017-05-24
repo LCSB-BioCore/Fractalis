@@ -67,6 +67,7 @@ log.info("Registering Flask blueprints.")
 app.register_blueprint(analytics_blueprint, url_prefix='/analytics')
 app.register_blueprint(data_blueprint, url_prefix='/data')
 
+# registering all application celery tasks
 log.info("Registering celery tasks.")
 register_tasks()
 

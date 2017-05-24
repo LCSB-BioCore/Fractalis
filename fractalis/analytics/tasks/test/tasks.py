@@ -8,8 +8,7 @@ class AddTask(AnalyticTask):
     name = 'add_test_task'
 
     def main(self, a, b):
-        result = {}
-        result['sum'] = a + b
+        result = {'sum': a + b}
         return result
 
 
@@ -29,8 +28,7 @@ class DivTask(AnalyticTask):
     name = 'div_test_task'
 
     def main(self, a, b):
-        result = {}
-        result['div'] = a / b
+        result = {'div': a / b}
         return result
 
 
@@ -39,8 +37,7 @@ class SumDataFrameTask(AnalyticTask):
     name = 'sum_df_test_task'
 
     def main(self, a):
-        result = {}
-        result['sum'] = a.sum().sum()
+        result = {'sum': a.sum().sum()}
         return result
 
 

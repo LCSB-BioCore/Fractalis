@@ -18,15 +18,6 @@ data_blueprint = Blueprint('data_blueprint', __name__)
 logger = logging.getLogger(__name__)
 
 
-@data_blueprint.before_request
-def prepare_session() -> None:
-    """Make sure the session is properly initialized before each request."""
-    session.permanent = True
-    if 'data_tasks' not in session:
-        logger.debug("Initializing data_tasks field in session dict.")
-        session['data_tasks'] = []
-
-
 @data_blueprint.route('', methods=['POST'])
 @validate_json
 @validate_schema(create_data_schema)
@@ -37,7 +28,7 @@ def create_data_task() -> Tuple[Response, int]:
     """
     logger.debug("Received POST request on /data.")
     wait = request.args.get('wait') == '1'
-    payload = request.get_json(force=True)  # pattern enforced by decorators
+    payload = request.get_json(force=True)
     etl_handler = ETLHandler.factory(handler=payload['handler'],
                                      server=payload['server'],
                                      auth=payload['auth'])
