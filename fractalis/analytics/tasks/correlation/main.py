@@ -1,3 +1,4 @@
+"""Module containing the Celery Task for the Correlation Analysis."""
 from typing import List, TypeVar
 from functools import reduce
 
@@ -12,6 +13,8 @@ T = TypeVar('T')
 
 
 class CorrelationTask(AnalyticTask):
+    """Correlation Analaysis Task implementing AnalyticsTask. This class is a
+    submittable celery task."""
 
     name = 'compute-correlation'
 
@@ -22,7 +25,15 @@ class CorrelationTask(AnalyticTask):
              method: str,
              subsets: List[List[T]],
              annotations: List[pd.DataFrame]) -> dict:
-
+        """Compute correlation statistics for the given parameters.
+        :param x: DataFrame containing x axis values.
+        :param y: DataFrame containing y axis values.
+        :param id_filter: If specified use only given ids during the analysis.
+        :param method: pearson, spearman or kendall.
+        :param subsets: List of lists of subset ids.
+        :param annotations: List of DataFrames that annotate the data points.
+        :return: corr. coef., p-value and other useful values.
+        """
         if x.shape[0] == 0 or y.shape[0] == 0:
             raise ValueError("X or Y contain no data.")
         if x.shape[1] < 2 or y.shape[1] < 2:
@@ -52,6 +63,11 @@ class CorrelationTask(AnalyticTask):
 
     @staticmethod
     def merge_x_y(x: pd.DataFrame, y: pd.DataFrame) -> pd.DataFrame:
+        """Merge the x and y DataFrame and drop all rows containing NA.
+        :param x: The x-axis values. 
+        :param y: The y-axis values.
+        :return: The merged data frame.
+        """
         df = x.merge(y, on='id', how='inner')
         df = df.dropna()
         if df.shape[0] == 0:
@@ -60,6 +76,11 @@ class CorrelationTask(AnalyticTask):
 
     @staticmethod
     def apply_id_filter(df: pd.DataFrame, id_filter: list) -> pd.DataFrame:
+        """Throw away all rows whose id is not in id_filter.
+        :param df: The DataFrame to filter. 
+        :param id_filter: The filter.
+        :return: The filtered DataFrame.
+        """
         if id_filter:
             df = df[df['id'].isin(id_filter)]
         if df.shape[0] == 0:
@@ -69,6 +90,13 @@ class CorrelationTask(AnalyticTask):
     @staticmethod
     def apply_subsets(df: pd.DataFrame,
                       subsets: List[List[T]]) -> pd.DataFrame:
+        """Build a new DataFrame that contains a new column 'subset' defining
+        the subset the data point belongs to. If a data point belongs to
+        multiple subsets then the row is duplicated.
+        :param df: The DataFrame used as a base.
+        :param subsets: The subsets defined by the user.
+        :return: The new DataFrame.
+        """
         if not subsets:
             subsets = [df['id']]
         _df = pd.DataFrame()
@@ -88,6 +116,12 @@ class CorrelationTask(AnalyticTask):
     @staticmethod
     def apply_annotations(annotations: List[pd.DataFrame],
                           df: pd.DataFrame) -> pd.DataFrame:
+        """Collapse all annotation DataFrames into a single column that can be
+        added to the base DataFrame. This is done by joining all columns via &&
+        :param annotations: List of annotation DataFrames
+        :param df: The DataFrame to be extended
+        :return: The base DataFrame with an additional 'annotation' column
+        """
         if annotations:
             # merge all dfs into one
             data = reduce(lambda l, r: l.merge(r, on='id', how='outer'), annotations)
@@ -110,6 +144,14 @@ class CorrelationTask(AnalyticTask):
     @staticmethod
     def compute_stats(df: pd.DataFrame, method: str,
                       x_label: str, y_label: str) -> dict:
+        """Compute correlation statistics for the given data and the given
+        correlation method.
+        :param df: The DataFrame containing our data. 
+        :param method: The method to use.
+        :param x_label: The name of the x-axis.
+        :param y_label: The name of the y-axis.
+        :return: Coefficient, p-value, regression slope and regression intercept
+        """
         df = df.drop_duplicates('id')
         df = df.dropna()
         df = df[[x_label, y_label]]

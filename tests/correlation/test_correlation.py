@@ -223,7 +223,7 @@ class TestCorrelation:
         df = pd.DataFrame([[1, 1, 2],
                            [2, 3, 4],
                            [3, 5, 6]], columns=['id', 'A', 'B'])
-        result = task.compute_stats(df, 'A', 'B')
+        result = task.compute_stats(df, 'pearson', 'A', 'B')
         assert not np.isnan(result['coef'])
         assert not np.isnan(result['p_value'])
         assert not np.isnan(result['slope'])
@@ -234,7 +234,7 @@ class TestCorrelation:
         df = pd.DataFrame([[1, 1, 2],
                            [2, float('nan'), 4],
                            [3, 5, float('nan')]], columns=['id', 'A', 'B'])
-        result = task.compute_stats(df, 'A', 'B')
+        result = task.compute_stats(df, 'pearson', 'A', 'B')
         assert np.isnan(result['coef'])
         assert np.isnan(result['p_value'])
         assert np.isnan(result['slope'])
