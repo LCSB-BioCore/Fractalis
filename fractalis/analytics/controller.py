@@ -33,7 +33,7 @@ def create_task() -> Tuple[Response, int]:
                      "'{}'".format(json['task_name']))
         return jsonify({'error_msg': "Task with name '{}' not found."
                        .format(json['task_name'])}), 400
-    async_result = analytic_task.delay(data_tasks=session['data_tasks'],
+    async_result = analytic_task.delay(session_data_tasks=session['data_tasks'],
                                        args=json['args'])
     session['analytic_tasks'].append(async_result.id)
     logger.debug("Task successfully submitted. Sending response.")

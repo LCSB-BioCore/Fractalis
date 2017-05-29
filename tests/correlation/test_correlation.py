@@ -10,14 +10,18 @@ from fractalis.analytics.tasks.correlation.main import CorrelationTask
 # noinspection PyMissingOrEmptyDocstring,PyMissingTypeHints
 class TestCorrelation:
 
-    def test_returns_expected_output_1(self):
+    def test_functional_1(self):
         task = CorrelationTask()
         arr_1 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         arr_2 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
-        result = task.main(x=x, y=y, id_filter=[],
-                           method='pearson', subsets=[list(range(20))])
+        result = task.main(x=x,
+                           y=y,
+                           id_filter=[],
+                           method='pearson',
+                           subsets=[list(range(20))],
+                           annotations=[])
         assert result['coef']
         assert result['p_value']
         assert result['slope']
@@ -28,107 +32,147 @@ class TestCorrelation:
         assert result['x_label'] == 'A'
         assert result['y_label'] == 'B'
 
-    def test_returns_expected_output_2(self):
+    def test_functional_2(self):
         task = CorrelationTask()
         arr_1 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         arr_2 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
-        result = task.main(x=x, y=y, id_filter=list(range(10)),
-                           method='pearson', subsets=[list(range(5, 15))])
+        result = task.main(x=x,
+                           y=y,
+                           id_filter=list(range(10)),
+                           method='pearson',
+                           subsets=[list(range(5, 15))],
+                           annotations=[])
         df = json.loads(result['data'])
         assert len(df['id']) == 5
 
-    def test_returns_expected_output_3(self):
+    def test_functional_3(self):
         task = CorrelationTask()
         arr_1 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         arr_2 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
-        result_1 = task.main(x=x, y=y, id_filter=list(range(20)),
-                             method='pearson', subsets=[])
-        result_2 = task.main(x=x, y=y, id_filter=list(range(20)),
-                             method='pearson', subsets=[list(range(20))])
+        result_1 = task.main(x=x,
+                             y=y,
+                             id_filter=list(range(20)),
+                             method='pearson',
+                             subsets=[],
+                             annotations=[])
+        result_2 = task.main(x=x,
+                             y=y,
+                             id_filter=list(range(20)),
+                             method='pearson',
+                             subsets=[list(range(20))],
+                             annotations=[])
         assert result_1 == result_2
 
-    def test_returns_expected_output_4(self):
+    def test_functional_4(self):
         task = CorrelationTask()
         arr_1 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         arr_2 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
         with pytest.raises(ValueError):
-            task.main(x=x, y=y, id_filter=[],
-                      method='foo', subsets=[list(range(20))])
+            task.main(x=x,
+                      y=y,
+                      id_filter=[],
+                      method='foo',
+                      subsets=[list(range(20))],
+                      annotations=[])
 
-    def test_returns_expected_output_5(self):
+    def test_functional_5(self):
         task = CorrelationTask()
         arr_1 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         arr_2 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
-        result = task.main(x=x, y=y, id_filter=[],
-                           method='pearson', subsets=[list(range(15, 25))])
+        result = task.main(x=x,
+                           y=y,
+                           id_filter=[],
+                           method='pearson',
+                           subsets=[list(range(15, 25))],
+                           annotations=[])
         df = json.loads(result['data'])
         assert len(df['id']) == 5
 
-    def test_returns_expected_output_6(self):
+    def test_functional_6(self):
         task = CorrelationTask()
         arr_1 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
         arr_2 = np.c_[range(20, 40), np.random.randint(0, 100, size=(20, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
         with pytest.raises(ValueError):
-            task.main(x=x, y=y, id_filter=[],
-                      method='pearson', subsets=[list(range(20))])
+            task.main(x=x,
+                      y=y,
+                      id_filter=[],
+                      method='pearson',
+                      subsets=[list(range(20))],
+                      annotations=[])
 
-    def test_returns_expected_output_7(self):
+    def test_functional_7(self):
         task = CorrelationTask()
         arr_1 = np.c_[range(10), np.random.randint(0, 100, size=(10, 1))]
         arr_2 = np.c_[range(5, 20), np.random.randint(0, 100, size=(15, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
         with pytest.raises(ValueError):
-            task.main(x=x, y=y, id_filter=[],
-                      method='pearson', subsets=[list(range(10, 20))])
+            task.main(x=x,
+                      y=y,
+                      id_filter=[],
+                      method='pearson',
+                      subsets=[list(range(10, 20))],
+                      annotations=[])
 
-    def test_returns_expected_output_8(self):
+    def test_functional_8(self):
         task = CorrelationTask()
         arr_1 = np.c_[range(10), np.random.randint(0, 100, size=(10, 1))]
         arr_2 = np.c_[range(5, 20), np.random.randint(0, 100, size=(15, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
-        result = task.main(x=x, y=y, id_filter=[],
-                           method='pearson', subsets=[list(range(5, 20))])
+        result = task.main(x=x,
+                           y=y,
+                           id_filter=[],
+                           method='pearson',
+                           subsets=[list(range(5, 20))],
+                           annotations=[])
         df = json.loads(result['data'])
         assert len(df['id']) == 5
 
-    def test_returns_expected_output_9(self):
+    def test_functional_9(self):
         task = CorrelationTask()
         arr_1 = np.c_[range(10), np.random.randint(0, 100, size=(10, 1))]
         arr_2 = np.c_[range(5, 20), np.random.randint(0, 100, size=(15, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
-        result = task.main(x=x, y=y, id_filter=[], method='pearson',
+        result = task.main(x=x,
+                           y=y,
+                           id_filter=[],
+                           method='pearson',
                            subsets=[
                                list(range(5)),
                                list(range(5, 10)),
                                list(range(10, 20))
-                           ])
+                           ],
+                           annotations=[])
         assert not np.isnan(result['coef'])
         assert len(result['subsets']) == 3
         assert np.isnan(result['subsets'][0]['coef'])
         assert not np.isnan(result['subsets'][1]['coef'])
         assert np.isnan(result['subsets'][2]['coef'])
 
-    def test_returns_expected_output_10(self):
+    def test_functional_10(self):
         task = CorrelationTask()
         arr_1 = np.c_[range(2), np.random.randint(0, 100, size=(2, 1))]
         arr_2 = np.c_[range(1, 3), np.random.randint(0, 100, size=(2, 1))]
         x = pd.DataFrame(arr_1, columns=['id', 'A'])
         y = pd.DataFrame(arr_2, columns=['id', 'B'])
-        result = task.main(x=x, y=y, id_filter=[], method='pearson',
-                           subsets=[list(range(4))])
+        result = task.main(x=x,
+                           y=y,
+                           id_filter=[],
+                           method='pearson',
+                           subsets=[list(range(4))],
+                           annotations=[])
         df = json.loads(result['data'])
         assert np.isnan(result['coef'])
         assert len(df['id']) == 1

@@ -47,11 +47,35 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         pass
 
     @staticmethod
-    def prepare_args(data_tasks: List[str], args: dict) -> dict:
-        """Replace data task ids in the arguments with their associated 
-        data frame located on the file system.
+    def data_task_id_to_data_frame(data_task_id, session_data_tasks):
+        if data_task_id not in session_data_tasks:
+            error = "No permission to use data_task_id '{}' " \
+                    "for analysis".format(data_task_id)
+            logger.error(error)
+            raise PermissionError(error)
+        entry = redis.get('data:{}'.format(data_task_id))
+        if not entry:
+            error = "The key '{}' does not match any entry in Redis. " \
+                    "Value probably expired.".format(data_task_id)
+            logger.error(error)
+            raise LookupError(error)
+        data_state = json.loads(entry)
+        if not data_state['loaded']:
+            error = "The data task '{}' has not been loaded, yet. " \
+                    "Wait for it to complete before using it in an " \
+                    "analysis task.".format(data_task_id)
+            logger.error(error)
+            raise ValueError(error)
+        file_path = data_state['file_path']
+        df = read_csv(file_path)
+        return df
 
-        :param data_tasks: We use this list to check access.
+    def prepare_args(self, session_data_tasks: List[str], args: dict) -> dict:
+        """Replace data task ids in the arguments with their associated 
+        data frame located on the file system. This currently works for non
+        nested strings and non nested lists containing strings.
+
+        :param session_data_tasks: We use this list to check access.
         :param args: The arguments submitted to run().
         :return: The new parsed arguments
         """
@@ -61,38 +85,28 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
             if (isinstance(value, str) and
                     value.startswith('$') and value.endswith('$')):
                 data_task_id = value[1:-1]
-
-                if data_task_id not in data_tasks:
-                    error = "No permission to use data_task_id '{}' " \
-                            "for analysis".format(data_task_id)
-                    logger.error(error)
-                    raise PermissionError(error)
-                entry = redis.get('data:{}'.format(data_task_id))
-                if not entry:
-                    error = "The key '{}' does not match any entry in Redis. " \
-                            "Value probably expired.".format(data_task_id)
-                    logger.error(error)
-                    raise LookupError(error)
-                data_state = json.loads(entry)
-                if not data_state['loaded']:
-                    error = "The data task '{}' has not been loaded, yet. " \
-                            "Wait for it to complete before using it in an " \
-                            "analysis task.".format(data_task_id)
-                    logger.error(error)
-                    raise ValueError(error)
-                file_path = data_state['file_path']
-                value = read_csv(file_path)
+                value = self.data_task_id_to_data_frame(
+                    data_task_id, session_data_tasks)
+            if (isinstance(value, list) and
+                    value[0].startswith('$') and value[0].endswith('$')):
+                data_task_ids = [el[1:-1] for el in value]
+                dfs = []
+                for data_task_id in data_task_ids:
+                    df = self.data_task_id_to_data_frame(data_task_id,
+                                                         session_data_tasks)
+                    dfs.append(df)
+                value = dfs
             arguments[arg] = value
         return arguments
 
-    def run(self, data_tasks: List[str], args: dict) -> str:
+    def run(self, session_data_tasks: List[str], args: dict) -> str:
         """This is called by the celery worker. This method calls other helper
         methods to prepare and validate the in and output of a task.
-        :param data_tasks: List of data task ids from session to check access.
+        :param session_data_tasks: List of data task ids from session to check access.
         :param args: The dict of arguments submitted to the task.
         :return: The result of the task.
         """
-        arguments = self.prepare_args(data_tasks, args)
+        arguments = self.prepare_args(session_data_tasks, args)
         result = self.main(**arguments)
         try:
             if type(result) != dict:
