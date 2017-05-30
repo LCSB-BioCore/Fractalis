@@ -1,4 +1,5 @@
-import time
+from time import sleep
+from functools import reduce
 
 from fractalis.analytics.task import AnalyticTask
 
@@ -18,7 +19,7 @@ class DoNothingTask(AnalyticTask):
 
     def main(self, seconds):
         result = {}
-        time.sleep(seconds)
+        sleep(seconds)
         result['foo'] = 'bar'
         return result
 
@@ -40,6 +41,15 @@ class SumDataFrameTask(AnalyticTask):
         result = {'sum': a.sum().sum()}
         return result
 
+class MergeDataFramesTask(AnalyticTask):
+
+    name = 'merge_df_task'
+
+    def main(self, df_list):
+        if not df_list:
+            return {'df': ''}
+        df = reduce(lambda l, r: l.append(r), df_list)
+        return {'df': df.to_json(orient='values')}
 
 class InvalidReturnTask(AnalyticTask):
 

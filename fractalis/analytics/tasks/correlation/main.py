@@ -55,7 +55,7 @@ class CorrelationTask(AnalyticTask):
         output = global_stats
         output['subsets'] = subset_stats
         output['method'] = method
-        output['data'] = df.to_json()
+        output['data'] = df.to_json(orient='index')
         output['x_label'] = x_label
         output['y_label'] = y_label
 

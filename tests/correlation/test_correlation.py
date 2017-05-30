@@ -46,7 +46,7 @@ class TestCorrelation:
                            subsets=[list(range(5, 15))],
                            annotations=[])
         df = json.loads(result['data'])
-        assert len(df['id']) == 5
+        assert len(df) == 5
 
     def test_functional_3(self):
         task = CorrelationTask()
@@ -95,7 +95,7 @@ class TestCorrelation:
                            subsets=[list(range(15, 25))],
                            annotations=[])
         df = json.loads(result['data'])
-        assert len(df['id']) == 5
+        assert len(df) == 5
 
     def test_functional_6(self):
         task = CorrelationTask()
@@ -138,7 +138,7 @@ class TestCorrelation:
                            subsets=[list(range(5, 20))],
                            annotations=[])
         df = json.loads(result['data'])
-        assert len(df['id']) == 5
+        assert len(df) == 5
 
     def test_functional_9(self):
         task = CorrelationTask()
@@ -176,9 +176,9 @@ class TestCorrelation:
                            annotations=[])
         df = json.loads(result['data'])
         assert np.isnan(result['coef'])
-        assert len(df['id']) == 1
+        assert len(df) == 1
 
-    def test_merge_x_y_merges_correctly(self):
+    def test_merge_x_y(self):
         task = CorrelationTask()
         df1 = pd.DataFrame([[1, 'a'], [2, float('nan')], [3, 'a']],
                            columns=['id', 'A'])

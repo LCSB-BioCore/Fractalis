@@ -82,12 +82,12 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         arguments = {}
         for arg in args:
             value = args[arg]
-            if (isinstance(value, str) and
+            if (isinstance(value, str) and value and
                     value.startswith('$') and value.endswith('$')):
                 data_task_id = value[1:-1]
                 value = self.data_task_id_to_data_frame(
                     data_task_id, session_data_tasks)
-            if (isinstance(value, list) and
+            if (isinstance(value, list) and value and
                     value[0].startswith('$') and value[0].endswith('$')):
                 data_task_ids = [el[1:-1] for el in value]
                 dfs = []

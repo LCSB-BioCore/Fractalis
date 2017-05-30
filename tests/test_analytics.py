@@ -255,3 +255,37 @@ class TestAnalytics:
         new_body = flask.json.loads(new_response.get_data())
         assert new_body['state'] == 'FAILURE'
         assert 'TypeError' in new_body['result']
+
+    def test_can_handle_df_list(self, test_client, small_data_post):
+        small_data_post(random=True, wait=1)
+        small_data_post(random=True, wait=1)
+        small_data_post(random=True, wait=1)
+        with test_client.session_transaction() as sess:
+            data_tasks = sess['data_tasks']
+            assert len(data_tasks) == 3
+        df_list = ['${}$'.format(data_task_id) for data_task_id in data_tasks]
+        rv = test_client.post('/analytics', data=flask.json.dumps(dict(
+            task_name='merge_df_task',
+            args={'df_list': df_list}
+        )))
+        assert rv.status_code == 201
+        body = flask.json.loads(rv.get_data())
+        new_url = '/analytics/{}?wait=1'.format(body['task_id'])
+        new_response = test_client.get(new_url)
+        assert new_response.status_code == 200
+        new_body = flask.json.loads(new_response.get_data())
+        assert new_body['state'] == 'SUCCESS', new_body
+        assert len(json.loads(json.loads(new_body['result'])['df'])) == 30
+
+    def test_can_handle_empty_df_list(self, test_client, small_data_post):
+        rv = test_client.post('/analytics', data=flask.json.dumps(dict(
+            task_name='merge_df_task',
+            args={'df_list': []}
+        )))
+        assert rv.status_code == 201
+        body = flask.json.loads(rv.get_data())
+        new_url = '/analytics/{}?wait=1'.format(body['task_id'])
+        new_response = test_client.get(new_url)
+        assert new_response.status_code == 200
+        new_body = flask.json.loads(new_response.get_data())
+        assert new_body['state'] == 'SUCCESS', new_body
