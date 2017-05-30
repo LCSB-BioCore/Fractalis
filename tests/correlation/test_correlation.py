@@ -239,3 +239,9 @@ class TestCorrelation:
         assert np.isnan(result['p_value'])
         assert np.isnan(result['slope'])
         assert np.isnan(result['intercept'])
+
+    def test_get_axis_labels(self):
+        task = CorrelationTask()
+        df = pd.DataFrame([['a', 1, 'b']], columns=['A', 'id', 'B'])
+        result = task.get_axis_labels(df)
+        assert result == ('A', 'B')

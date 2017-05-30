@@ -1,5 +1,5 @@
 """Module containing the Celery Task for the Correlation Analysis."""
-from typing import List, TypeVar
+from typing import List, TypeVar, Tuple
 from functools import reduce
 
 import pandas as pd
@@ -42,8 +42,7 @@ class CorrelationTask(AnalyticTask):
             raise ValueError("Unknown method '{}'".format(method))
 
         df = self.merge_x_y(x, y)
-        x_label = list(df)[1]
-        y_label = list(df)[2]
+        (x_label, y_label) = self.get_axis_labels(df)
         df = self.apply_id_filter(df, id_filter)
         df = self.apply_subsets(df, subsets)
         df = self.apply_annotations(annotations, df)
@@ -73,6 +72,18 @@ class CorrelationTask(AnalyticTask):
         if df.shape[0] == 0:
             raise ValueError("X and Y do not share any ids.")
         return df
+
+    @staticmethod
+    def get_axis_labels(df: pd.DataFrame) -> Tuple[str, str]:
+        """Extract axis labels from the given DataFrame.
+        :param df: DataFrame that has contains ids axis labels and possibly more
+        :return: A tuple containing both labels.
+        """
+        colnames = [name for name in list(df) if name != 'id']
+        assert len(colnames) == 2
+        x_label = colnames[0]
+        y_label = colnames[1]
+        return (x_label, y_label)
 
     @staticmethod
     def apply_id_filter(df: pd.DataFrame, id_filter: list) -> pd.DataFrame:
