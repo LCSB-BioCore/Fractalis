@@ -1,5 +1,7 @@
 """Provides StringETL for Ada."""
 
+from typing import List
+
 from pandas import DataFrame
 
 from fractalis.data.etl import ETL
@@ -10,26 +12,25 @@ class StringETL(ETL):
     """StringETL implements support for Adas 'String' type"""
 
     name = 'ada_string_etl'
-    _handler = 'ada'
-    _accepts = 'String'
     produces = 'categorical'
 
-    def extract(self, server: str,
-                token: str, descriptor: dict) -> dict:
+    @staticmethod
+    def can_handle(handler, descriptor):
+        return handler == 'ada' and \
+               descriptor['dictionary']['fieldType'] and \
+               descriptor['dictionary']['fieldType'] == 'String'
+
+    def extract(self, server: str, token: str, descriptor: dict) -> List[dict]:
         data_set = descriptor['data_set']
         projections = ['_id']
-        projections += [descriptor['projection']]
+        projections += [descriptor['dictionary']['projection']]
         cookie = common.make_cookie(token=token)
         data = common.get_field(server=server, data_set=data_set,
                                 cookie=cookie, projections=projections)
-        dictionary = common.get_dictionary(server=server, data_set=data_set,
-                                           descriptor=descriptor, cookie=cookie)
-        return {'data': data, 'dictionary': dictionary}
+        return data
 
-    def transform(self, raw_data) -> DataFrame:
-        data = raw_data['data']
-        dictionary = raw_data['dictionary']
-        data = common.prepare_ids(data)
-        data = common.name_to_label(data, dictionary)
+    def transform(self, raw_data: List[dict], descriptor: dict) -> DataFrame:
+        data = common.prepare_ids(raw_data)
+        data = common.name_to_label(data, descriptor)
         data_frame = DataFrame(data)
         return data_frame

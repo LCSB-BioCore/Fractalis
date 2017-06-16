@@ -48,24 +48,29 @@ class ETLHandler(metaclass=abc.ABCMeta):
             self._token = self._get_token_for_credentials(
                 server, auth['user'], auth['passwd'])
 
+    @staticmethod
+    @abc.abstractmethod
+    def make_label(descriptor):
+        """Create a label for the given data descriptor. This label will be
+        used to display the loaded data in the front end.
+        :param descriptor: Describes the data and is used to download them.
+        :return The label (not necessarily unique) to the data."""
+        pass
+
     @classmethod
     def create_redis_entry(cls, task_id: str, file_path: str,
                            descriptor: dict, data_type: str) -> None:
         """Creates an entry in Redis that reflects all meta data surrounding the
         downloaded data. E.g. data type, file system location, ...
         :param task_id: Id associated with the loaded data. 
-        :param file_path: Location of the data on the file system
-        :param descriptor: Describes the data and is used to download them
-        :param data_type: The fractalis internal data type of the loaded data
+        :param file_path: Location of the data on the file system.
+        :param descriptor: Describes the data and is used to download them.
+        :param data_type: The fractalis internal data type of the loaded data.
         """
-        try:
-            label = descriptor['label']
-        except KeyError:
-            label = str(descriptor)
         data_state = {
             'task_id': task_id,
             'file_path': file_path,
-            'label': label,
+            'label': cls.make_label(descriptor),
             'descriptor': descriptor,
             'data_type': data_type,
             'loaded': False
@@ -88,8 +93,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
         for descriptor in descriptors:
             task_id = str(uuid4())
             file_path = os.path.join(data_dir, task_id)
-            etl = ETL.factory(handler=self._handler,
-                              data_type=descriptor['data_type'])
+            etl = ETL.factory(handler=self._handler, descriptor=descriptor)
             self.create_redis_entry(task_id, file_path,
                                     descriptor, etl.produces)
             kwargs = dict(server=self._server, token=self._token,

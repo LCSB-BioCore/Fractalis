@@ -17,7 +17,12 @@ class AdaHandler(ETLHandler):
     _handler = 'ada'
 
     def _heartbeat(self):
-        pass
+        raise NotImplementedError()
+
+    @staticmethod
+    def make_label(descriptor):
+        return '{} ({})'.format(descriptor['dictionary']['label'],
+                                descriptor['data_set'])
 
     def _get_token_for_credentials(self, server: str,
                                    user: str, passwd: str) -> str:

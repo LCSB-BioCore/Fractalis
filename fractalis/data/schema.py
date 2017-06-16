@@ -16,11 +16,7 @@ create_data_schema = {
             "type": "array",
             "items": {
                 "type": "object",
-                "properties": {
-                    "data_type": {"type": "string"},
-                },
-                "minProperties": 2,
-                "required": ["data_type"]
+                "minProperties": 1
             }
         }
     },

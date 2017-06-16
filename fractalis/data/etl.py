@@ -4,7 +4,6 @@ import os
 import abc
 import json
 import logging
-from typing import List
 
 from celery import Task
 from pandas import DataFrame
@@ -31,56 +30,39 @@ class ETL(Task, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def _handler(self) -> str:
-        """Used by self.can_handle to check whether the current implementation
-        belongs to a certain handler. This is necessary to avoid conflicts with
-        other ETL with identical self.name field.
-        """
-        pass
-
-    @property
-    @abc.abstractmethod
-    def _accepts(self) -> List[str]:
-        """Used by self.can_handle to check whether the current implementation
-        can handle the given data type. One ETL can handle multiple data types,
-        therefor this is a list.
-        """
-        pass
-
-    @property
-    @abc.abstractmethod
     def produces(self) -> str:
         """This specifies the fractalis internal format that this ETL
         produces. Can be one of: ['categorical', 'numerical']
         """
         pass
 
-    @classmethod
-    def can_handle(cls, handler: str, data_type: str) -> bool:
+    @staticmethod
+    @abc.abstractmethod
+    def can_handle(handler: str, descriptor: dict) -> bool:
         """Check if the current implementation of ETL can handle given handler
         and data type.
         :param handler: Describes the handler. E.g.: transmart, ada
-        :param data_type: Describes the data type. E.g.: ldd, hdd
+        :param descriptor: Describes the data that we want to download.
         :return: True if implementation can handle given parameters.
         """
-        return handler == cls._handler and data_type == cls._accepts
+        pass
 
     @classmethod
-    def factory(cls, handler: str, data_type: str) -> 'ETL':
+    def factory(cls, handler: str, descriptor: dict) -> 'ETL':
         """Return an instance of the implementation ETL that can handle the
         given parameters.
         :param handler: Describes the handler. E.g.: transmart, ada
-        :param data_type: Describes the data type. E.g.: ldd, hdd
+        :param descriptor: Describes the data that we want to download.
         :return: An instance of an implementation of ETL that returns True for
-        self.can_handle
+        can_handle()
         """
         from . import ETL_REGISTRY
-        for etl in ETL_REGISTRY:
-            if etl.can_handle(handler, data_type):
-                return etl()
+        for ETL_TASK in ETL_REGISTRY:
+            if ETL_TASK.can_handle(handler, descriptor):
+                return ETL_TASK()
         raise NotImplementedError(
-            "No ETL implementation found for handler '{}' and data type '{}'"
-            .format(handler, data_type))
+            "No ETL implementation found for handler '{}' and descriptor '{}'"
+            .format(handler, descriptor))
 
     @abc.abstractmethod
     def extract(self, server: str, token: str, descriptor: dict) -> object:
@@ -93,10 +75,12 @@ class ETL(Task, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def transform(self, raw_data: object) -> DataFrame:
+    def transform(self, raw_data: object, descriptor: dict) -> DataFrame:
         """Transform the data into a pandas.DataFrame with a naming according to
         the Fractalis standard format.
-        :param raw_data: The data to transform.
+        :param raw_data: The return value of extract().
+        :param descriptor: The data descriptor, sometimes needed
+        for transformation
         """
         pass
 
@@ -130,7 +114,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         logger.info("(E)xtracting data from server '{}'.".format(server))
         raw_data = self.extract(server, token, descriptor)
         logger.info("(T)ransforming data to Fractalis format.")
-        data_frame = self.transform(raw_data)
+        data_frame = self.transform(raw_data, descriptor)
         if not isinstance(data_frame, DataFrame):
             error = "transform() must return 'pandas.DataFrame', " \
                     "but returned '{}' instead.".format(type(data_frame))

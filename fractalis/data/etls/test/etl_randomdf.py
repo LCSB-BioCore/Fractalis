@@ -9,9 +9,13 @@ from fractalis.data.etl import ETL
 class RandomDFETL(ETL):
 
     name = 'test_randomdf_task'
-    _handler = 'test'
-    _accepts = 'default'
     produces = 'something'
+
+    @staticmethod
+    def can_handle(handler, descriptor):
+        return handler == 'test' and \
+               descriptor['data_type'] and \
+               descriptor['data_type'] == 'default'
 
     def extract(self, server, token, descriptor):
         if 'fail' in token:
@@ -20,6 +24,6 @@ class RandomDFETL(ETL):
         time.sleep(0.5)
         return fake_raw_data
 
-    def transform(self, raw_data):
+    def transform(self, raw_data, descriptor):
         fake_df = pd.DataFrame(raw_data)
         return fake_df

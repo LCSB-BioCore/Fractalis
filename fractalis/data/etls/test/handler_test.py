@@ -8,6 +8,10 @@ class TestHandler(ETLHandler):
     def _heartbeat(self):
         pass
 
+    @staticmethod
+    def make_label(descriptor):
+        pass
+
     def _get_token_for_credentials(self, server: str,
                                    user: str, passwd: str) -> str:
         pass

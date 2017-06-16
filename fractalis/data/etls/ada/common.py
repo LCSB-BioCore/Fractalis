@@ -10,7 +10,7 @@ def make_cookie(token: str) -> dict:
 
 
 def get_field(server: str, data_set: str,
-            cookie: dict, projections: List[str]) -> dict:
+            cookie: dict, projections: List[str]) -> List[dict]:
     r = requests.get(url='{}/studies/records/findCustom'.format(server),
                      headers={'Accept': 'application/json'},
                      params={
@@ -29,21 +29,6 @@ def get_field(server: str, data_set: str,
     return field_data
 
 
-def get_dictionary(server: str, data_set: str,
-                   descriptor: dict, cookie: dict) -> dict:
-    r = requests.get(url='{}/studies/dictionary/get/{}'
-                     .format(server, descriptor['projection']),
-                     headers={'Accept': 'application/json'},
-                     params={'dataSet': data_set},
-                     cookies=cookie)
-    if r.status_code != 200:
-        dictionary = None
-        pass
-    else:
-        dictionary = r.json()
-    return dictionary
-
-
 def prepare_ids(data: List[dict]) -> List[dict]:
     new_data = []
     for row in data:
@@ -54,14 +39,14 @@ def prepare_ids(data: List[dict]) -> List[dict]:
     return new_data
 
 
-def name_to_label(data: List[dict], dictionary: dict) -> List[dict]:
+def name_to_label(data: List[dict], descriptor: dict) -> List[dict]:
     try:
-        label = dictionary['label']
+        label = descriptor['dictionary']['label']
     except (KeyError, TypeError):
         return data
     for row in data:
-        if dictionary['name'] in row:
-            value = row[dictionary['name']]
-            del row[dictionary['name']]
+        if descriptor['dictionary']['name'] in row:
+            value = row[descriptor['dictionary']['name']]
+            del row[descriptor['dictionary']['name']]
             row[label] = value
     return data
