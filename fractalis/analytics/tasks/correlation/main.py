@@ -7,13 +7,15 @@ import numpy as np
 from scipy import stats
 
 from fractalis.analytics.task import AnalyticTask
+from fractalis.analytics.tasks.shared.common import \
+    apply_subsets, apply_categories
 
 
 T = TypeVar('T')
 
 
 class CorrelationTask(AnalyticTask):
-    """Correlation Analaysis Task implementing AnalyticsTask. This class is a
+    """Correlation Analysis Task implementing AnalyticsTask. This class is a
     submittable celery task."""
 
     name = 'compute-correlation'
@@ -44,8 +46,8 @@ class CorrelationTask(AnalyticTask):
         df = self.merge_x_y(x, y)
         (x_label, y_label) = self.get_axis_labels(df)
         df = self.apply_id_filter(df, id_filter)
-        df = self.apply_subsets(df, subsets)
-        df = self.apply_annotations(annotations, df)
+        df = apply_subsets(df=df, subsets=subsets)
+        df = apply_categories(df=df, categories=annotations)
         global_stats = self.compute_stats(df, method, x_label, y_label)
         subset_dfs = [df[df['subset'] == i] for i in range(len(subsets) or 1)]
         subset_stats = [self.compute_stats(subset_df, method, x_label, y_label)
@@ -99,58 +101,7 @@ class CorrelationTask(AnalyticTask):
         return df
 
     @staticmethod
-    def apply_subsets(df: pd.DataFrame,
-                      subsets: List[List[T]]) -> pd.DataFrame:
-        """Build a new DataFrame that contains a new column 'subset' defining
-        the subset the data point belongs to. If a data point belongs to
-        multiple subsets then the row is duplicated.
-        :param df: The DataFrame used as a base.
-        :param subsets: The subsets defined by the user.
-        :return: The new DataFrame.
-        """
-        if not subsets:
-            subsets = [df['id']]
-        _df = pd.DataFrame()
-        for i, subset in enumerate(subsets):
-            df_subset = df[df['id'].isin(subset)]
-            if not df_subset.shape[0]:
-                continue
-            subset_col = [i] * df_subset.shape[0]
-            df_subset = df_subset.assign(subset=subset_col)
-            _df = _df.append(df_subset)
-        if _df.shape[0] == 0:
-            raise ValueError("No data match given subsets. Keep in mind that X "
-                             "and Y are intersected before the subsets are "
-                             "applied.")
-        return _df
 
-    @staticmethod
-    def apply_annotations(annotations: List[pd.DataFrame],
-                          df: pd.DataFrame) -> pd.DataFrame:
-        """Collapse all annotation DataFrames into a single column that can be
-        added to the base DataFrame. This is done by joining all columns via &&
-        :param annotations: List of annotation DataFrames
-        :param df: The DataFrame to be extended
-        :return: The base DataFrame with an additional 'annotation' column
-        """
-        if annotations:
-            # merge all dfs into one
-            data = reduce(lambda l, r: l.merge(r, on='id', how='outer'), annotations)
-            # remember ids
-            ids = data['id']
-            # drop id column
-            data = data.drop('id', axis=1)
-            # replace everything that is not an annotation with ''
-            data = data.applymap(lambda el: el if isinstance(el, str) and el else '')
-            # join all columns with && into a single one. Ignore '' entries.
-            data = data.apply(lambda row: '&&'.join(list(map(str, [el for el in row.tolist() if el]))), axis=1)
-            # cast Series to DataFrame
-            data = pd.DataFrame(data, columns=['annotation'])
-            # reassign ids to collapsed df
-            data = data.assign(id=ids)
-            # merge annotation data into main df
-            df = df.merge(data, on='id', how='left')
-        return df
 
     @staticmethod
     def compute_stats(df: pd.DataFrame, method: str,
