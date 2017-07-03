@@ -39,13 +39,17 @@ class BoxplotTask(AnalyticTask):
                              "non empty numerical variable.")
         df = reduce(lambda l, r: l.merge(r, on='id', how='outer'), variables)
         df = apply_id_filter(df=df, id_filter=id_filter)
-        df = apply_subsets(df=df, subsets=subsets)
         variable_names = df.columns.tolist()
         variable_names.remove('id')
+        df = apply_subsets(df=df, subsets=subsets)
         df = apply_categories(df=df, categories=categories)
         results = {
             'data': df.to_json(orient='index'),
-            'statistics': {}
+            'statistics': {},
+            'variables': variable_names,
+            'categories': list(set(df['category'].tolist())),
+            'numOfBoxplots': 0,
+            'subsets': list(set(df['subset'].tolist()))
         }
         for variable in variable_names:
             for subset in list(set(df['subset'].tolist())):
@@ -60,6 +64,7 @@ class BoxplotTask(AnalyticTask):
                     if not results['statistics'][variable].get(category):
                         results['statistics'][variable][category] = {}
                     results['statistics'][variable][category][subset] = stats
+                    results['numOfBoxplots'] += 1
         return results
 
     @staticmethod

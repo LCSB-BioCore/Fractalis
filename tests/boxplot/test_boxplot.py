@@ -28,8 +28,11 @@ class TestBoxplotAnalytics:
                                  subsets=[])
         assert 'data' in results
         assert 'statistics' in results
+        assert len(results['categories']) == 1
+        assert len(results['subsets']) == 1
+        assert len(results['variables']) == 4
         assert len(json.loads(results['data'])) == 22
-        assert len(results['statistics']) == 5
+        assert len(results['statistics']) == 4
         assert len(results['statistics']['A']) == 1
         assert len(results['statistics']['A']['']) == 1
         stats = results['statistics']['A'][''][0]
