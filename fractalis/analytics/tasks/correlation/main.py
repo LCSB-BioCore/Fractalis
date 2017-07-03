@@ -101,9 +101,6 @@ class CorrelationTask(AnalyticTask):
         return df
 
     @staticmethod
-
-
-    @staticmethod
     def compute_stats(df: pd.DataFrame, method: str,
                       x_label: str, y_label: str) -> dict:
         """Compute correlation statistics for the given data and the given

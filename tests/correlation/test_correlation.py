@@ -195,29 +195,6 @@ class TestCorrelation:
         assert result.shape[0] == 1
         assert list(result['id']) == [2]
 
-    def test_apply_subsets(self):
-        task = CorrelationTask()
-        df = pd.DataFrame([[1, 'a'], [2, 'a'], [3, 'a']], columns=['id', 'A'])
-        result = task.apply_subsets(df, [[1, 2], [], [3, 4], [5], [2]])
-        assert list(result['id']) == [1, 2, 3, 2]
-        assert list(result['subset']) == [0, 0, 2, 4]
-
-    def test_apply_empty_subsets(self):
-        task = CorrelationTask()
-        df = pd.DataFrame([[1, 'a'], [2, 'a'], [3, 'a']], columns=['id', 'A'])
-        result = task.apply_subsets(df, [])
-        assert list(result['subset']) == [0, 0, 0]
-
-    def test_apply_annotations(self):
-        task = CorrelationTask()
-        df = pd.DataFrame([[1, 'a'], [2, 'a'], [3, 'a']], columns=['id', 'A'])
-        annotation_1 = pd.DataFrame([[1, 'x']], columns=['id', 'x'])
-        annotation_2 = pd.DataFrame([[1, 'y'], [2, 'y', 'z']],
-                                    columns=['id', 'y', 'z'])
-        result = task.apply_annotations([annotation_1, annotation_2], df)
-        assert list(result['annotation'])[0:2] == ['x&&y', 'y&&z']
-        assert np.isnan(list(result['annotation'])[2])
-
     def test_compute_stats_1(self):
         task = CorrelationTask()
         df = pd.DataFrame([[1, 1, 2],
