@@ -1,6 +1,6 @@
 """Module containing the Celery Task for the Correlation Analysis."""
+
 from typing import List, TypeVar, Tuple
-from functools import reduce
 
 import pandas as pd
 import numpy as np
@@ -8,7 +8,7 @@ from scipy import stats
 
 from fractalis.analytics.task import AnalyticTask
 from fractalis.analytics.tasks.shared.common import \
-    apply_subsets, apply_categories
+    apply_subsets, apply_categories, apply_id_filter
 
 
 T = TypeVar('T')
@@ -45,7 +45,7 @@ class CorrelationTask(AnalyticTask):
 
         df = self.merge_x_y(x, y)
         (x_label, y_label) = self.get_axis_labels(df)
-        df = self.apply_id_filter(df, id_filter)
+        df = apply_id_filter(df=df, id_filter=id_filter)
         df = apply_subsets(df=df, subsets=subsets)
         df = apply_categories(df=df, categories=annotations)
         global_stats = self.compute_stats(df, method, x_label, y_label)
@@ -86,19 +86,6 @@ class CorrelationTask(AnalyticTask):
         x_label = colnames[0]
         y_label = colnames[1]
         return (x_label, y_label)
-
-    @staticmethod
-    def apply_id_filter(df: pd.DataFrame, id_filter: list) -> pd.DataFrame:
-        """Throw away all rows whose id is not in id_filter.
-        :param df: The DataFrame to filter. 
-        :param id_filter: The filter.
-        :return: The filtered DataFrame.
-        """
-        if id_filter:
-            df = df[df['id'].isin(id_filter)]
-        if df.shape[0] == 0:
-            raise ValueError("The current selection does not match any data.")
-        return df
 
     @staticmethod
     def compute_stats(df: pd.DataFrame, method: str,

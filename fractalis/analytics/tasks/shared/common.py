@@ -44,7 +44,7 @@ def apply_categories(df: pd.DataFrame,
     :param categories: List of category DataFrames
     :return: The base DataFrame with an additional 'category' column
     """
-    if categories:
+    if len(categories):
         # merge all dfs into one
         data = reduce(lambda l, r: l.merge(r, on='id', how='outer'), categories)
         # remember ids
@@ -62,4 +62,19 @@ def apply_categories(df: pd.DataFrame,
         # merge category data into main df
         df = df.merge(data, on='id', how='left')
         # get unique categories
+    else:
+        df = df.assign(category='')
+    return df
+
+
+def apply_id_filter(df: pd.DataFrame, id_filter: list) -> pd.DataFrame:
+    """Throw away all rows whose id is not in id_filter.
+    :param df: The DataFrame to filter.
+    :param id_filter: The filter.
+    :return: The filtered DataFrame.
+    """
+    if id_filter:
+        df = df[df['id'].isin(id_filter)]
+    if df.shape[0] == 0:
+        raise ValueError("The current selection does not match any data.")
     return df
