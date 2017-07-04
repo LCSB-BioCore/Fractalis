@@ -45,11 +45,7 @@ class BoxplotTask(AnalyticTask):
         df = apply_categories(df=df, categories=categories)
         results = {
             'data': df.to_json(orient='index'),
-            'statistics': {},
-            'variables': variable_names,
-            'categories': list(set(df['category'].tolist())),
-            'numOfBoxplots': 0,
-            'subsets': list(set(df['subset'].tolist()))
+            'statistics': {}
         }
         for variable in variable_names:
             for subset in list(set(df['subset'].tolist())):
@@ -59,12 +55,7 @@ class BoxplotTask(AnalyticTask):
                     if not values:
                         continue
                     stats = self.boxplot_statistics(values)
-                    if not results['statistics'].get(variable):
-                        results['statistics'][variable] = {}
-                    if not results['statistics'][variable].get(category):
-                        results['statistics'][variable][category] = {}
-                    results['statistics'][variable][category][subset] = stats
-                    results['numOfBoxplots'] += 1
+                    results['statistics']['{}//{}//s{}'.format(variable, category, subset + 1)] = stats
         return results
 
     @staticmethod
