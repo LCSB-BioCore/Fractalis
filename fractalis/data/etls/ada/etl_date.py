@@ -22,11 +22,10 @@ class DateETL(ETL):
 
     def extract(self, server: str, token: str, descriptor: dict) -> List[dict]:
         data_set = descriptor['data_set']
-        projections = ['_id']
-        projections += [descriptor['dictionary']['projection']]
+        projection = descriptor['dictionary']['projection']
         cookie = common.make_cookie(token=token)
         data = common.get_field(server=server, data_set=data_set,
-                                cookie=cookie, projections=projections)
+                                cookie=cookie, projection=projection)
         return data
 
     def transform(self, raw_data: List[dict], descriptor: dict) -> DataFrame:

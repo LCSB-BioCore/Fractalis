@@ -10,14 +10,15 @@ def make_cookie(token: str) -> dict:
 
 
 def get_field(server: str, data_set: str,
-            cookie: dict, projections: List[str]) -> List[dict]:
+              cookie: dict, projection: str) -> List[dict]:
     r = requests.get(url='{}/studies/records/findCustom'.format(server),
-                     headers={'Accept': 'application/json'},
-                     params={
-                         'dataSet': data_set,
-                         'projection': projections
-                     },
-                     cookies=cookie)
+             headers={'Accept': 'application/json'},
+             params={
+                 'dataSet': data_set,
+                 'projection': ['_id', projection],
+                 'filterOrId': '[{{"fieldName":"{}","conditionType":"!=","value":""}}]'.format(projection)
+             },
+             cookies=cookie)
     if r.status_code != 200:
         raise ValueError("Data extraction failed. Target server responded with "
                          "status code {}.".format(r.status_code))
