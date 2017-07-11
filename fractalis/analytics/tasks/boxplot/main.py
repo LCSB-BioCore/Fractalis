@@ -45,7 +45,8 @@ class BoxplotTask(AnalyticTask):
         df = apply_categories(df=df, categories=categories)
         results = {
             'data': df.to_json(orient='index'),
-            'statistics': {}
+            'statistics': {},
+            'variables': variable_names,
         }
         for variable in variable_names:
             for subset in list(set(df['subset'].tolist())):

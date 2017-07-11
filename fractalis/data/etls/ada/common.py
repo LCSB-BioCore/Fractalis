@@ -24,7 +24,7 @@ def get_field(server: str, data_set: str,
                          "status code {}.".format(r.status_code))
     try:
         field_data = r.json()
-    except TypeError:
+    except Exception:
         raise TypeError("Data extraction failed. Target server did not return "
                         "expected data. Possible authentication error.")
     return field_data

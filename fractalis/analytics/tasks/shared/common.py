@@ -54,7 +54,7 @@ def apply_categories(df: pd.DataFrame,
         # replace everything that is not an category with ''
         data = data.applymap(lambda el: el if isinstance(el, str) and el else '')
         # join all columns with && into a single one. Ignore '' entries.
-        data = data.apply(lambda row: '&&'.join(list(map(str, [el for el in row.tolist() if el]))), axis=1)
+        data = data.apply(lambda row: ' AND '.join(list(map(str, [el for el in row.tolist() if el]))), axis=1)
         # cast Series to DataFrame
         data = pd.DataFrame(data, columns=['category'])
         # reassign ids to collapsed df

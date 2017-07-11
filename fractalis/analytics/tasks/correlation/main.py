@@ -26,14 +26,14 @@ class CorrelationTask(AnalyticTask):
              id_filter: List[T],
              method: str,
              subsets: List[List[T]],
-             annotations: List[pd.DataFrame]) -> dict:
+             categories: List[pd.DataFrame]) -> dict:
         """Compute correlation statistics for the given parameters.
         :param x: DataFrame containing x axis values.
         :param y: DataFrame containing y axis values.
         :param id_filter: If specified use only given ids during the analysis.
         :param method: pearson, spearman or kendall.
         :param subsets: List of lists of subset ids.
-        :param annotations: List of DataFrames that annotate the data points.
+        :param categories: List of DataFrames that categorise the data points.
         :return: corr. coef., p-value and other useful values.
         """
         if x.shape[0] == 0 or y.shape[0] == 0:
@@ -47,7 +47,7 @@ class CorrelationTask(AnalyticTask):
         (x_label, y_label) = self.get_axis_labels(df)
         df = apply_id_filter(df=df, id_filter=id_filter)
         df = apply_subsets(df=df, subsets=subsets)
-        df = apply_categories(df=df, categories=annotations)
+        df = apply_categories(df=df, categories=categories)
         global_stats = self.compute_stats(df, method, x_label, y_label)
         subset_dfs = [df[df['subset'] == i] for i in range(len(subsets) or 1)]
         subset_stats = [self.compute_stats(subset_df, method, x_label, y_label)
