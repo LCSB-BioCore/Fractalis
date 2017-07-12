@@ -5,6 +5,7 @@ from functools import reduce
 
 import pandas as pd
 import numpy as np
+import scipy.stats
 
 from fractalis.analytics.task import AnalyticTask
 from fractalis.analytics.tasks.shared.common import \
@@ -47,15 +48,21 @@ class BoxplotTask(AnalyticTask):
             'data': df.to_json(orient='index'),
             'statistics': {},
             'variables': variable_names,
+            'categories': list(set(df['category'].tolist())),
+            'subsets': list(set(df['subset'].tolist()))
         }
         for variable in variable_names:
-            for subset in list(set(df['subset'].tolist())):
-                for category in list(set(df['category'].tolist())):
+            for subset in results['subsets']:
+                for category in results['categories']:
                     values = df[(df['subset'] == subset) & (df['category'] == category)][variable].tolist()
                     values = [value for value in values if not np.isnan(value)]
                     if not values:
                         continue
                     stats = self.boxplot_statistics(values)
+                    kde = scipy.stats.gaussian_kde(values)
+                    xs = np.linspace(start=stats['l_wsk'],
+                                     stop=stats['u_wsk'], num=100)
+                    stats['kde'] = kde(xs).tolist()
                     results['statistics']['{}//{}//s{}'.format(variable, category, subset + 1)] = stats
         return results
 
