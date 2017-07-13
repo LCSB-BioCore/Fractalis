@@ -56,7 +56,7 @@ class BoxplotTask(AnalyticTask):
                 for category in results['categories']:
                     values = df[(df['subset'] == subset) & (df['category'] == category)][variable].tolist()
                     values = [value for value in values if not np.isnan(value)]
-                    if not values:
+                    if len(values) < 2:
                         continue
                     stats = self.boxplot_statistics(values)
                     kde = scipy.stats.gaussian_kde(values)
