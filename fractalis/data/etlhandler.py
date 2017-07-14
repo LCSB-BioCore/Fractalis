@@ -50,7 +50,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def make_label(descriptor):
+    def make_label(descriptor: dict) -> str:
         """Create a label for the given data descriptor. This label will be
         used to display the loaded data in the front end.
         :param descriptor: Describes the data and is used to download them.

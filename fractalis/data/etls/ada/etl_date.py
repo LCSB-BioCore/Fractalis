@@ -15,7 +15,7 @@ class DateETL(ETL):
     produces = 'numerical'
 
     @staticmethod
-    def can_handle(handler, descriptor):
+    def can_handle(handler: str, descriptor: dict) -> bool:
         return handler == 'ada' and \
                descriptor['dictionary']['fieldType'] and \
                descriptor['dictionary']['fieldType'] == 'Date'
