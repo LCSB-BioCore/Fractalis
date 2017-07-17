@@ -24,17 +24,18 @@ class TransmartHandler(ETLHandler):
 
     @staticmethod
     def make_label(descriptor: dict) -> str:
-        return 'test'
+        return descriptor['path']
 
     def _get_token_for_credentials(self, server: str,
                                    user: str, passwd: str) -> str:
-        r = requests.get(url='{}/oauth/token?grant_type=password'
-                             '&client_id=glowingbear-js'
-                             '&client_secret='
-                             '&username={}'
-                             '&password={}'.format(server, user, passwd),
-                         headers={'Accept': 'application/json'})
+        r = requests.post(url='{}/oauth/token?grant_type=password'
+                              '&client_id=glowingbear-js'
+                              '&client_secret='
+                              '&username={}'
+                              '&password={}'.format(server, user, passwd),
+                          headers={'Accept': 'application/json'})
         if r.status_code != 200:
             raise ValueError("Could not authenticate. Reason: [{}]: {}"
                              .format(r.status_code, r.text))
-        return r
+        response = r.json()
+        return response['access_token']
