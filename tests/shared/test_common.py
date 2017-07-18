@@ -26,7 +26,7 @@ class TestCommonTasks:
         category_2 = pd.DataFrame([[1, 'y'], [2, 'y', 'z']],
                                     columns=['id', 'y', 'z'])
         result = common.apply_categories(df=df, categories=[category_1, category_2])
-        assert list(result['category'])[0:2] == ['x&&y', 'y&&z']
+        assert list(result['category'])[0:2] == ['x AND y', 'y AND z']
         assert np.isnan(list(result['category'])[2])
 
     def test_apply_id_filter(self):

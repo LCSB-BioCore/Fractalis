@@ -23,7 +23,7 @@ class TestCorrelation:
                                 id_filter=[],
                                 method='pearson',
                                 subsets=[list(range(20))],
-                                annotations=[])
+                                categories=[])
         assert result['coef']
         assert result['p_value']
         assert result['slope']
@@ -44,7 +44,7 @@ class TestCorrelation:
                                 id_filter=list(range(10)),
                                 method='pearson',
                                 subsets=[list(range(5, 15))],
-                                annotations=[])
+                                categories=[])
         df = json.loads(result['data'])
         assert len(df) == 5
 
@@ -58,13 +58,13 @@ class TestCorrelation:
                                   id_filter=list(range(20)),
                                   method='pearson',
                                   subsets=[],
-                                  annotations=[])
+                                  categories=[])
         result_2 = self.task.main(x=x,
                                   y=y,
                                   id_filter=list(range(20)),
                                   method='pearson',
                                   subsets=[list(range(20))],
-                                  annotations=[])
+                                  categories=[])
         assert result_1 == result_2
 
     def test_functional_4(self):
@@ -78,7 +78,7 @@ class TestCorrelation:
                            id_filter=[],
                            method='foo',
                            subsets=[list(range(20))],
-                           annotations=[])
+                           categories=[])
 
     def test_functional_5(self):
         arr_1 = np.c_[range(20), np.random.randint(0, 100, size=(20, 1))]
@@ -90,7 +90,7 @@ class TestCorrelation:
                                 id_filter=[],
                                 method='pearson',
                                 subsets=[list(range(15, 25))],
-                                annotations=[])
+                                categories=[])
         df = json.loads(result['data'])
         assert len(df) == 5
 
@@ -105,7 +105,7 @@ class TestCorrelation:
                            id_filter=[],
                            method='pearson',
                            subsets=[list(range(20))],
-                           annotations=[])
+                           categories=[])
 
     def test_functional_7(self):
         arr_1 = np.c_[range(10), np.random.randint(0, 100, size=(10, 1))]
@@ -118,7 +118,7 @@ class TestCorrelation:
                            id_filter=[],
                            method='pearson',
                            subsets=[list(range(10, 20))],
-                           annotations=[])
+                           categories=[])
 
     def test_functional_8(self):
         arr_1 = np.c_[range(10), np.random.randint(0, 100, size=(10, 1))]
@@ -130,7 +130,7 @@ class TestCorrelation:
                                 id_filter=[],
                                 method='pearson',
                                 subsets=[list(range(5, 20))],
-                                annotations=[])
+                                categories=[])
         df = json.loads(result['data'])
         assert len(df) == 5
 
@@ -148,7 +148,7 @@ class TestCorrelation:
                                     list(range(5, 10)),
                                     list(range(10, 20))
                                 ],
-                                annotations=[])
+                                categories=[])
         assert not np.isnan(result['coef'])
         assert len(result['subsets']) == 3
         assert np.isnan(result['subsets'][0]['coef'])
@@ -165,7 +165,7 @@ class TestCorrelation:
                                 id_filter=[],
                                 method='pearson',
                                 subsets=[list(range(4))],
-                                annotations=[])
+                                categories=[])
         df = json.loads(result['data'])
         assert np.isnan(result['coef'])
         assert len(df) == 1
