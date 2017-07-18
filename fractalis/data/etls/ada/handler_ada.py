@@ -1,8 +1,13 @@
 """This module provides AdaHandler, an implementation of ETLHandler for ADA."""
 
+import logging
+
 import requests
 
 from fractalis.data.etlhandler import ETLHandler
+
+
+logger = logging.getLogger(__name__)
 
 
 class AdaHandler(ETLHandler):
@@ -25,8 +30,17 @@ class AdaHandler(ETLHandler):
         return '{} ({})'.format(descriptor['dictionary']['label'],
                                 descriptor['data_set'])
 
-    def _get_token_for_credentials(self, server: str,
-                                   user: str, passwd: str) -> str:
+    def _get_token_for_credentials(self, server: str, auth: dict) -> str:
+        try:
+            user = auth['user']
+            passwd = auth['passwd']
+            if len(user) == 0 or len(passwd) == 0:
+                raise KeyError
+        except KeyError:
+            error = "The authentication object must contain the non-empty " \
+                    "fields 'user' and 'passwd'."
+            logger.error(error)
+            raise ValueError(error)
         r = requests.post(url='{}/login'.format(server),
                           headers={'Accept': 'application/json'},
                           data={'id': user, 'password': passwd})

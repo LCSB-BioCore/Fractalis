@@ -28,5 +28,6 @@ setup(
         'pytest==3.0.3',
         'pytest-cov',
         'pytest-mock',
+        'responses'
     ]
 )

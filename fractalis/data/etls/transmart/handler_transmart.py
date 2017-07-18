@@ -1,9 +1,14 @@
 """This module provides TransmartHandler, an implementation of ETLHandler for
 tranSMART."""
 
+import logging
+
 import requests
 
 from fractalis.data.etlhandler import ETLHandler
+
+
+logger = logging.getLogger(__name__)
 
 
 class TransmartHandler(ETLHandler):
@@ -26,16 +31,37 @@ class TransmartHandler(ETLHandler):
     def make_label(descriptor: dict) -> str:
         return descriptor['path']
 
-    def _get_token_for_credentials(self, server: str,
-                                   user: str, passwd: str) -> str:
-        r = requests.post(url='{}/oauth/token?grant_type=password'
-                              '&client_id=glowingbear-js'
-                              '&client_secret='
-                              '&username={}'
-                              '&password={}'.format(server, user, passwd),
+    def _get_token_for_credentials(self, server: str, auth: dict) -> str:
+        try:
+            user = auth['user']
+            passwd = auth['passwd']
+            if len(user) == 0 or len(passwd) == 0:
+                raise KeyError
+        except KeyError:
+            error = "The authentication object must contain the non-empty " \
+                    "fields 'user' and 'passwd'."
+            logger.error(error)
+            raise ValueError(error)
+        r = requests.post(url=server + '/oauth/token',
+                          params={
+                              'grant_type': 'password',
+                              'client_id': 'glowingbear-js',
+                              'client_secret': '',
+                              'username': user,
+                              'password': passwd
+                          },
                           headers={'Accept': 'application/json'})
+        auth_error = ''
         if r.status_code != 200:
-            raise ValueError("Could not authenticate. Reason: [{}]: {}"
-                             .format(r.status_code, r.text))
-        response = r.json()
-        return response['access_token']
+            auth_error = "Could not authenticate. " \
+                         "Reason: [{}]: {}".format(r.status_code, r.text)
+            logger.error(auth_error)
+            raise ValueError(auth_error)
+        try:
+            response = r.json()
+            return response['access_token']
+        except ValueError:
+            auth_error = "Could not authenticate. " \
+                         "Got unexpected response: '{}'".format(r.text)
+            logger.error(auth_error)
+            raise ValueError(auth_error)

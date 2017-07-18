@@ -30,23 +30,33 @@ class ETLHandler(metaclass=abc.ABCMeta):
         """
         pass
 
-    def _get_token_for_credentials(self, server: str,
-                                   user: str, passwd: str) -> str:
+    def _get_token_for_credentials(self, server: str, auth: dict) -> str:
         """ Authenticate with the server and return a token.
         :param server: The server to authenticate with.
-        :param user: The user id.
-        :param passwd: The password.
+        :param auth: dict containing credentials to auth with API
+        :return The token returned by the API.
         """
         raise NotImplementedError()
 
     def __init__(self, server, auth):
+        if not isinstance(server, str) or len(server) < 10:
+            error = ("{} is not a valid server url.".format(server))
+            logger.error(error)
+            raise ValueError(error)
+        if not isinstance(auth, dict):
+            error = "'auth' must be a valid dictionary."
+            logger.error(error)
+            raise ValueError(error)
         self._server = server
         # if no token is given we have to get one
         try:
             self._token = auth['token']
+            if not isinstance(self._token, str) or len(self._token) == 0:
+                raise KeyError
         except KeyError:
-            self._token = self._get_token_for_credentials(
-                server, auth['user'], auth['passwd'])
+            logger.info('No token has been provided. '
+                        'Attempting to authenticate with the API.')
+            self._token = self._get_token_for_credentials(server, auth)
 
     @staticmethod
     @abc.abstractmethod
