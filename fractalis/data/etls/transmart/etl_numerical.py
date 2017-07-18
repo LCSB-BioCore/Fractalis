@@ -1,9 +1,14 @@
 """Provides numerical concept ETL for tranSMART."""
 
+import logging
+
 import requests
 from pandas import DataFrame
 
 from fractalis.data.etl import ETL
+
+
+logger = logging.getLogger(__name__)
 
 
 class NumericalETL(ETL):
@@ -19,7 +24,7 @@ class NumericalETL(ETL):
     def extract(self, server: str, token: str, descriptor: dict) -> dict:
         r = requests.get(url='{}/v2/observations'.format(server),
                          params={
-                             'constraint': '{{"type": "concept", "path": "{}"}}'.format(descriptor["path"]),
+                             'constraint': '{{"type": "concept","path": "{}"}}'.format(descriptor["path"]),
                              'type': 'clinical'
                          },
                          headers={
@@ -30,7 +35,12 @@ class NumericalETL(ETL):
             raise ValueError(
                 "Data extraction failed. Target server responded with "
                 "status code {}.".format(r.status_code))
-        return r.json()
+        try:
+            return r.json()
+        except Exception:
+            error = "Data extraction failed. Got unexpected data format."
+            logger.error(error)
+            raise ValueError(error)
 
     def transform(self, raw_data: dict, descriptor: dict) -> DataFrame:
         rows = []

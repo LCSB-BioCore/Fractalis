@@ -2,7 +2,6 @@
 
 import pytest
 import responses
-import requests
 
 from fractalis.data.etls.transmart.handler_transmart import TransmartHandler
 
@@ -53,7 +52,6 @@ class TestTransmartHandler:
                 TransmartHandler(server='http://foo.bar',
                                  auth={'user': 'foo', 'passwd': 'bar'})
                 assert 'unexpected response' in e
-
 
     def test_auth_raises_exception_for_non_200_return(self):
         with responses.RequestsMock() as response:

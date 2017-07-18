@@ -51,17 +51,16 @@ class TransmartHandler(ETLHandler):
                               'password': passwd
                           },
                           headers={'Accept': 'application/json'})
-        auth_error = ''
         if r.status_code != 200:
-            auth_error = "Could not authenticate. " \
-                         "Reason: [{}]: {}".format(r.status_code, r.text)
-            logger.error(auth_error)
-            raise ValueError(auth_error)
+            error = "Could not authenticate. " \
+                    "Reason: [{}]: {}".format(r.status_code, r.text)
+            logger.error(error)
+            raise ValueError(error)
         try:
             response = r.json()
             return response['access_token']
-        except ValueError:
-            auth_error = "Could not authenticate. " \
-                         "Got unexpected response: '{}'".format(r.text)
-            logger.error(auth_error)
-            raise ValueError(auth_error)
+        except Exception:
+            error = "Could not authenticate. " \
+                    "Got unexpected response: '{}'".format(r.text)
+            logger.error(error)
+            raise ValueError(error)

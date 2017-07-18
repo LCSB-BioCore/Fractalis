@@ -1,15 +1,14 @@
 """This module provides the ETL class"""
 
-import os
 import abc
 import json
 import logging
+import os
 
 from celery import Task
 from pandas import DataFrame
 
 from fractalis import app, redis
-
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +40,9 @@ class ETL(Task, metaclass=abc.ABCMeta):
     def can_handle(handler: str, descriptor: dict) -> bool:
         """Check if the current implementation of ETL can handle given handler
         and data type.
+        WARNING: You should never raise an Exception here and expect it to be
+        propagated further up. It will be caught and assumed that the
+        current ETL cannot handle the given arguments.
         :param handler: Describes the handler. E.g.: transmart, ada
         :param descriptor: Describes the data that we want to download.
         :return: True if implementation can handle given parameters.
@@ -58,11 +60,21 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         from . import ETL_REGISTRY
         for ETL_TASK in ETL_REGISTRY:
-            if ETL_TASK.can_handle(handler, descriptor):
-                return ETL_TASK()
+            # noinspection PyBroadException
+            try:
+                if ETL_TASK.can_handle(handler, descriptor):
+                    return ETL_TASK()
+            except Exception as e:
+                logger.warning("Caught exception and assumed that ETL '{}' "
+                               "cannot handle handler '{}' and descriptor: '{}'"
+                               " Exception:'{}'".format(type(ETL_TASK).__name__,
+                                                        handler,
+                                                        str(descriptor), e))
+                continue
+
         raise NotImplementedError(
             "No ETL implementation found for handler '{}' and descriptor '{}'"
-            .format(handler, descriptor))
+                .format(handler, descriptor))
 
     @abc.abstractmethod
     def extract(self, server: str, token: str, descriptor: dict) -> object:
