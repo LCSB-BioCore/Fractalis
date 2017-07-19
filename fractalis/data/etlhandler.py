@@ -47,6 +47,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
             error = "'auth' must be a valid dictionary."
             logger.error(error)
             raise ValueError(error)
+        if server.endswith('/'):
+            server = server[:-1]
         self._server = server
         # if no token is given we have to get one
         try:
