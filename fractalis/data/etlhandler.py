@@ -56,7 +56,11 @@ class ETLHandler(metaclass=abc.ABCMeta):
         except KeyError:
             logger.info('No token has been provided. '
                         'Attempting to authenticate with the API.')
-            self._token = self._get_token_for_credentials(server, auth)
+            try:
+                self._token = self._get_token_for_credentials(server, auth)
+            except Exception as e:
+                logger.exception(e)
+                raise ValueError("Could not authenticate with API.")
 
     @staticmethod
     @abc.abstractmethod

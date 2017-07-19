@@ -116,7 +116,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                 raise ValueError(error)
             result = json.dumps(result)
         except TypeError as e:
-            logging.exception(e)
+            logger.exception(e)
             raise
         # NaN is invalid JSON and JS can't parse it. null on the other hand...
         result = re.sub(r': NaN', ': null', result)

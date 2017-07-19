@@ -30,17 +30,19 @@ class NumericalETL(ETL):
                          headers={
                              'Accept': 'application/json',
                              'Authorization': 'Bearer {}'.format(token)
-                         })
+                         },
+                         timeout=60)
         if r.status_code != 200:
-            raise ValueError(
-                "Data extraction failed. Target server responded with "
-                "status code {}.".format(r.status_code))
-        try:
-            return r.json()
-        except Exception:
-            error = "Data extraction failed. Got unexpected data format."
+            error = "Data extraction failed. Target server responded with " \
+                    "status code {}.".format(r.status_code)
             logger.error(error)
             raise ValueError(error)
+        try:
+            return r.json()
+        except Exception as e:
+            logger.exception(e)
+            raise ValueError("Data extraction failed. "
+                             "Got unexpected data format.")
 
     def transform(self, raw_data: dict, descriptor: dict) -> DataFrame:
         rows = []

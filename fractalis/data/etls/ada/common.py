@@ -1,8 +1,12 @@
 """This module contains code that is shared between the different ETLs."""
 
+import logging
 from typing import List
 
 import requests
+
+
+logger = logging.getLogger(__name__)
 
 
 def make_cookie(token: str) -> dict:
@@ -12,19 +16,23 @@ def make_cookie(token: str) -> dict:
 def get_field(server: str, data_set: str,
               cookie: dict, projection: str) -> List[dict]:
     r = requests.get(url='{}/studies/records/findCustom'.format(server),
-             headers={'Accept': 'application/json'},
-             params={
-                 'dataSet': data_set,
-                 'projection': ['_id', projection],
-                 'filterOrId': '[{{"fieldName":"{}","conditionType":"!=","value":""}}]'.format(projection)
-             },
-             cookies=cookie)
+                     headers={'Accept': 'application/json'},
+                     params={
+                         'dataSet': data_set,
+                         'projection': ['_id', projection],
+                         'filterOrId': '[{{"fieldName":"{}","conditionType":"!=","value":""}}]'.format(projection)
+                     },
+                     cookies=cookie,
+                     timeout=20)
     if r.status_code != 200:
-        raise ValueError("Data extraction failed. Target server responded with "
-                         "status code {}.".format(r.status_code))
+        error = "Data extraction failed. Target server responded with " \
+                "status code {}.".format(r.status_code)
+        logger.error(error)
+        raise ValueError(error)
     try:
         field_data = r.json()
-    except Exception:
+    except Exception as e:
+        logger.exception(e)
         raise TypeError("Data extraction failed. Target server did not return "
                         "expected data. Possible authentication error.")
     return field_data

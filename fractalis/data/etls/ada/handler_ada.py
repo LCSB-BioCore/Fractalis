@@ -36,17 +36,19 @@ class AdaHandler(ETLHandler):
             passwd = auth['passwd']
             if len(user) == 0 or len(passwd) == 0:
                 raise KeyError
-        except KeyError:
-            error = "The authentication object must contain the non-empty " \
-                    "fields 'user' and 'passwd'."
-            logger.error(error)
-            raise ValueError(error)
+        except KeyError as e:
+            logger.exception(e)
+            raise ValueError("The authentication object must contain the "
+                             "non-empty fields 'user' and 'passwd'.")
         r = requests.post(url='{}/login'.format(server),
                           headers={'Accept': 'application/json'},
-                          data={'id': user, 'password': passwd})
+                          data={'id': user, 'password': passwd},
+                          timeout=10)
         if r.status_code != 200:
-            raise ValueError("Could not authenticate. Reason: [{}]: {}"
-                             .format(r.status_code, r.text))
+            error = "Could not authenticate. " \
+                    "Reason: [{}]: {}".format(r.status_code, r.text)
+            logger.error(error)
+            raise ValueError(error)
         cookie = r.headers['Set-Cookie']
         token = [s for s in cookie.split(';')
                  if s.startswith('PLAY2AUTH_SESS_ID')][0]

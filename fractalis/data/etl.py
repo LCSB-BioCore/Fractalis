@@ -124,12 +124,24 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         logger.info("Starting ETL process ...")
         logger.info("(E)xtracting data from server '{}'.".format(server))
-        raw_data = self.extract(server, token, descriptor)
+        try:
+            raw_data = self.extract(server, token, descriptor)
+        except Exception as e:
+            logger.exception(e)
+            raise RuntimeError("Data extraction failed.")
         logger.info("(T)ransforming data to Fractalis format.")
-        data_frame = self.transform(raw_data, descriptor)
+        try:
+            data_frame = self.transform(raw_data, descriptor)
+        except Exception as e:
+            logger.exception(e)
+            raise RuntimeError("Data transformation failed.")
         if not isinstance(data_frame, DataFrame):
             error = "transform() must return 'pandas.DataFrame', " \
                     "but returned '{}' instead.".format(type(data_frame))
             logging.error(error, exc_info=1)
             raise TypeError(error)
-        self.load(data_frame, file_path)
+        try:
+            self.load(data_frame, file_path)
+        except Exception as e:
+            logger.exception(e)
+            raise RuntimeError("Data loading failed.")

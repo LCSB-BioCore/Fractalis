@@ -50,7 +50,8 @@ class TransmartHandler(ETLHandler):
                               'username': user,
                               'password': passwd
                           },
-                          headers={'Accept': 'application/json'})
+                          headers={'Accept': 'application/json'},
+                          timeout=10)
         if r.status_code != 200:
             error = "Could not authenticate. " \
                     "Reason: [{}]: {}".format(r.status_code, r.text)
