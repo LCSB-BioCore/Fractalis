@@ -62,7 +62,7 @@ class TestStringETL:
                 assert 'unexpected data' in e
 
     def test_returns_data_for_correct_input(self):
-        body = json.dumps([{'a': 1, '_id': {'$oid': '12345'}}])
+        body = json.dumps([{'a': 'abc', '_id': {'$oid': '12345'}}])
         with responses.RequestsMock() as response:
             response.add(response.GET,
                          'http://foo.bar/studies/records/findCustom',
@@ -75,7 +75,7 @@ class TestStringETL:
             assert isinstance(raw_data, list)
 
     def test_returns_df_for_correct_data(self):
-        body = json.dumps([{'a': 1, '_id': {'$oid': '12345'}}])
+        body = json.dumps([{'a': 'abc', '_id': {'$oid': '12345'}}])
         with responses.RequestsMock() as response:
             response.add(response.GET,
                          'http://foo.bar/studies/records/findCustom',
@@ -88,5 +88,5 @@ class TestStringETL:
             df = self.etl.transform(raw_data=raw_data,
                                     descriptor=self.valid_descriptor)
             assert df.shape == (1, 2)
-            assert df.values.tolist() == [[1, '12345']]
+            assert df.values.tolist() == [['abc', '12345']]
             assert list(df) == ['a', 'id']
