@@ -20,6 +20,7 @@ setup(
         'scipy',
         'requests',
         'PyYAML',
+        'pycrypto',
         'pycryptodomex'
     ],
     setup_requires=[
