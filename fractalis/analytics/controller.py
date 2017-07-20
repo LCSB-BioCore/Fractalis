@@ -7,7 +7,7 @@ from uuid import UUID
 from flask import Blueprint, session, request, jsonify
 from flask.wrappers import Response
 
-from fractalis import celery
+from fractalis import celery, app
 from fractalis.validator import validate_json, validate_schema
 from fractalis.analytics.schema import create_task_schema
 from fractalis.analytics.task import AnalyticTask
@@ -33,8 +33,9 @@ def create_task() -> Tuple[Response, int]:
                      "'{}'".format(json['task_name']))
         return jsonify({'error_msg': "Task with name '{}' not found."
                        .format(json['task_name'])}), 400
-    async_result = analytic_task.delay(session_data_tasks=session['data_tasks'],
-                                       args=json['args'])
+    async_result = analytic_task.delay(
+        session_data_tasks=session['data_tasks'], args=json['args'],
+        decrypt=app.config['FRACTALIS_ENCRYPT_CACHE'])
     session['analytic_tasks'].append(async_result.id)
     logger.debug("Task successfully submitted. Sending response.")
     return jsonify({'task_id': async_result.id}), 201
@@ -85,4 +86,3 @@ def cancel_task(task_id: UUID) -> Tuple[Response, int]:
     session['analytic_tasks'].remove(task_id)
     logger.debug("Successfully send term signal to task. Sending response.")
     return jsonify(''), 200
-

@@ -19,7 +19,8 @@ setup(
         'numpy',
         'scipy',
         'requests',
-        'PyYAML'
+        'PyYAML',
+        'pycryptodomex'
     ],
     setup_requires=[
         'pytest-runner',

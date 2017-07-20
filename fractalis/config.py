@@ -30,6 +30,7 @@ LOG_FILE = os.path.join(os.sep, 'tmp', 'fractalis.log')
 FRACTALIS_TMP_DIR = os.path.abspath(os.path.join(
     os.sep, 'tmp', 'fractalis'))
 FRACTALIS_CACHE_EXP = timedelta(days=10)
+FRACTALIS_ENCRYPT_CACHE = False
 
 
 # DO NOT MODIFY THIS FILE DIRECTLY

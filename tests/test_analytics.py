@@ -8,7 +8,7 @@ from uuid import uuid4
 import flask
 import pytest
 
-from fractalis import sync
+from fractalis import sync, app
 
 
 # noinspection PyMissingOrEmptyDocstring,PyMissingTypeHints
@@ -227,6 +227,29 @@ class TestAnalytics:
         assert new_response.status_code == 200, new_body
         assert new_body['state'] == 'SUCCESS', new_body
         assert float(json.loads(new_body['result'])['sum'])
+
+    def test_float_when_summing_up_encrypted_df(
+            self, test_client, small_data_post):
+        app.config['FRACTALIS_ENCRYPT_CACHE'] = True
+        data_tasks = []
+        small_data_post(random=True, wait=1)
+        with test_client.session_transaction() as sess:
+            data_tasks += sess['data_tasks']
+            assert len(data_tasks) == 1
+
+        rv = test_client.post('/analytics', data=flask.json.dumps(dict(
+            task_name='sum_df_test_task',
+            args={'a': '${}$'.format(data_tasks[0])}
+        )))
+        assert rv.status_code == 201
+        body = flask.json.loads(rv.get_data())
+        new_url = '/analytics/{}?wait=1'.format(body['task_id'])
+        new_response = test_client.get(new_url)
+        new_body = flask.json.loads(new_response.get_data())
+        assert new_response.status_code == 200, new_body
+        assert new_body['state'] == 'SUCCESS', new_body
+        assert float(json.loads(new_body['result'])['sum'])
+        app.config['FRACTALIS_ENCRYPT_CACHE'] = False
 
     def test_exception_if_result_not_json(self, test_client):
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(

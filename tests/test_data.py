@@ -7,7 +7,7 @@ from uuid import UUID, uuid4
 import flask
 import pytest
 
-from fractalis import app, redis, sync, celery
+from fractalis import app, redis, sync
 
 
 # noinspection PyMissingOrEmptyDocstring, PyMissingTypeHints
@@ -324,3 +324,16 @@ class TestData:
         assert len(os.listdir(data_dir)) == 0
         with test_client.session_transaction() as sess:
             assert not sess['data_tasks']
+
+    def test_encryption_works(self, test_client, payload):
+        app.config['FRACTALIS_ENCRYPT_CACHE'] = True
+        data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        test_client.post('/data?wait=1', data=payload['serialized'])
+        keys = redis.keys('data:*')
+        for key in keys:
+            value = redis.get(key)
+            data_state = json.loads(value)
+            file_path = data_state['file_path']
+            with pytest.raises(UnicodeDecodeError):
+                open(file_path, 'r').readlines()
+        app.config['FRACTALIS_ENCRYPT_CACHE'] = False

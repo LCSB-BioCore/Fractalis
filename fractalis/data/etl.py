@@ -5,10 +5,12 @@ import json
 import logging
 import os
 
+from Crypto.Cipher import AES
 from celery import Task
 from pandas import DataFrame
 
 from fractalis import app, redis
+from fractalis.utils import get_cache_encrypt_key
 
 logger = logging.getLogger(__name__)
 
@@ -73,8 +75,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
                 continue
 
         raise NotImplementedError(
-            "No ETL implementation found for handler '{}' and descriptor '{}'"
-                .format(handler, descriptor))
+            "No ETL implementation found for handler '{}' "
+            "and descriptor '{}'".format(handler, descriptor))
 
     @abc.abstractmethod
     def extract(self, server: str, token: str, descriptor: dict) -> object:
@@ -96,13 +98,10 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         pass
 
-    def load(self, data_frame: DataFrame, file_path: str) -> None:
-        """Load (save) the data to the file system.
-        :param data_frame: DataFrame to write.
-        :param file_path: File to write to.
+    def update_redis(self):
+        """Update data entry in redis to a loaded state. This means the
+        data can now be used for analysis.
         """
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        data_frame.to_csv(file_path, index=False)
         value = redis.get(name='data:{}'.format(self.request.id))
         assert value is not None
         data_state = json.loads(value)
@@ -111,8 +110,35 @@ class ETL(Task, metaclass=abc.ABCMeta):
                     value=json.dumps(data_state),
                     time=app.config['FRACTALIS_CACHE_EXP'])
 
+    def secure_load(self, data_frame: DataFrame, file_path: str) -> None:
+        """For the paranoid. Save data encrypted to the file system.
+        Note from the dev: If someone has direct access to your FS an
+        unencrypted cache will be one of your least worries.
+        :param data_frame: DataFrame to write.
+        :param file_path: File to write to.
+        """
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        data = data_frame.to_json()
+        data = data.encode('utf-8')
+        key = get_cache_encrypt_key(app.config['SECRET_KEY'])
+        cipher = AES.new(key, AES.MODE_EAX)
+        ciphertext, tag = cipher.encrypt_and_digest(data)
+        with open(file_path, 'wb') as f:
+            [f.write(x) for x in (cipher.nonce, tag, ciphertext)]
+        self.update_redis()
+
+    def load(self, data_frame: DataFrame, file_path: str) -> None:
+        """Load (save) the data to the file system.
+        :param data_frame: DataFrame to write.
+        :param file_path: File to write to.
+        """
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        data_frame.to_csv(file_path, index=False)
+        self.update_redis()
+
     def run(self, server: str, token: str,
-            descriptor: dict, file_path: str) -> None:
+            descriptor: dict, file_path: str,
+            encrypt: bool) -> None:
         """Run extract, transform and load. This is called by the celery worker.
         This is called by the celery worker.
         :param
@@ -120,6 +146,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         :param token: The token used for authentication.
         :param descriptor: Contains all necessary information to download data
         :param file_path: The location where the data will be stored
+        :param encrypt: Whether or not the data should be encrypted.
         :return: The data id. Used to access the associated redis entry later on
         """
         logger.info("Starting ETL process ...")
@@ -141,7 +168,10 @@ class ETL(Task, metaclass=abc.ABCMeta):
             logging.error(error, exc_info=1)
             raise TypeError(error)
         try:
-            self.load(data_frame, file_path)
+            if encrypt:
+                self.secure_load(data_frame, file_path)
+            else:
+                self.load(data_frame, file_path)
         except Exception as e:
             logger.exception(e)
             raise RuntimeError("Data loading failed.")

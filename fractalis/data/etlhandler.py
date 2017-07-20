@@ -113,7 +113,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
             self.create_redis_entry(task_id, file_path,
                                     descriptor, etl.produces)
             kwargs = dict(server=self._server, token=self._token,
-                          descriptor=descriptor, file_path=file_path)
+                          descriptor=descriptor, file_path=file_path,
+                          encrypt=app.config['FRACTALIS_ENCRYPT_CACHE'])
             async_result = etl.apply_async(kwargs=kwargs, task_id=task_id)
             assert async_result.id == task_id
             task_ids.append(task_id)

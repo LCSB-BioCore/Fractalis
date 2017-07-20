@@ -37,3 +37,11 @@ def list_classes_with_base_class(
                 if obj.__base__ == base_class:
                     class_list.append(obj)
     return class_list
+
+
+def get_cache_encrypt_key(key):
+    """Prepare key for use with crypto libs.
+    :param key: Passphrase used for encryption.
+    """
+    key += (16 - (len(key) % 16)) * '-'
+    return key.encode('utf-8')

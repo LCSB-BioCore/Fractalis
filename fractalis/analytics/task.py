@@ -6,11 +6,12 @@ import re
 import logging
 from typing import List
 
-from pandas import read_csv
+from pandas import read_csv, DataFrame
 from celery import Task
+from Crypto.Cipher import AES
 
-from fractalis import redis
-
+from fractalis import redis, app
+from fractalis.utils import get_cache_encrypt_key
 
 logger = logging.getLogger(__name__)
 
@@ -40,14 +41,28 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def main(self, *args, **kwargs) -> dict:
         """Since we hijack run(), we need a new entry point for every task.
-        This method is called by our modified run method with all parsed 
+        This method is called by our modified run method with all parsed
         arguments.
         :return A dict containing the results of the task.
         """
         pass
 
-    @staticmethod
-    def data_task_id_to_data_frame(data_task_id, session_data_tasks):
+    def load_data_frame(self, file_path: str, decrypt: bool) -> DataFrame:
+        if decrypt:
+            key = get_cache_encrypt_key(app.config['SECRET_KEY'])
+            with open(file_path, 'rb') as f:
+                nonce, tag, ciphertext = [f.read(x) for x in (16, 16, -1)]
+            cipher = AES.new(key, AES.MODE_EAX, nonce)
+            data = cipher.decrypt_and_verify(ciphertext, tag)
+            data = data.decode('utf-8')
+            data = json.loads(data)
+            df = DataFrame.from_dict(data)
+        else:
+            df = read_csv(file_path)
+        return df
+
+    def data_task_id_to_data_frame(self, data_task_id,
+                                   session_data_tasks, decrypt):
         if data_task_id not in session_data_tasks:
             error = "No permission to use data_task_id '{}' " \
                     "for analysis".format(data_task_id)
@@ -67,16 +82,18 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
             logger.error(error)
             raise ValueError(error)
         file_path = data_state['file_path']
-        df = read_csv(file_path)
+        df = self.load_data_frame(file_path, decrypt)
         return df
 
-    def prepare_args(self, session_data_tasks: List[str], args: dict) -> dict:
+    def prepare_args(self, session_data_tasks: List[str],
+                     args: dict, decrypt: bool) -> dict:
         """Replace data task ids in the arguments with their associated 
         data frame located on the file system. This currently works for non
         nested strings and non nested lists containing strings.
 
         :param session_data_tasks: We use this list to check access.
         :param args: The arguments submitted to run().
+        :param decrypt: Indicates whether cache must be decrypted to be used.
         :return: The new parsed arguments
         """
         arguments = {}
@@ -86,27 +103,31 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                     value.startswith('$') and value.endswith('$')):
                 data_task_id = value[1:-1]
                 value = self.data_task_id_to_data_frame(
-                    data_task_id, session_data_tasks)
+                    data_task_id, session_data_tasks, decrypt)
             if (isinstance(value, list) and value and
                     value[0].startswith('$') and value[0].endswith('$')):
                 data_task_ids = [el[1:-1] for el in value]
                 dfs = []
                 for data_task_id in data_task_ids:
                     df = self.data_task_id_to_data_frame(data_task_id,
-                                                         session_data_tasks)
+                                                         session_data_tasks,
+                                                         decrypt)
                     dfs.append(df)
                 value = dfs
             arguments[arg] = value
         return arguments
 
-    def run(self, session_data_tasks: List[str], args: dict) -> str:
+    def run(self, session_data_tasks: List[str],
+            args: dict, decrypt: bool) -> str:
         """This is called by the celery worker. This method calls other helper
         methods to prepare and validate the in and output of a task.
-        :param session_data_tasks: List of data task ids from session to check access.
+        :param session_data_tasks: List of data task ids from session to check
+        access.
         :param args: The dict of arguments submitted to the task.
+        :param decrypt: Indicates whether cache must be decrypted to be used.
         :return: The result of the task.
         """
-        arguments = self.prepare_args(session_data_tasks, args)
+        arguments = self.prepare_args(session_data_tasks, args, decrypt)
         result = self.main(**arguments)
         try:
             if type(result) != dict:
