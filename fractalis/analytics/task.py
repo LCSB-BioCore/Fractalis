@@ -109,9 +109,8 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                 data_task_ids = [el[1:-1] for el in value]
                 dfs = []
                 for data_task_id in data_task_ids:
-                    df = self.data_task_id_to_data_frame(data_task_id,
-                                                         session_data_tasks,
-                                                         decrypt)
+                    df = self.data_task_id_to_data_frame(
+                        data_task_id, session_data_tasks, decrypt)
                     dfs.append(df)
                 value = dfs
             arguments[arg] = value

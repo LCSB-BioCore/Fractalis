@@ -20,13 +20,11 @@ PERMANENT_SESSION_LIFETIME = timedelta(days=1)
 # Celery
 BROKER_URL = 'amqp://'
 CELERY_RESULT_BACKEND = 'redis://{}:{}'.format(REDIS_HOST, REDIS_PORT)
-CELERYD_TASK_SOFT_TIME_LIMIT = 60 * 10
+CELERYD_TASK_SOFT_TIME_LIMIT = 60 * 20
 CELERY_TASK_RESULT_EXPIRES = timedelta(hours=1)
 CELERYD_HIJACK_ROOT_LOGGER = False
 
 # Fractalis
-LOG_LEVEL = logging.INFO
-LOG_FILE = os.path.join(os.sep, 'tmp', 'fractalis.log')
 FRACTALIS_TMP_DIR = os.path.abspath(os.path.join(
     os.sep, 'tmp', 'fractalis'))
 FRACTALIS_CACHE_EXP = timedelta(days=10)

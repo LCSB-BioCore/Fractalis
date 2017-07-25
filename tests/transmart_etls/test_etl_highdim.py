@@ -1,23 +1,24 @@
-"""This module provides test for the categorical data ETL for tranSMART"""
+"""This module provides test for the highdim data ETL for tranSMART"""
 
 import json
 
 import pytest
 import responses
 
-from fractalis.data.etls.transmart.etl_categorical import CategoricalETL
+from fractalis.data.etls.transmart.etl_highdim import HighdimETL
 
 
 # noinspection PyMissingOrEmptyDocstring,PyMissingTypeHints
-class TestCategoricalETL:
+@pytest.mark.skip
+class TestHighdimlETL:
 
-    etl = CategoricalETL()
+    etl = HighdimETL()
 
     def test_correct_handler(self):
         assert self.etl.can_handle(handler='transmart',
-                                   descriptor={'data_type': 'categorical'})
+                                   descriptor={'data_type': 'highdim'})
         assert not self.etl.can_handle(handler='ada',
-                                       descriptor={'data_type': 'categorical'})
+                                       descriptor={'data_type': 'highdim'})
         assert not self.etl.can_handle(handler='ada',
                                        descriptor={'data_type': 'categorical'})
         assert not self.etl.can_handle(handler='ada',

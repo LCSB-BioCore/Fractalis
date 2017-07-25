@@ -23,7 +23,7 @@ def get_field(server: str, data_set: str,
                          'filterOrId': '[{{"fieldName":"{}","conditionType":"!=","value":""}}]'.format(projection)
                      },
                      cookies=cookie,
-                     timeout=20)
+                     timeout=60)
     if r.status_code != 200:
         error = "Data extraction failed. Target server responded with " \
                 "status code {}.".format(r.status_code)

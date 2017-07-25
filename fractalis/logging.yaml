@@ -8,7 +8,7 @@ handlers:
     class: logging.handlers.TimedRotatingFileHandler
     level: WARNING
     formatter: default
-    filename: fractalis.log
+    filename: /tmp/fractalis.log
     when: midnight
     backupCount: 14
     encoding: utf8

@@ -19,23 +19,23 @@ class TestDoubleETL:
             'projection': 'foo',
             'label': 'bar',
             'fieldType': 'Double',
-            'isArray': False
+            'isArray': True
         },
         'data_set': 'baz'
     }
 
     def test_correct_handler(self):
         assert self.etl.can_handle(handler='ada', descriptor={
-            'dictionary': {'fieldType': 'Double', 'isArray': False}
-        })
-        assert not self.etl.can_handle(handler='ada', descriptor={
             'dictionary': {'fieldType': 'Double', 'isArray': True}
         })
-        assert not self.etl.can_handle(handler='transmart', descriptor={
+        assert not self.etl.can_handle(handler='ada', descriptor={
             'dictionary': {'fieldType': 'Double', 'isArray': False}
         })
+        assert not self.etl.can_handle(handler='transmart', descriptor={
+            'dictionary': {'fieldType': 'Double', 'isArray': True}
+        })
         assert not self.etl.can_handle(handler='ada', descriptor={
-            'dictionary': {'fieldType': 'foo', 'isArray': False}
+            'dictionary': {'fieldType': 'foo', 'isArray': True}
         })
 
     def test_extract_raises_readable_if_not_200(self):

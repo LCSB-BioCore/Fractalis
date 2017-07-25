@@ -27,13 +27,16 @@ class TestEnumETL:
 
     def test_correct_handler(self):
         assert self.etl.can_handle(handler='ada', descriptor={
-            'dictionary': {'fieldType': 'Enum'}
-        })
-        assert not self.etl.can_handle(handler='transmart', descriptor={
-            'dictionary': {'fieldType': 'Enum'}
+            'dictionary': {'fieldType': 'Enum', 'isArray': False}
         })
         assert not self.etl.can_handle(handler='ada', descriptor={
-            'dictionary': {'fieldType': 'foo'}
+            'dictionary': {'fieldType': 'Enum', 'isArray': True}
+        })
+        assert not self.etl.can_handle(handler='transmart', descriptor={
+            'dictionary': {'fieldType': 'Enum', 'isArray': False}
+        })
+        assert not self.etl.can_handle(handler='ada', descriptor={
+            'dictionary': {'fieldType': 'foo', 'isArray': False}
         })
 
     def test_extract_raises_readable_if_not_200(self):

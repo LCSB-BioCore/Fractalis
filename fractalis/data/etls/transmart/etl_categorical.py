@@ -1,4 +1,4 @@
-"""Provides numerical concept ETL for tranSMART."""
+"""Provides categorical concept ETL for tranSMART."""
 
 import logging
 
@@ -10,15 +10,16 @@ from fractalis.data.etls.transmart.shared import extract_data
 logger = logging.getLogger(__name__)
 
 
-class NumericalETL(ETL):
-    """NumericalETL implements support for tranSMARTs 'numerical' type."""
+class CategoricalETL(ETL):
+    """CategoricalETL implements support for tranSMARTs 'categorical' type."""
 
-    name = 'transmart_numerical_etl'
-    produces = 'numerical'
+    name = 'transmart_categorical_etl'
+    produces = 'categorical'
 
     @staticmethod
     def can_handle(handler: str, descriptor: dict) -> bool:
-        return handler == 'transmart' and descriptor['data_type'] == 'numerical'
+        return handler == 'transmart' and \
+               descriptor['data_type'] == 'categorical'
 
     def extract(self, server: str, token: str, descriptor: dict) -> dict:
         return extract_data(server=server, descriptor=descriptor, token=token)

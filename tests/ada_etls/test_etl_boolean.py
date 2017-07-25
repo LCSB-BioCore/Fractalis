@@ -26,13 +26,16 @@ class TestBooleanETL:
 
     def test_correct_handler(self):
         assert self.etl.can_handle(handler='ada', descriptor={
-            'dictionary': {'fieldType': 'Boolean'}
-        })
-        assert not self.etl.can_handle(handler='transmart', descriptor={
-            'dictionary': {'fieldType': 'Boolean'}
+            'dictionary': {'fieldType': 'Boolean', 'isArray': False}
         })
         assert not self.etl.can_handle(handler='ada', descriptor={
-            'dictionary': {'fieldType': 'foo'}
+            'dictionary': {'fieldType': 'Boolean', 'isArray': True}
+        })
+        assert not self.etl.can_handle(handler='transmart', descriptor={
+            'dictionary': {'fieldType': 'Boolean', 'isArray': False}
+        })
+        assert not self.etl.can_handle(handler='ada', descriptor={
+            'dictionary': {'fieldType': 'foo', 'isArray': False}
         })
 
     def test_extract_raises_readable_if_not_200(self):

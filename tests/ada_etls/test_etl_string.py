@@ -26,13 +26,16 @@ class TestStringETL:
 
     def test_correct_handler(self):
         assert self.etl.can_handle(handler='ada', descriptor={
-            'dictionary': {'fieldType': 'String'}
-        })
-        assert not self.etl.can_handle(handler='transmart', descriptor={
-            'dictionary': {'fieldType': 'String'}
+            'dictionary': {'fieldType': 'String', 'isArray': False}
         })
         assert not self.etl.can_handle(handler='ada', descriptor={
-            'dictionary': {'fieldType': 'foo'}
+            'dictionary': {'fieldType': 'String', 'isArray': True}
+        })
+        assert not self.etl.can_handle(handler='transmart', descriptor={
+            'dictionary': {'fieldType': 'String', 'isArray': False}
+        })
+        assert not self.etl.can_handle(handler='ada', descriptor={
+            'dictionary': {'fieldType': 'foo', 'isArray': False}
         })
 
     def test_extract_raises_readable_if_not_200(self):

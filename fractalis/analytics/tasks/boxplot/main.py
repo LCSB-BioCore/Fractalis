@@ -54,7 +54,8 @@ class BoxplotTask(AnalyticTask):
         for variable in variable_names:
             for subset in results['subsets']:
                 for category in results['categories']:
-                    values = df[(df['subset'] == subset) & (df['category'] == category)][variable].tolist()
+                    values = df[(df['subset'] == subset) &
+                                (df['category'] == category)][variable].tolist()
                     values = [value for value in values if not np.isnan(value)]
                     if len(values) < 2:
                         continue
@@ -63,7 +64,8 @@ class BoxplotTask(AnalyticTask):
                     xs = np.linspace(start=stats['l_wsk'],
                                      stop=stats['u_wsk'], num=100)
                     stats['kde'] = kde(xs).tolist()
-                    results['statistics']['{}//{}//s{}'.format(variable, category, subset + 1)] = stats
+                    label = '{}//{}//s{}'.format(variable, category, subset + 1)
+                    results['statistics'][label] = stats
         return results
 
     @staticmethod

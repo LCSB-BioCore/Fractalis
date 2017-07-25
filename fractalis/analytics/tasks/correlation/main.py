@@ -85,7 +85,7 @@ class CorrelationTask(AnalyticTask):
         assert len(colnames) == 2
         x_label = colnames[0]
         y_label = colnames[1]
-        return (x_label, y_label)
+        return x_label, y_label
 
     @staticmethod
     def compute_stats(df: pd.DataFrame, method: str,
