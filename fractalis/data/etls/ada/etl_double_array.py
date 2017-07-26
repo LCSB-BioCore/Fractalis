@@ -32,9 +32,15 @@ class DoubleArrayETL(ETL):
     def transform(self, raw_data: List[dict], descriptor: dict) -> pd.DataFrame:
         data = shared.prepare_ids(raw_data)
         name = descriptor['dictionary']['name']
-        df = [[row['id']] + row[name] for row in raw_data]
-        colnames = ['id'] + list(range(len(df[0]) - 1))
-        df = pd.DataFrame(df, columns=colnames)
-        df = pd.melt(df, id_vars=['id'])
+        ids = []
+        values = []
+        for row in raw_data:
+            ids.append(row['id'])
+            values.append(row[name])
+        df = pd.DataFrame(values)
+        df = df.transpose()
+        df.columns = ids
+        variables = pd.Series(range(df.shape[0]))
+        df.insert(0, 'variable', variables)
         return df
 
