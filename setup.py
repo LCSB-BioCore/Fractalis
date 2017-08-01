@@ -21,7 +21,8 @@ setup(
         'requests',
         'PyYAML',
         'pycrypto',
-        'pycryptodomex'
+        'pycryptodomex',
+        'rpy2'
     ],
     setup_requires=[
         'pytest-runner',
