@@ -11,6 +11,8 @@ from rpy2.robjects import r, pandas2ri
 from rpy2.robjects.packages import importr
 
 from fractalis.analytics.task import AnalyticTask
+from fractalis.analytics.tasks.shared.array_utils \
+    import drop_ungrouped_samples, drop_unused_subset_ids
 
 
 importr('limma')
@@ -29,10 +31,26 @@ class HeatmapTask(AnalyticTask):
              numericals: List[pd.DataFrame],
              categoricals: List[pd.DataFrame],
              subsets: List[List[T]]) -> dict:
+        # combine data frames col wise
         df = reduce(lambda a, b: a.append(b), numerical_arrays)
+        # prepare inputs
+        if not subsets:
+            subsets = [[]]
+        df = drop_ungrouped_samples(df=df, subsets=subsets)
+        subsets = drop_unused_subset_ids(df=df, subsets=subsets)
+
+        # get samples-only data frame
         variables = df['variable']
-        df = df.drop('variable', axis=1)
-        zscores = df.apply(zscore, axis=1)
+        _df = df.drop('variable', axis=1)
+
+        # create z-score matrix used for visualising the heatmap
+        zscores = _df.apply(zscore, axis=1)
+
+        # execute differential gene expression analysis
+        stats = self.getLimmaStats(_df, subsets)
+
+        # not needed any longer
+        del _df
 
         # prepare output for front-end
         df = df.transpose()
@@ -51,18 +69,27 @@ class HeatmapTask(AnalyticTask):
         df.columns = ['id', 'variable', 'value', 'zscore']
 
         return {
-            'data': df.to_json(orient='index')
+            'data': df.to_json(orient='index'),
+            'stats': stats.to_json(orient='index')
         }
 
-    def getLimmaStats(self, df: pd.DataFrame, subsets: List[List[T]]):
-        # we consider all subset ids rather than df ids because an id might be
-        # in multiple subsets. In such a case we have to copy a row in the df.
+    def getLimmaStats(self, df: pd.DataFrame,
+                      subsets: List[List[T]]) -> pd.DataFrame:
+        """Use the R bioconductor package 'limma' to perform a differential
+        gene expression analysis on the given data frame.
+        :param df: Matrix of measurements where each column represents a sample
+        and each row a gene/probe.
+        :param subsets: Groups to compare with each other.
+        :return: Results of limma analysis. More than 2 subsets will result in
+        a different structured result data frame. See ?topTableF in R.
+        """
+        # prepare the df in case an id exists in more than one subset
         flattened_subsets = [x for subset in subsets for x in subset]
         df = df[flattened_subsets]
         ids = list(df)
 
         # creating the design vector according to the subsets
-        design_vector = [None] * len(ids)
+        design_vector = [''] * len(ids)
         subsets_copy = deepcopy(subsets)
         for i, id in enumerate(ids):
             for j, subset in enumerate(subsets_copy):
@@ -74,7 +101,7 @@ class HeatmapTask(AnalyticTask):
                 except ValueError:
                     assert j != len(subsets_copy) - 1
 
-        assert None not in design_vector
+        assert '' not in design_vector
 
         # create group names
         groups = ['group{}'.format(i + 1) for i in list(range(len(subsets)))]

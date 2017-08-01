@@ -68,7 +68,7 @@ def apply_categories(df: pd.DataFrame,
 
 
 def apply_id_filter(df: pd.DataFrame, id_filter: list) -> pd.DataFrame:
-    """Throw away all rows whose id is not in id_filter.
+    """Drop all rows whose id is not in id_filter.
     :param df: The DataFrame to filter.
     :param id_filter: The filter.
     :return: The filtered DataFrame.
