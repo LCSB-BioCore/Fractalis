@@ -119,6 +119,7 @@ class HeatmapTask(AnalyticTask):
         flattened_subsets = [x for subset in subsets for x in subset]
         df = df[flattened_subsets]
         ids = list(df)
+        logger.critical(ids)
 
         # creating the design vector according to the subsets
         design_vector = [''] * len(ids)

@@ -118,6 +118,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                     data_task_id, session_data_tasks, decrypt)
             # value is list containing data ids
             if (isinstance(value, list) and value and
+                    isinstance(value[0], str) and
                     value[0].startswith('$') and value[0].endswith('$')):
                 data_task_ids = [el[1:-1] for el in value]
                 dfs = []
