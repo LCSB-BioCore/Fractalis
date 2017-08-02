@@ -92,10 +92,9 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
             raise ValueError(error)
         file_path = data_state['file_path']
         if decrypt:
-            df = self.secure_load(file_path)
+            return self.secure_load(file_path)
         else:
             df = read_csv(file_path)
-        df = self.secure_load(file_path)
         return df
 
     def prepare_args(self, session_data_tasks: List[str],
