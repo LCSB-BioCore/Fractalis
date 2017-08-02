@@ -95,7 +95,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
             df = self.secure_load(file_path)
         else:
             df = read_csv(file_path)
-        df = self.load_data_frame(file_path, decrypt)
+        df = self.secure_load(file_path)
         return df
 
     def prepare_args(self, session_data_tasks: List[str],

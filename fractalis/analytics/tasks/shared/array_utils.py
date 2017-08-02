@@ -18,8 +18,7 @@ _protected_colnames = ['variable']
 def drop_ungrouped_samples(df: pd.DataFrame,
                            subsets: List[List[T]]) -> pd.DataFrame:
     """Drop samples cols that are no present in any of the subsets.
-    :param df: Unmodified data frame
-    submitted to the main method of an AnalyticTask.
+    :param df: Dataframe containing array data in the Fractalis format.
     :param subsets: Subgroups defined by the user.
     :return: Filtered data frame.
     """
@@ -38,8 +37,7 @@ def drop_ungrouped_samples(df: pd.DataFrame,
 def drop_unused_subset_ids(df: pd.DataFrame,
                            subsets: List[List[T]]) -> List[List[T]]:
     """Drop subset ids that are not present in the given data
-    :param df: Unmodified data frame
-    submitted to the main method of an AnalyticTask.
+    :param df: Dataframe containing array data in the Fractalis format.
     :param subsets: Subset groups specified by the user.
     :return: Modified subsets list.
     """
@@ -52,3 +50,4 @@ def drop_unused_subset_ids(df: pd.DataFrame,
             if id not in df_ids:
                 subset.remove(id)
     return _subsets
+

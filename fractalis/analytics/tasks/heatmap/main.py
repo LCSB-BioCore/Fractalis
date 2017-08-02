@@ -3,6 +3,7 @@
 from copy import deepcopy
 from typing import List, TypeVar
 from functools import reduce
+import logging
 
 import pandas as pd
 from scipy.stats import zscore
@@ -19,6 +20,7 @@ importr('limma')
 pandas2ri.activate()
 
 T = TypeVar('T')
+logger = logging.getLogger(__name__)
 
 
 class HeatmapTask(AnalyticTask):
@@ -31,40 +33,41 @@ class HeatmapTask(AnalyticTask):
              numericals: List[pd.DataFrame],
              categoricals: List[pd.DataFrame],
              subsets: List[List[T]]) -> dict:
-        # combine data frames col wise
+        # prepare inputs args
         df = reduce(lambda a, b: a.append(b), numerical_arrays)
-        # prepare inputs
         if not subsets:
-            subsets = [[]]
+            ids = list(df)
+            ids.remove('variable')
+            subsets = [ids]
         df = drop_ungrouped_samples(df=df, subsets=subsets)
         subsets = drop_unused_subset_ids(df=df, subsets=subsets)
 
-        # get samples-only data frame
-        variables = df['variable']
-        _df = df.drop('variable', axis=1)
+        # make sure the input data are still valid after the pre-processing
+        if df.shape[0] < 1 or df.shape[1] < 2:
+            error = "Either the input data set is too small or " \
+                    "the subset sample ids do not match the data."
+            logger.error(error)
+            raise ValueError(error)
+
+        for subset in subsets:
+            if not subset:
+                error = "One or more of the specified subsets does not " \
+                        "match any sample id for the given array data."
+                logger.error(error)
+                raise ValueError(error)
 
         # create z-score matrix used for visualising the heatmap
-        zscores = _df.apply(zscore, axis=1)
+        variables = df['variable']
+        zscores = df.drop('variable', axis=1)
+        zscores = zscores.apply(zscore, axis=1)
+        zscores.insert(0, 'variable', variables)
 
         # execute differential gene expression analysis
-        stats = self.getLimmaStats(_df, subsets)
-
-        # not needed any longer
-        del _df
+        stats = self.get_limma_stats(df, subsets)
 
         # prepare output for front-end
-        df = df.transpose()
-        df.columns = variables
-        df.index.name = 'id'
-        df.reset_index(inplace=True)
-        df = pd.melt(df, id_vars='id')
-
-        zscores = zscores.transpose()
-        zscores.columns = variables
-        zscores.index.name = 'id'
-        zscores.reset_index(inplace=True)
-        zscores = pd.melt(zscores, id_vars='id')
-
+        df = self.melt_standard_format_df(df)
+        zscores = self.melt_standard_format_df(zscores)
         df = pd.merge(df, zscores, on=['id', 'variable'])
         df.columns = ['id', 'variable', 'value', 'zscore']
 
@@ -73,7 +76,21 @@ class HeatmapTask(AnalyticTask):
             'stats': stats.to_json(orient='index')
         }
 
-    def getLimmaStats(self, df: pd.DataFrame,
+    def melt_standard_format_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        if df.shape[0] < 1 or df.shape[1] < 2:
+            error = "Data must be non-empty for melting."
+            logger.error(error)
+            raise ValueError(error)
+        variables = df['variable']
+        df.drop('variable', axis=1, inplace=True)
+        df = df.T
+        df.columns = variables
+        df.index.name = 'id'
+        df.reset_index(inplace=True)
+        df = pd.melt(df, id_vars='id')
+        return df
+
+    def get_limma_stats(self, df: pd.DataFrame,
                       subsets: List[List[T]]) -> pd.DataFrame:
         """Use the R bioconductor package 'limma' to perform a differential
         gene expression analysis on the given data frame.
@@ -84,6 +101,21 @@ class HeatmapTask(AnalyticTask):
         a different structured result data frame. See ?topTableF in R.
         """
         # prepare the df in case an id exists in more than one subset
+        if len(subsets) < 2:
+            error = "Limma analysis requires at least " \
+                    "two groups for comparison."
+            logger.error(error)
+            raise ValueError(error)
+        if df.shape[0] < 1 or df.shape[1] < 2:
+            error = "Limma analysis requires a " \
+                    "data frame with dimension 1x2 or more."
+            logger.error(error)
+            raise ValueError(error)
+
+        # for analysis we want only sample cols
+        variables = df['variable']
+        df = df.drop('variable', axis=1)
+
         flattened_subsets = [x for subset in subsets for x in subset]
         df = df[flattened_subsets]
         ids = list(df)
@@ -118,13 +150,19 @@ class HeatmapTask(AnalyticTask):
         r_design.colnames = R.StrVector(groups)
         r_data = pandas2ri.py2ri(df)
         # the next two lines are necessary if column ids are not unique, because
-        # the python to r transformation drops those columns
+        # the python to r transformation drops those columns otherwise
         r_ids = R.StrVector(['X{}'.format(id) for id in ids])
         r_data = r_data.rx(r_ids)
         r_fit = r['lmFit'](r_data, r_design)
         r_contrast_matrix = r['makeContrasts'](*comparisons, levels=r_design)
         r_fit_2 = r['contrasts.fit'](r_fit, r_contrast_matrix)
         r_fit_2 = r['eBayes'](r_fit_2)
-        r_results = r['topTable'](r_fit_2, number=float('inf'), sort='none')
+        r_results = r['topTable'](r_fit_2, number=float('inf'),
+                                  sort='none', genelist=variables)
         results = pandas2ri.ri2py(r_results)
+        # let's give the gene list column an appropriate name
+        colnames = results.columns.values
+        colnames[0] = 'variable'
+        results.columns = colnames
+
         return results

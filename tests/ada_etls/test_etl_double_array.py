@@ -5,13 +5,14 @@ import json
 import pytest
 import responses
 
-from fractalis.data.etls.ada.etl_double import DoubleETL
+from fractalis.data.etls.ada.etl_double_array import DoubleArrayETL
 
 
 # noinspection PyMissingOrEmptyDocstring,PyMissingTypeHints
+@pytest.mark.skip
 class TestDoubleETL:
 
-    etl = DoubleETL()
+    etl = DoubleArrayETL()
 
     valid_descriptor = {
         'dictionary': {
