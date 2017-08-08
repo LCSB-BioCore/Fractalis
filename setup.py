@@ -18,6 +18,7 @@ setup(
         'pandas',
         'numpy',
         'scipy',
+        'sklearn',
         'requests',
         'PyYAML',
         'pycrypto',

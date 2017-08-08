@@ -51,3 +51,26 @@ def drop_unused_subset_ids(df: pd.DataFrame,
                 subset.remove(id)
     return _subsets
 
+
+def apply_id_filter(df: pd.DataFrame, id_filter: List[T]) -> pd.DataFrame:
+    if not id_filter:
+        return df
+    protected_cols = df[_protected_colnames]
+    samples = df[id_filter]
+    df = pd.concat([protected_cols, samples], axis=1)
+    return df
+
+
+def melt_standard_format_df(df: pd.DataFrame) -> pd.DataFrame:
+    if df.shape[0] < 1 or df.shape[1] < 2:
+        error = "Data must be non-empty for melting."
+        logger.error(error)
+        raise ValueError(error)
+    variables = df['variable']
+    df.drop('variable', axis=1, inplace=True)
+    df = df.T
+    df.columns = variables
+    df.index.name = 'id'
+    df.reset_index(inplace=True)
+    df = pd.melt(df, id_vars='id')
+    return df
