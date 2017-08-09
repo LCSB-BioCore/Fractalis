@@ -54,10 +54,8 @@ class ClusteringTask(AnalyticTask):
         col_names, col_clusters = self._hclust(df.T, method,
                                                metric, n_col_clusters)
         return {
-            'row_names': row_names,
-            'col_names': col_names,
-            'row_cluster': row_clusters,
-            'col_cluster': col_clusters
+            'row_clusters': list(zip(row_names, row_clusters)),
+            'col_clusters': list(zip(col_names, col_clusters))
         }
 
     def _hclust(self, df: pd.DataFrame,
@@ -70,7 +68,8 @@ class ClusteringTask(AnalyticTask):
         cluster_count = Counter(cluster)
         # sort elements by their cluster size
         sorted_cluster = sorted(zip(names, cluster),
-                                key=lambda x: cluster_count[x[1]], reverse=True)
+                                key=lambda x: (cluster_count[x[1]], x[1]),
+                                reverse=True)
         names = [x[0] for x in sorted_cluster]
         cluster = [x[1] for x in sorted_cluster]
         # relabel cluster, with the biggest cluster being 0
@@ -81,6 +80,7 @@ class ClusteringTask(AnalyticTask):
                 c += 1
             relabeled_cluster.append(c)
         cluster = relabeled_cluster
+
         return names, cluster
 
     def kmeans(self, df: pd.DataFrame, options: dict) -> dict:
@@ -96,10 +96,8 @@ class ClusteringTask(AnalyticTask):
         row_names, row_clusters = self._kmeans(df, n_row_centroids)
         col_names, col_clusters = self._kmeans(df.T, n_col_centroids)
         return {
-            'row_names': row_names,
-            'col_names': col_names,
-            'row_cluster': row_clusters,
-            'col_cluster': col_clusters
+            'row_clusters': list(zip(row_names, row_clusters)),
+            'col_clusters': list(zip(col_names, col_clusters))
         }
 
     def _kmeans(self, df: pd.DataFrame, n_centroids) -> Tuple[List, List]:
@@ -109,7 +107,8 @@ class ClusteringTask(AnalyticTask):
         cluster_count = Counter(cluster)
         # sort elements by their cluster size
         sorted_cluster = sorted(zip(names, cluster),
-                                key=lambda x: cluster_count[x[1]], reverse=True)
+                                key=lambda x: (cluster_count[x[1]], x[1]),
+                                reverse=True)
         names = [x[0] for x in sorted_cluster]
         cluster = [x[1] for x in sorted_cluster]
         # relabel cluster, with the biggest cluster being 0
