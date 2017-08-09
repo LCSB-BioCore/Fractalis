@@ -3,7 +3,6 @@
 import logging
 from typing import List, Tuple
 from collections import Counter
-from operator import itemgetter
 
 import pandas as pd
 import numpy as np
@@ -22,7 +21,12 @@ class ClusteringTask(AnalyticTask):
 
     def main(self, df: str, cluster_algo: str,
              options: dict) -> dict:
-        df = pd.read_json(df)
+        try:
+            df = pd.read_json(df)
+        except Exception:
+            error = "Failed to parse string to data frame."
+            logger.error(error)
+            raise ValueError(error)
         # fill NAs with col medians so the clustering algorithms will work
         df = df.T.fillna(df.median(axis=1)).T
         if cluster_algo == 'hclust':
@@ -45,9 +49,9 @@ class ClusteringTask(AnalyticTask):
                     "perform a hierarchical clustering."
             logger.error(error)
             raise ValueError(error)
-        row_names, row_clusters = self._hclust(df, method,
+        row_names, row_clusters = self._hclust(df.T, method,
                                                metric, n_row_clusters)
-        col_names, col_clusters = self._hclust(df.T, method,
+        col_names, col_clusters = self._hclust(df, method,
                                                metric, n_col_clusters)
         return {
             'row_names': row_names,
@@ -61,15 +65,22 @@ class ClusteringTask(AnalyticTask):
         names = list(df)
         series = np.array(df)
         z = hclust.linkage(series, method=method, metric=metric)
-        leaf_order = list(hclust.leaves_list(z))
         cluster = [x[0] for x in hclust.cut_tree(z,
                                                  n_clusters=[n_clusters])]
-        names = list(itemgetter(*leaf_order)(names))
         cluster_count = Counter(cluster)
+        # sort elements by their cluster size
         sorted_cluster = sorted(zip(names, cluster),
                                 key=lambda x: cluster_count[x[1]], reverse=True)
         names = [x[0] for x in sorted_cluster]
         cluster = [x[1] for x in sorted_cluster]
+        # relabel cluster, with the biggest cluster being 0
+        c = 0
+        relabeled_cluster = []
+        for i, v in enumerate(cluster):
+            if i > 0 and cluster[i] != cluster[i-1]:
+                c += 1
+            relabeled_cluster.append(c)
+        cluster = relabeled_cluster
         return names, cluster
 
     def kmeans(self, df: pd.DataFrame, options: dict) -> dict:
@@ -82,8 +93,8 @@ class ClusteringTask(AnalyticTask):
             logger.error(error)
             raise ValueError(error)
 
-        row_names, row_clusters = self._kmeans(df, n_row_centroids)
-        col_names, col_clusters = self._kmeans(df.T, n_col_centroids)
+        row_names, row_clusters = self._kmeans(df.T, n_row_centroids)
+        col_names, col_clusters = self._kmeans(df, n_col_centroids)
         return {
             'row_names': row_names,
             'col_names': col_names,
@@ -93,11 +104,20 @@ class ClusteringTask(AnalyticTask):
 
     def _kmeans(self, df: pd.DataFrame, n_centroids) -> Tuple[List, List]:
         names = list(df)
-        series = np.array(df)
-        cluster = list(kmeans2(series, k=n_centroids)[1])
+        series = np.array(df).astype('float')
+        cluster = list(kmeans2(series, k=n_centroids, minit='points')[1])
         cluster_count = Counter(cluster)
+        # sort elements by their cluster size
         sorted_cluster = sorted(zip(names, cluster),
                                 key=lambda x: cluster_count[x[1]], reverse=True)
         names = [x[0] for x in sorted_cluster]
         cluster = [x[1] for x in sorted_cluster]
+        # relabel cluster, with the biggest cluster being 0
+        c = 0
+        relabeled_cluster = []
+        for i, v in enumerate(cluster):
+            if i > 0 and cluster[i] != cluster[i-1]:
+                c += 1
+            relabeled_cluster.append(c)
+        cluster = relabeled_cluster
         return names, cluster
