@@ -17,14 +17,14 @@ logger = logging.getLogger(__name__)
 
 class ClusteringTask(AnalyticTask):
 
-    name = 'compute-clustering'
+    name = 'compute-cluster'
 
-    def main(self, df: str, cluster_algo: str,
+    def main(self, df: dict, cluster_algo: str,
              options: dict) -> dict:
         try:
-            df = pd.read_json(df)
+            df = pd.DataFrame.from_dict(df)
         except Exception:
-            error = "Failed to parse string to data frame."
+            error = "Failed to parse input data frame."
             logger.error(error)
             raise ValueError(error)
         # fill NAs with col medians so the clustering algorithms will work
@@ -49,9 +49,9 @@ class ClusteringTask(AnalyticTask):
                     "perform a hierarchical clustering."
             logger.error(error)
             raise ValueError(error)
-        row_names, row_clusters = self._hclust(df.T, method,
+        row_names, row_clusters = self._hclust(df, method,
                                                metric, n_row_clusters)
-        col_names, col_clusters = self._hclust(df, method,
+        col_names, col_clusters = self._hclust(df.T, method,
                                                metric, n_col_clusters)
         return {
             'row_names': row_names,
@@ -62,9 +62,9 @@ class ClusteringTask(AnalyticTask):
 
     def _hclust(self, df: pd.DataFrame,
                 method: str, metric: str, n_clusters: int) -> Tuple[List, List]:
-        names = list(df)
-        series = np.array(df)
-        z = hclust.linkage(series, method=method, metric=metric)
+        names = list(df.index)
+        values = df.values
+        z = hclust.linkage(values, method=method, metric=metric)
         cluster = [x[0] for x in hclust.cut_tree(z,
                                                  n_clusters=[n_clusters])]
         cluster_count = Counter(cluster)
@@ -93,8 +93,8 @@ class ClusteringTask(AnalyticTask):
             logger.error(error)
             raise ValueError(error)
 
-        row_names, row_clusters = self._kmeans(df.T, n_row_centroids)
-        col_names, col_clusters = self._kmeans(df, n_col_centroids)
+        row_names, row_clusters = self._kmeans(df, n_row_centroids)
+        col_names, col_clusters = self._kmeans(df.T, n_col_centroids)
         return {
             'row_names': row_names,
             'col_names': col_names,
@@ -103,9 +103,9 @@ class ClusteringTask(AnalyticTask):
         }
 
     def _kmeans(self, df: pd.DataFrame, n_centroids) -> Tuple[List, List]:
-        names = list(df)
-        series = np.array(df).astype('float')
-        cluster = list(kmeans2(series, k=n_centroids, minit='points')[1])
+        names = list(df.index)
+        values = df.as_matrix().astype('float')
+        cluster = list(kmeans2(values, k=n_centroids, minit='points')[1])
         cluster_count = Counter(cluster)
         # sort elements by their cluster size
         sorted_cluster = sorted(zip(names, cluster),

@@ -13,7 +13,7 @@ class TestClustering:
 
     task = ClusteringTask()
 
-    valid_df = json.dumps({
+    df = {
         'A': {
             'a': 50,
             'b': 2,
@@ -29,20 +29,9 @@ class TestClustering:
             'b': 4,
             'c': 60
         }
-    })
+    }
 
     def test_hclust_raises_with_invalid_param_1(self):
-        with pytest.raises(ValueError) as e:
-            options = {
-                'method': 'single',
-                'metric': 'euclidean',
-                'n_row_clusters': 2,
-                'n_col_clusters': 2
-            }
-            self.task.main(df='{//foo', cluster_algo='hclust', options=options)
-            assert 'parse string to data frame' in e
-
-    def test_hclust_raises_with_invalid_param_2(self):
         with pytest.raises(ValueError) as e:
             options = {
                 'method': 'abc',
@@ -50,11 +39,10 @@ class TestClustering:
                 'n_row_clusters': 2,
                 'n_col_clusters': 2
             }
-            self.task.main(df=self.valid_df,
-                           cluster_algo='hclust', options=options)
+            self.task.main(df=self.df, cluster_algo='hclust', options=options)
             assert 'Invalid method' in e
 
-    def test_hclust_raises_with_invalid_param_3(self):
+    def test_hclust_raises_with_invalid_param_2(self):
         with pytest.raises(ValueError) as e:
             options = {
                 'method': 'single',
@@ -62,19 +50,17 @@ class TestClustering:
                 'n_row_clusters': 2,
                 'n_col_clusters': 2
             }
-            self.task.main(df=self.valid_df,
-                           cluster_algo='hclust', options=options)
+            self.task.main(df=self.df, cluster_algo='hclust', options=options)
             assert 'Invalid metric' in e
 
-    def test_hclust_raises_with_invalid_param_4(self):
+    def test_hclust_raises_with_invalid_param_3(self):
         with pytest.raises(ValueError) as e:
             options = {
                 'method': 'single',
                 'metric': 'abc',
                 'n_row_clusters': 2,
             }
-            self.task.main(df=self.valid_df,
-                           cluster_algo='hclust', options=options)
+            self.task.main(df=self.df, cluster_algo='hclust', options=options)
             assert 'mandatory parameters' in e
 
     def test_hclust_returns_valid_result(self):
@@ -84,7 +70,7 @@ class TestClustering:
             'n_row_clusters': 2,
             'n_col_clusters': 2
         }
-        result = self.task.main(df=self.valid_df,
+        result = self.task.main(df=self.df,
                                 cluster_algo='hclust', options=options)
         assert 'row_names' in result
         assert 'col_names' in result
@@ -95,33 +81,21 @@ class TestClustering:
         assert [0, 0, 1] == result['row_cluster']
         assert [0, 0, 1] == result['col_cluster']
 
-
     def test_kmean_raises_with_invalid_param_1(self):
-        with pytest.raises(ValueError) as e:
-            options = {
-                'n_row_centroids': 2,
-                'n_col_centroids': 2
-            }
-            self.task.main(df='{//foo', cluster_algo='kmeans', options=options)
-            assert 'parse string to data frame' in e
-
-    def test_kmean_raises_with_invalid_param_2(self):
         with pytest.raises(ValueError) as e:
             options = {
                 'n_row_centroids': 2,
                 'n_col_centroids': 'abc'
             }
-            self.task.main(df=self.valid_df,
-                           cluster_algo='kmeans', options=options)
+            self.task.main(df=self.df, cluster_algo='kmeans', options=options)
             assert 'invalid' in e
 
-    def test_kmean_raises_with_invalid_param_3(self):
+    def test_kmean_raises_with_invalid_param_2(self):
         with pytest.raises(ValueError) as e:
             options = {
                 'n_row_centroids': 2,
             }
-            self.task.main(df=self.valid_df,
-                           cluster_algo='kmeans', options=options)
+            self.task.main(df=self.df, cluster_algo='kmeans', options=options)
             assert 'mandatory parameters' in e
 
     def test_kmean_returns_valid_result(self):
@@ -129,7 +103,7 @@ class TestClustering:
             'n_row_centroids': 2,
             'n_col_centroids': 2
         }
-        result = self.task.main(df=self.valid_df,
+        result = self.task.main(df=self.df,
                                 cluster_algo='kmeans', options=options)
         assert 'row_names' in result
         assert 'col_names' in result
