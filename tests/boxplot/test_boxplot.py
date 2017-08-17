@@ -24,6 +24,7 @@ class TestBoxplotAnalytics:
                                  categories=[],
                                  id_filter=[],
                                  subsets=[])
+        json.dumps(results)  # check if result is json serializable
         assert 'data' in results
         assert 'statistics' in results
         assert len(json.loads(results['data'])) == 8

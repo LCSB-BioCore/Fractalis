@@ -42,17 +42,16 @@ class BoxplotTask(AnalyticTask):
         df = reduce(lambda l, r: l.append(r), features)
         if id_filter:
             df = df[df['id'].isin(id_filter)]
-        feature_names = df['feature'].unique()
         df = apply_subsets(df=df, subsets=subsets)
         df = apply_categories(df=df, categories=categories)
         results = {
             'data': df.to_json(orient='records'),
             'statistics': {},
-            'features': feature_names,
-            'categories': df['category'].unique(),
-            'subsets': df['subset'].unique()
+            'features': df['feature'].unique().tolist(),
+            'categories': df['category'].unique().tolist(),
+            'subsets': df['subset'].unique().tolist()
         }
-        for feature in feature_names:
+        for feature in results['features']:
             for subset in results['subsets']:
                 for category in results['categories']:
                     values = df[(df['subset'] == subset) &
