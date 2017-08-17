@@ -37,34 +37,28 @@ class StatisticTask(AnalyticTask):
 
     @staticmethod
     def get_mean_stats(df: pd.DataFrame) -> pd.DataFrame:
-        variables = df['variable']
-        df = df.drop('variable', axis=1)
-        means = df.apply(mean, axis=1)
-        results = pd.concat([variables, means], axis=1)
-        results.columns = ['variable', 'mean']
-        return results
+        mean_series = df.apply(mean, axis=1)
+        df = mean_series.to_frame('mean')
+        df['feature'] = df.index
+        return df
 
     @staticmethod
     def get_median_stats(df: pd.DataFrame) -> pd.DataFrame:
-        variables = df['variable']
-        df = df.drop('variable', axis=1)
-        medians = df.apply(median, axis=1)
-        results = pd.concat([variables, medians], axis=1)
-        results.columns = ['variable', 'median']
-        return results
+        median_series = df.apply(median, axis=1)
+        df = median_series.to_frame('median')
+        df['feature'] = df.index
+        return df
 
     @staticmethod
     def get_variance_stats(df: pd.DataFrame) -> pd.DataFrame:
-        variables = df['variable']
-        df = df.drop('variable', axis=1)
-        variances = df.apply(var, axis=1)
-        results = pd.concat([variables, variances], axis=1)
-        results.columns = ['variable', 'variance']
-        return results
+        var_series = df.apply(var, axis=1)
+        df = var_series.to_frame('var')
+        df['feature'] = df.index
+        return df
 
     @staticmethod
     def get_limma_stats(df: pd.DataFrame,
-                      subsets: List[List[T]]) -> pd.DataFrame:
+                        subsets: List[List[T]]) -> pd.DataFrame:
         """Use the R bioconductor package 'limma' to perform a differential
         gene expression analysis on the given data frame.
         :param df: Matrix of measurements where each column represents a sample
@@ -85,14 +79,10 @@ class StatisticTask(AnalyticTask):
             logger.error(error)
             raise ValueError(error)
 
-        # for analysis we want only sample cols
-        variables = df['variable']
-        df = df.drop('variable', axis=1)
-
         flattened_subsets = [x for subset in subsets for x in subset]
         df = df[flattened_subsets]
         ids = list(df)
-        logger.critical(ids)
+        features = df.index
 
         # creating the design vector according to the subsets
         design_vector = [''] * len(ids)
@@ -132,11 +122,11 @@ class StatisticTask(AnalyticTask):
         r_fit_2 = r['contrasts.fit'](r_fit, r_contrast_matrix)
         r_fit_2 = r['eBayes'](r_fit_2)
         r_results = r['topTable'](r_fit_2, number=float('inf'),
-                                  sort='none', genelist=variables)
+                                  sort='none', genelist=features)
         results = pandas2ri.ri2py(r_results)
         # let's give the gene list column an appropriate name
         colnames = results.columns.values
-        colnames[0] = 'variable'
+        colnames[0] = 'feature'
         results.columns = colnames
 
         return results

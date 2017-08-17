@@ -30,7 +30,6 @@ class DoubleArrayETL(ETL):
         return data
 
     def transform(self, raw_data: List[dict], descriptor: dict) -> pd.DataFrame:
-        data = shared.prepare_ids(raw_data)
         name = descriptor['dictionary']['name']
         ids = []
         values = []
@@ -38,9 +37,7 @@ class DoubleArrayETL(ETL):
             ids.append(row['id'])
             values.append(row[name])
         df = pd.DataFrame(values)
-        df = df.transpose()
-        df.columns = ids
-        variables = pd.Series(range(df.shape[0]))
-        df.insert(0, 'variable', variables)
+        df.insert(0, 'id', ids)
+        df = pd.melt(df, id_vars='id', var_name='feature')
         return df
 

@@ -1,11 +1,14 @@
 """This module contains common functions used in analytic tasks."""
 
+import logging
 from typing import List, TypeVar
 from functools import reduce
+from copy import deepcopy
 
 import pandas as pd
 
 
+logger = logging.getLogger(__name__)
 T = TypeVar('T')
 
 
@@ -45,6 +48,8 @@ def apply_categories(df: pd.DataFrame,
     :return: The base DataFrame with an additional 'category' column
     """
     if len(categories):
+        # drop 'feature' column from dfs
+        categories = [df.drop('feature', axis=1) for df in categories]
         # merge all dfs into one
         data = reduce(lambda l, r: l.merge(r, on='id', how='outer'), categories)
         # remember ids
@@ -67,14 +72,18 @@ def apply_categories(df: pd.DataFrame,
     return df
 
 
-def apply_id_filter(df: pd.DataFrame, id_filter: list) -> pd.DataFrame:
-    """Drop all rows whose id is not in id_filter.
-    :param df: The DataFrame to filter.
-    :param id_filter: The filter.
-    :return: The filtered DataFrame.
+def drop_unused_subset_ids(df: pd.DataFrame,
+                           subsets: List[List[T]]) -> List[List[T]]:
+    """Drop subset ids that are not present in the given data
+    :param df: Dataframe containing array data in the Fractalis format.
+    :param subsets: Subset groups specified by the user.
+    :return: Modified subsets list.
     """
-    if id_filter:
-        df = df[df['id'].isin(id_filter)]
-    if df.shape[0] == 0:
-        raise ValueError("The current selection does not match any data.")
-    return df
+    ids = df['id'].unique()
+    _subsets = deepcopy(subsets)
+    for subset in _subsets:
+        _subset = list(subset)
+        for id in _subset:
+            if id not in ids:
+                subset.remove(id)
+    return _subsets

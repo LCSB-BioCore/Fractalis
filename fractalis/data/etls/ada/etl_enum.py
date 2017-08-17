@@ -36,5 +36,5 @@ class EnumETL(ETL):
             value = descriptor['dictionary']['numValues'][str(value)]
             row[descriptor['dictionary']['name']] = value
         data = shared.name_to_label(data, descriptor)
-        data_frame = DataFrame(data)
-        return data_frame
+        df = shared.make_data_frame(data)
+        return df

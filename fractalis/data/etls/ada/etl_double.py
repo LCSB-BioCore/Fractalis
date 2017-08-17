@@ -32,6 +32,6 @@ class DoubleETL(ETL):
     def transform(self, raw_data: List[dict], descriptor: dict) -> DataFrame:
         data = shared.prepare_ids(raw_data)
         data = shared.name_to_label(data, descriptor)
-        data_frame = DataFrame(data)
-        return data_frame
+        df = shared.make_data_frame(data)
+        return df
 

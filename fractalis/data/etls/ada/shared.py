@@ -3,6 +3,7 @@
 import logging
 from typing import List
 
+import pandas as pd
 import requests
 
 
@@ -59,3 +60,9 @@ def name_to_label(data: List[dict], descriptor: dict) -> List[dict]:
             del row[descriptor['dictionary']['name']]
             row[label] = value
     return data
+
+
+def make_data_frame(data: List[dict]) -> pd.DataFrame:
+    df = pd.DataFrame(data)
+    df = pd.melt(df, id_vars='id', var_name='feature')
+    return df

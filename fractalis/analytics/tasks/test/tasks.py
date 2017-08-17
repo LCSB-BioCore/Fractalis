@@ -49,7 +49,7 @@ class MergeDataFramesTask(AnalyticTask):
         if not df_list:
             return {'df': ''}
         df = reduce(lambda l, r: l.append(r), df_list)
-        return {'df': df.to_json(orient='values')}
+        return {'df': df.to_json(orient='records')}
 
 class InvalidReturnTask(AnalyticTask):
 

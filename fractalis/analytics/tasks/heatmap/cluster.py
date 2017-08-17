@@ -5,7 +5,6 @@ from typing import List, Tuple
 from collections import Counter
 
 import pandas as pd
-import numpy as np
 from scipy.cluster import hierarchy as hclust
 from scipy.cluster.vq import kmeans2
 

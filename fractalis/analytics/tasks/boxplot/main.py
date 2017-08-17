@@ -8,8 +8,8 @@ import numpy as np
 import scipy.stats
 
 from fractalis.analytics.task import AnalyticTask
-from fractalis.analytics.tasks.shared.common import \
-    apply_subsets, apply_categories, apply_id_filter
+from fractalis.analytics.tasks.shared.utils import \
+    apply_subsets, apply_categories
 
 
 T = TypeVar('T')
@@ -22,40 +22,42 @@ class BoxplotTask(AnalyticTask):
     name = 'compute-boxplot'
 
     def main(self,
-             variables: List[pd.DataFrame],
+             features: List[pd.DataFrame],
              categories: List[pd.DataFrame],
              id_filter: List[T],
              subsets: List[List[T]]) -> dict:
         """ Compute boxplot statistics for the given parameters.
-        :param variables: List of numerical variables
-        :param categories: List of categorical variables used to group numerical
-        variables.
+        :param features: List of numerical features
+        :param categories: List of categorical features used to group numerical
+        features.
         :param id_filter: List of ids that will be considered for analysis. If
         empty all ids will be used.
         :param subsets: List of subsets used as another way to group the
-        numerical variables.
+        numerical features.
         """
-        if not len(variables):
+        if not len(features):
             raise ValueError("Must at least specify one "
-                             "non empty numerical variable.")
-        df = reduce(lambda l, r: l.merge(r, on='id', how='outer'), variables)
-        df = apply_id_filter(df=df, id_filter=id_filter)
-        variable_names = df.columns.tolist()
-        variable_names.remove('id')
+                             "non empty numerical feature.")
+        # merge dfs into single one
+        df = reduce(lambda l, r: l.append(r), features)
+        if id_filter:
+            df = df[df['id'].isin(id_filter)]
+        feature_names = df['feature'].unique()
         df = apply_subsets(df=df, subsets=subsets)
         df = apply_categories(df=df, categories=categories)
         results = {
-            'data': df.to_json(orient='index'),
+            'data': df.to_json(orient='records'),
             'statistics': {},
-            'variables': variable_names,
-            'categories': list(set(df['category'].tolist())),
-            'subsets': list(set(df['subset'].tolist()))
+            'features': feature_names,
+            'categories': df['category'].unique(),
+            'subsets': df['subset'].unique()
         }
-        for variable in variable_names:
+        for feature in feature_names:
             for subset in results['subsets']:
                 for category in results['categories']:
                     values = df[(df['subset'] == subset) &
-                                (df['category'] == category)][variable].tolist()
+                                (df['category'] == category) &
+                                (df['feature'] == feature)]['value'].tolist()
                     values = [value for value in values if not np.isnan(value)]
                     if len(values) < 2:
                         continue
@@ -64,7 +66,7 @@ class BoxplotTask(AnalyticTask):
                     xs = np.linspace(start=stats['l_wsk'],
                                      stop=stats['u_wsk'], num=100)
                     stats['kde'] = kde(xs).tolist()
-                    label = '{}//{}//s{}'.format(variable, category, subset + 1)
+                    label = '{}//{}//s{}'.format(feature, category, subset + 1)
                     results['statistics'][label] = stats
         return results
 

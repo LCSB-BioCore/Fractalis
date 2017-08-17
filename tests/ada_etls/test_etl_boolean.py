@@ -90,6 +90,7 @@ class TestBooleanETL:
                                         descriptor=self.valid_descriptor)
             df = self.etl.transform(raw_data=raw_data,
                                     descriptor=self.valid_descriptor)
-            assert df.shape == (1, 2)
-            assert df.values.tolist() == [[True, '12345']]
-            assert list(df) == ['a', 'id']
+            assert df.shape == (1, 3)
+            assert list(df['id']) == ['12345']
+            assert list(df['feature']) == ['a']
+            assert list(df['value']) == [True]

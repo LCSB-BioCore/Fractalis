@@ -1,8 +1,6 @@
 """This module provides tests for the cluster task
 within the heatmap workflow."""
 
-import json
-
 import pytest
 
 from fractalis.analytics.tasks.heatmap.cluster import ClusteringTask
