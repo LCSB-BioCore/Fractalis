@@ -34,7 +34,7 @@ class DoubleArrayETL(ETL):
         ids = []
         values = []
         for row in raw_data:
-            ids.append(row['id'])
+            ids.append(row['_id']['$oid'])
             values.append(row[name])
         df = pd.DataFrame(values)
         df.insert(0, 'id', ids)
