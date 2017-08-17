@@ -61,3 +61,25 @@ class TestHeatmap:
                            id_filter=[],
                            subsets=subsets)
             assert 'specified subsets does not match' in e
+
+    def test_empty_subset_equals_full_subset(self):
+        numerical_arrays = [
+            pd.DataFrame([[101, 'foo', 5], [101, 'bar', 6], [102, 'foo', 10],
+                          [102, 'bar', 11], [103, 'foo', 15], [103, 'bar', 16],
+                          [104, 'foo', 20], [104, 'bar', 21]],
+                         columns=['id', 'feature', 'value'])
+        ]
+        result_1 = self.task.main(numerical_arrays=numerical_arrays,
+                                  numericals=[],
+                                  categoricals=[],
+                                  ranking_method='mean',
+                                  id_filter=[],
+                                  subsets=[])
+
+        result_2 = self.task.main(numerical_arrays=numerical_arrays,
+                                  numericals=[],
+                                  categoricals=[],
+                                  ranking_method='mean',
+                                  id_filter=[],
+                                  subsets=[[101, 102, 103, 104]])
+        assert result_1 == result_2

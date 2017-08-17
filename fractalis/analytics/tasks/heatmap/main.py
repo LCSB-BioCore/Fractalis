@@ -33,7 +33,7 @@ class HeatmapTask(AnalyticTask):
         df = reduce(lambda a, b: a.append(b), numerical_arrays)
         if not subsets:
             # empty subsets equals all samples in one subset
-            subsets = df['id'].unique()
+            subsets = [df['id'].unique().tolist()]
         else:
             # if subsets are defined we drop the rows that are not part of one
             flattened_subsets = [x for subset in subsets for x in subset]
