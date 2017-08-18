@@ -5,7 +5,6 @@ from functools import reduce
 import logging
 
 import pandas as pd
-from scipy.stats import zscore
 
 from fractalis.analytics.task import AnalyticTask
 from fractalis.analytics.tasks.heatmap.stats import StatisticTask
@@ -28,6 +27,7 @@ class HeatmapTask(AnalyticTask):
              categoricals: List[pd.DataFrame],
              ranking_method: str,
              id_filter: List[T],
+             max_rows: int,
              subsets: List[List[T]]) -> dict:
         # merge input data into single df
         df = reduce(lambda a, b: a.append(b), numerical_arrays)
@@ -49,18 +49,13 @@ class HeatmapTask(AnalyticTask):
                     "the subset sample ids do not match the data."
             logger.error(error)
             raise ValueError(error)
-        for subset in subsets:
-            if not subset:
-                error = "One or more of the specified subsets does not " \
-                        "match any sample id for the given array data."
-                logger.error(error)
-                raise ValueError(error)
 
         # make matrix of input data
         _df = df.pivot(index='feature', columns='id', values='value')
 
         # create z-score matrix used for visualising the heatmap
-        z_df = _df.apply(zscore, axis=1)
+        z_df = _df.apply(lambda row: (row - row.mean()) / row.std(ddof=0),
+                         axis=1)
 
         # compute statistic for ranking
         stats = self.stat_task.main(df=_df, subsets=subsets,
@@ -72,6 +67,14 @@ class HeatmapTask(AnalyticTask):
         z_df = pd.melt(z_df, id_vars='feature')
         df = df.merge(z_df, on=['id', 'feature'])
         df.columns = ['id', 'feature', 'value', 'zscore']
+
+        # sort by ranking_value
+        df['sort_value'] = df['feature'].apply(
+            lambda x: stats[stats['feature'] == x][ranking_method][0])
+        df = df.sort_values('sort_value', ascending=False).drop('sort_value', 1)
+
+        # discard rows according to max_rows
+        df = df[df['feature'].isin(df['feature'].unique()[:max_rows])]
 
         return {
             'data': df.to_json(orient='records'),

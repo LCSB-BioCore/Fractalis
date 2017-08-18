@@ -70,7 +70,7 @@ class StatisticTask(AnalyticTask):
         # prepare the df in case an id exists in more than one subset
         if len(subsets) < 2:
             error = "Limma analysis requires at least " \
-                    "two groups for comparison."
+                    "two non-empty groups for comparison."
             logger.error(error)
             raise ValueError(error)
         if df.shape[0] < 1 or df.shape[1] < 2:
