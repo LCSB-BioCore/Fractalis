@@ -70,7 +70,7 @@ class HeatmapTask(AnalyticTask):
 
         # sort by ranking_value
         df['sort_value'] = df['feature'].apply(
-            lambda x: stats[stats['feature'] == x][ranking_method][0])
+            lambda x: stats[stats['feature'] == x][ranking_method].tolist()[0])
         df = df.sort_values('sort_value', ascending=False).drop('sort_value', 1)
 
         # discard rows according to max_rows

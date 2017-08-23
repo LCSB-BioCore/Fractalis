@@ -1,7 +1,5 @@
 """This module provides test for the pca task."""
 
-import json
-
 import pandas as pd
 
 from fractalis.analytics.tasks.pca.main import PCATask
