@@ -2,10 +2,11 @@
 
 import logging
 
+import requests
 from pandas import DataFrame
 
 from fractalis.data.etl import ETL
-from fractalis.data.etls.transmart.shared import extract_data
+from fractalis.data.etls.transmart import observations_pb2
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,30 @@ class HighdimETL(ETL):
         return handler == 'transmart' and descriptor['data_type'] == 'highdim'
 
     def extract(self, server: str, token: str, descriptor: dict) -> dict:
-        return extract_data(server=server, descriptor=descriptor, token=token)
+        r = requests.get(url='{}/v2/observations'.format(server),
+                         params={
+                             'constraint': '{{"type": "concept","path": "{}"}}'
+                                           ''.format(descriptor["path"]),
+                             'projection': 'log_intensity',
+                             'type': 'autodetect'
+                         },
+                         headers={
+                             'Accept': 'application/x-protobuf',
+                             'Authorization': 'Bearer {}'.format(token)
+                         },
+                         timeout=2000)
+
+        if r.status_code != 200:
+            error = "Data extraction failed. Target server responded with " \
+                    "status code {}.".format(r.status_code)
+            logger.error(error)
+            raise ValueError(error)
+        try:
+            pass  # TODO
+        except Exception as e:
+            logger.exception(e)
+            raise ValueError("Data extraction failed. "
+                             "Got unexpected data format.")
 
     def transform(self, raw_data: dict, descriptor: dict) -> DataFrame:
         rows = []

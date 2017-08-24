@@ -45,3 +45,20 @@ class TestPCATask:
         assert data['id'].tolist() == [101, 102, 103, 104, 105]
         assert data['subset'].unique().tolist() == [0]
         assert data['category'].unique().tolist() == ['a', None]
+
+    def test_id_filter_works(self):
+        features = [
+            pd.DataFrame([[101, 'foo', 5], [101, 'bar', 6],
+                          [102, 'foo', 10], [102, 'bar', 11],
+                          [103, 'foo', 15], [103, 'bar', 16],
+                          [104, 'foo', 20], [104, 'bar', 21]],
+                         columns=['id', 'feature', 'value'])
+        ]
+        result = self.task.main(features=features,
+                                categories=[],
+                                n_components=2,
+                                whiten=False,
+                                id_filter=[101, 104],
+                                subsets=[])
+        data = pd.read_json(result['data'])
+        assert data['id'].unique().tolist() == [101, 104]

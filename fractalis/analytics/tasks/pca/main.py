@@ -39,6 +39,10 @@ class PCATask(AnalyticTask):
         df = df.pivot(index='feature', columns='id', values='value')
         df = df.T
 
+        # apply id filter
+        if id_filter:
+            df = df[df.index.isin(id_filter)]
+
         # save ids so we can re-assign them after pca
         ids = df.index.tolist()
 
