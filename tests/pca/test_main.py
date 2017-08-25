@@ -62,3 +62,38 @@ class TestPCATask:
                                 subsets=[])
         data = pd.read_json(result['data'])
         assert data['id'].unique().tolist() == [101, 104]
+
+    def test_correct_loadings(self):
+        features = [
+            pd.DataFrame([[101, 'foo', 5], [101, 'bar', 20],
+                          [102, 'foo', 10], [102, 'bar', 15],
+                          [103, 'foo', 15], [103, 'bar', 10],
+                          [104, 'foo', 20], [104, 'bar', 5]],
+                         columns=['id', 'feature', 'value'])
+        ]
+        result = self.task.main(features=features,
+                                categories=[],
+                                n_components=2,
+                                whiten=False,
+                                id_filter=[],
+                                subsets=[])
+        loadings = pd.read_json(result['loadings'])
+        assert loadings['0'].tolist()[0] == -loadings['0'].tolist()[1]
+        assert loadings['1'].tolist()[0] == loadings['1'].tolist()[1]
+
+    def test_correct_variance_ratios(self):
+        features = [
+            pd.DataFrame([[101, 'foo', 5], [101, 'bar', 5],
+                          [102, 'foo', 10], [102, 'bar', 5],
+                          [103, 'foo', 15], [103, 'bar', 5],
+                          [104, 'foo', 20], [104, 'bar', 5]],
+                         columns=['id', 'feature', 'value'])
+        ]
+        result = self.task.main(features=features,
+                                categories=[],
+                                n_components=2,
+                                whiten=False,
+                                id_filter=[],
+                                subsets=[])
+        variance_ratios = result['variance_ratios']
+        assert variance_ratios == [1, 0]

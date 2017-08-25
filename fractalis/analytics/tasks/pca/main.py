@@ -5,6 +5,7 @@ from functools import reduce
 import logging
 
 import pandas as pd
+import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import Imputer
 
@@ -38,6 +39,7 @@ class PCATask(AnalyticTask):
         # make matrix of data
         df = df.pivot(index='feature', columns='id', values='value')
         df = df.T
+        feature_labels = list(df)
 
         # apply id filter
         if id_filter:
@@ -56,6 +58,14 @@ class PCATask(AnalyticTask):
         pca.fit(df)
         reduced_df = pca.transform(df)
 
+        # get explained variance ratios of components
+        variance_ratios = pca.explained_variance_ratio_
+
+        # get loadings
+        loadings = -1 * pca.components_.T * np.sqrt(pca.explained_variance_)
+        loadings = pd.DataFrame(loadings)
+        loadings['feature'] = feature_labels
+
         # re-assign ids
         reduced_df = pd.DataFrame(reduced_df)
         reduced_df['id'] = ids
@@ -66,5 +76,7 @@ class PCATask(AnalyticTask):
                                             categories=categories)
 
         return {
-            'data': reduced_df.to_json(orient='records')
+            'data': reduced_df.to_json(orient='records'),
+            'loadings': loadings.to_json(orient='records'),
+            'variance_ratios': variance_ratios.tolist()
         }
