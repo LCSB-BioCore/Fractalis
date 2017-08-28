@@ -26,7 +26,7 @@ def extract_data(server: str, descriptor: dict, token: str) -> dict:
                      },
                      timeout=2000)
     if r.status_code != 200:
-        error = "Data extraction failed. Target server responded with " \
+        error = "Target server responded with " \
                 "status code {}.".format(r.status_code)
         logger.error(error)
         raise ValueError(error)
@@ -34,5 +34,4 @@ def extract_data(server: str, descriptor: dict, token: str) -> dict:
         return r.json()
     except Exception as e:
         logger.exception(e)
-        raise ValueError("Data extraction failed. "
-                         "Got unexpected data format.")
+        raise ValueError("Got unexpected data format.")

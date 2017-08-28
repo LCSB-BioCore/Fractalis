@@ -161,6 +161,7 @@ class TestData:
             assert 'descriptor' in data_state
             assert 'data_type' in data_state
             assert 'loaded' in data_state
+            assert 'meta' in data_state
             assert not data_state['loaded']
 
     def test_valid_redis_after_loaded_on_post(self, test_client, payload):
@@ -175,6 +176,7 @@ class TestData:
             assert 'descriptor' in data_state
             assert 'data_type' in data_state
             assert 'loaded' in data_state
+            assert 'meta' in data_state
             assert data_state['loaded']
 
     def test_valid_filesystem_before_loaded_on_post(
@@ -230,6 +232,7 @@ class TestData:
         body = flask.json.loads(rv.get_data())
         for data_state in body['data_states']:
             assert 'file_path' not in data_state
+            assert 'meta' not in data_state
             assert data_state['etl_state'] == 'PENDING'
             assert not data_state['etl_message']
             assert 'descriptor' in data_state
@@ -282,7 +285,7 @@ class TestData:
         for key in redis.keys('data:*'):
             value = redis.get(key)
             data_state = json.loads(value)
-            os.path.exists(data_state['file_path'])
+            assert not os.path.exists(data_state['file_path'])
             test_client.delete('/data/{}?wait=1'.format(data_state['task_id']))
             assert not redis.exists(key)
             assert not os.path.exists(data_state['file_path'])
@@ -294,7 +297,7 @@ class TestData:
         for key in redis.keys('data:*'):
             value = redis.get(key)
             data_state = json.loads(value)
-            os.path.exists(data_state['file_path'])
+            assert not os.path.exists(data_state['file_path'])
             test_client.delete('/data/{}?wait=1'.format(data_state['task_id']))
             assert not redis.exists(key)
             assert not os.path.exists(data_state['file_path'])
@@ -308,10 +311,12 @@ class TestData:
         for key in redis.keys('data:*'):
             value = redis.get(key)
             data_state = json.loads(value)
-            os.path.exists(data_state['file_path'])
+            assert os.path.exists(data_state['file_path'])
             rv = test_client.delete('/data/{}?wait=1'
                                     .format(data_state['task_id']))
+            body = flask.json.loads(rv.get_data())
             assert rv.status_code == 403
+            assert 'Refusing access.' in body['error']
             assert redis.exists(key)
             assert os.path.exists(data_state['file_path'])
 
@@ -336,3 +341,39 @@ class TestData:
             with pytest.raises(UnicodeDecodeError):
                 open(file_path, 'r').readlines()
         app.config['FRACTALIS_ENCRYPT_CACHE'] = False
+
+    def test_valid_response_before_loaded_on_meta(self, test_client, payload):
+        test_client.post('/data', data=payload['serialized'])
+        for key in redis.keys('data:*'):
+            value = redis.get(key)
+            data_state = json.loads(value)
+            rv = test_client.get('/data/meta/{}'.format(data_state['task_id']))
+            body = flask.json.loads(rv.get_data())
+            assert rv.status_code == 200
+            assert not body.get('meta')
+
+    def test_valid_response_after_loaded_on_meta(self, test_client, payload):
+        test_client.post('/data?wait=1', data=payload['serialized'])
+        for key in redis.keys('data:*'):
+            value = redis.get(key)
+            data_state = json.loads(value)
+            rv = test_client.get('/data/meta/{}?wait=1'
+                                 .format(data_state['task_id']))
+            body = flask.json.loads(rv.get_data())
+            assert rv.status_code == 200
+            assert body.get('meta')
+
+    def test_403_if_no_auth_on_get_meta(self, test_client, payload):
+        test_client.post('/data?wait=1', data=payload['serialized'])
+        with test_client.session_transaction() as sess:
+            sess['data_tasks'] = []
+        for key in redis.keys('data:*'):
+            value = redis.get(key)
+            data_state = json.loads(value)
+            rv = test_client.get('/data/meta/{}?wait=1'
+                                 .format(data_state['task_id']))
+            body = flask.json.loads(rv.get_data())
+            assert rv.status_code == 403
+            assert 'Refusing access.' in body['error']
+            assert redis.exists(key)
+            assert os.path.exists(data_state['file_path'])

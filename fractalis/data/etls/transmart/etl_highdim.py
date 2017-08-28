@@ -36,7 +36,7 @@ class HighdimETL(ETL):
                          timeout=2000)
 
         if r.status_code != 200:
-            error = "Data extraction failed. Target server responded with " \
+            error = "Target server responded with " \
                     "status code {}.".format(r.status_code)
             logger.error(error)
             raise ValueError(error)
@@ -44,8 +44,7 @@ class HighdimETL(ETL):
             pass  # TODO
         except Exception as e:
             logger.exception(e)
-            raise ValueError("Data extraction failed. "
-                             "Got unexpected data format.")
+            raise ValueError("Got unexpected data format.")
 
     def transform(self, raw_data: dict, descriptor: dict) -> DataFrame:
         rows = []

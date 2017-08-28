@@ -35,7 +35,7 @@ class TestAdaHandler:
     @staticmethod
     def request_callback(request):
         headers = {
-            'Set-Cookie': 'PLAY2AUTH_SESS_ID="foo-token"'}
+            'Set-Cookie': 'PLAY2AUTH_SESS_ID=foo-token'}
         body = ''
         return 200, headers, body
 

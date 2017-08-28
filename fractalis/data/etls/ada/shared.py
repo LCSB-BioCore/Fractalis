@@ -26,7 +26,7 @@ def get_field(server: str, data_set: str,
                      cookies=cookie,
                      timeout=60)
     if r.status_code != 200:
-        error = "Data extraction failed. Target server responded with " \
+        error = "Target server responded with " \
                 "status code {}.".format(r.status_code)
         logger.error(error)
         raise ValueError(error)
@@ -34,8 +34,8 @@ def get_field(server: str, data_set: str,
         field_data = r.json()
     except Exception as e:
         logger.exception(e)
-        raise TypeError("Data extraction failed. Target server did not return "
-                        "expected data. Possible authentication error.")
+        raise TypeError("Unexpected data format. "
+                        "Possible authentication error.")
     return field_data
 
 

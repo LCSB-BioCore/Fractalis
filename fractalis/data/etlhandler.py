@@ -89,7 +89,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
             'label': cls.make_label(descriptor),
             'descriptor': descriptor,
             'data_type': data_type,
-            'loaded': False
+            'meta': {},
+            'loaded': False,
         }
         redis.setex(name='data:{}'.format(task_id),
                     value=json.dumps(data_state),

@@ -98,13 +98,22 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         pass
 
-    def update_redis(self):
-        """Update data entry in redis to a loaded state. This means the
-        data can now be used for analysis.
+    def update_redis(self, data_frame):
+        """Set redis entry to 'loaded' state to indicate that the user has
+        has read access. At this step we also set several meta information
+        that can be used for preview functionality that do not require all
+        data to be loaded.
+        :param data_frame: The extracted and transformed data.
         """
         value = redis.get(name='data:{}'.format(self.request.id))
         assert value is not None
         data_state = json.loads(value)
+        features = data_frame.get('feature')
+        if features:
+            features = features.unique().tolist()
+        data_state['meta'] = {
+            'features': features
+        }
         data_state['loaded'] = True
         redis.setex(name='data:{}'.format(self.request.id),
                     value=json.dumps(data_state),
@@ -125,7 +134,6 @@ class ETL(Task, metaclass=abc.ABCMeta):
         ciphertext, tag = cipher.encrypt_and_digest(data)
         with open(file_path, 'wb') as f:
             [f.write(x) for x in (cipher.nonce, tag, ciphertext)]
-        self.update_redis()
 
     def load(self, data_frame: DataFrame, file_path: str) -> None:
         """Load (save) the data to the file system.
@@ -134,7 +142,6 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         data_frame.to_csv(file_path, index=False)
-        self.update_redis()
 
     def run(self, server: str, token: str,
             descriptor: dict, file_path: str,
@@ -155,13 +162,13 @@ class ETL(Task, metaclass=abc.ABCMeta):
             raw_data = self.extract(server, token, descriptor)
         except Exception as e:
             logger.exception(e)
-            raise RuntimeError("Data extraction failed.")
+            raise RuntimeError("Data extraction failed. {}".format(e))
         logger.info("(T)ransforming data to Fractalis format.")
         try:
             data_frame = self.transform(raw_data, descriptor)
         except Exception as e:
             logger.exception(e)
-            raise RuntimeError("Data transformation failed.")
+            raise RuntimeError("Data transformation failed. {}".format(e))
         if not isinstance(data_frame, DataFrame):
             error = "transform() must return 'pandas.DataFrame', " \
                     "but returned '{}' instead.".format(type(data_frame))
@@ -172,6 +179,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
                 self.secure_load(data_frame, file_path)
             else:
                 self.load(data_frame, file_path)
+            self.update_redis(data_frame)
         except Exception as e:
             logger.exception(e)
-            raise RuntimeError("Data loading failed.")
+            raise RuntimeError("Data loading failed. {}".format(e))
