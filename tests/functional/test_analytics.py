@@ -300,7 +300,7 @@ class TestAnalytics:
         assert new_body['state'] == 'SUCCESS', new_body
         assert len(json.loads(json.loads(new_body['result'])['df'])) == 30
 
-    def test_can_handle_empty_df_list(self, test_client, small_data_post):
+    def test_can_handle_empty_df_list(self, test_client):
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(
             task_name='merge_df_task',
             args={'df_list': []}

@@ -30,7 +30,6 @@ setup(
     ],
     tests_require=[
         'pytest==3.0.3',
-        'pytest-cov',
         'pytest-mock',
         'responses'
     ]
