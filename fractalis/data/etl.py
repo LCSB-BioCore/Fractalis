@@ -111,10 +111,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
         features = data_frame.get('feature')
         if features:
             features = features.unique().tolist()
-        data_state['meta'] = {
-            'features': features
-        }
         data_state['loaded'] = True
+        data_state['meta']['features'] = features
         redis.setex(name='data:{}'.format(self.request.id),
                     value=json.dumps(data_state),
                     time=app.config['FRACTALIS_CACHE_EXP'])

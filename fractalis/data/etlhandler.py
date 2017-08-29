@@ -87,9 +87,10 @@ class ETLHandler(metaclass=abc.ABCMeta):
             'task_id': task_id,
             'file_path': file_path,
             'label': cls.make_label(descriptor),
-            'descriptor': descriptor,
             'data_type': data_type,
-            'meta': {},
+            'meta': {
+                'descriptor': descriptor,
+            },
             'loaded': False,
         }
         redis.setex(name='data:{}'.format(task_id),

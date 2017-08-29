@@ -3,10 +3,9 @@ image: python:latest
 services:
     - redis
     - rabbitmq
-    - r-base
-    - bioconductor/release_base2
 
 before_script:
+    - apt-get install r-base r-bioc-limma
     - pip install -e . --default-timeout=180
     - pip install flake8
     - export FRACTALIS_CONFIG="$(pwd)/gitlab-config.py"

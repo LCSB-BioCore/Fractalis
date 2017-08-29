@@ -158,7 +158,6 @@ class TestData:
             data_state = json.loads(value)
             assert 'file_path' in data_state
             assert 'label' in data_state
-            assert 'descriptor' in data_state
             assert 'data_type' in data_state
             assert 'loaded' in data_state
             assert 'meta' in data_state
@@ -173,7 +172,6 @@ class TestData:
             data_state = json.loads(value)
             assert 'file_path' in data_state
             assert 'label' in data_state
-            assert 'descriptor' in data_state
             assert 'data_type' in data_state
             assert 'loaded' in data_state
             assert 'meta' in data_state
@@ -235,7 +233,6 @@ class TestData:
             assert 'meta' not in data_state
             assert data_state['etl_state'] == 'PENDING'
             assert not data_state['etl_message']
-            assert 'descriptor' in data_state
             assert data_state['data_type'] == 'something'
             assert not data_state['loaded']
             assert 'task_id' in data_state
@@ -249,7 +246,6 @@ class TestData:
             assert 'file_path' not in data_state
             assert data_state['etl_state'] == 'SUCCESS'
             assert not data_state['etl_message']
-            assert 'descriptor' in data_state
             assert data_state['data_type'] == 'something'
             assert data_state['loaded']
             assert 'task_id' in data_state
@@ -263,7 +259,6 @@ class TestData:
             assert 'file_path' not in data_state
             assert data_state['etl_state'] == 'FAILURE'
             assert data_state['etl_message']
-            assert 'descriptor' in data_state
             assert data_state['data_type'] == 'something'
             assert not data_state['loaded']
             assert 'task_id' in data_state
@@ -350,7 +345,7 @@ class TestData:
             rv = test_client.get('/data/meta/{}'.format(data_state['task_id']))
             body = flask.json.loads(rv.get_data())
             assert rv.status_code == 200
-            assert not body.get('meta')
+            assert not 'features' in body['meta']
 
     def test_valid_response_after_loaded_on_meta(self, test_client, payload):
         test_client.post('/data?wait=1', data=payload['serialized'])
@@ -361,7 +356,7 @@ class TestData:
                                  .format(data_state['task_id']))
             body = flask.json.loads(rv.get_data())
             assert rv.status_code == 200
-            assert body.get('meta')
+            assert 'features' in body['meta']
 
     def test_403_if_no_auth_on_get_meta(self, test_client, payload):
         test_client.post('/data?wait=1', data=payload['serialized'])
