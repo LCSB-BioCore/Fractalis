@@ -108,9 +108,10 @@ class ETL(Task, metaclass=abc.ABCMeta):
         value = redis.get(name='data:{}'.format(self.request.id))
         assert value is not None
         data_state = json.loads(value)
-        features = data_frame.get('feature')
-        if features:
-            features = features.unique().tolist()
+        if 'feature' in data_frame.columns:
+            features = data_frame['feature'].unique().tolist()
+        else:
+            features = []
         data_state['loaded'] = True
         data_state['meta']['features'] = features
         redis.setex(name='data:{}'.format(self.request.id),
