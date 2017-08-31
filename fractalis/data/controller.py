@@ -145,4 +145,3 @@ def get_meta_information(task_id: str) -> Tuple[Response, int]:
     data_state = get_data_state_for_task_id(task_id, wait)
     logger.debug("Successfully gather meta information. Sending response.")
     return jsonify({'meta': data_state['meta']}), 200
-

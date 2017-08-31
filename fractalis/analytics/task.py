@@ -109,7 +109,8 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         :return: Filtered data frame.
         """
         for key in filters:
-            df = df[df[key].isin(filters[key])]
+            if filters[key]:
+                df = df[df[key].isin(filters[key])]
         return df
 
     @staticmethod

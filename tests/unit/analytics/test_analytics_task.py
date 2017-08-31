@@ -23,10 +23,13 @@ class TestAnalyticsTask:
     def test_apply_filter(self):
         df = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9]],
                           columns=['A', 'B', 'C'])
-        filters = {'A': [1, 7], 'B': [2, 5, 8], 'C': [6, 9]}
-        df = self.task.apply_filters(df=df, filters=filters)
-        assert df.shape == (1, 3)
-        assert df.iloc[0].tolist() == [7, 8, 9]
+        filters1 = {'A': [1, 7], 'B': [2, 5, 8], 'C': [6, 9]}
+        filters2 = {'A': []}
+        df1 = self.task.apply_filters(df=df, filters=filters1)
+        df2 = self.task.apply_filters(df=df, filters=filters2)
+        assert df1.shape == (1, 3)
+        assert df1.iloc[0].tolist() == [7, 8, 9]
+        assert df2.shape == (3, 3)
 
     def test_parse_value(self):
         arg1 = '${"id": 123, "filters": {"foo": [1,2]}}$'
