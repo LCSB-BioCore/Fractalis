@@ -24,9 +24,6 @@ class TransmartHandler(ETLHandler):
 
     _handler = 'transmart'
 
-    def _heartbeat(self):
-        raise NotImplementedError()
-
     @staticmethod
     def make_label(descriptor: dict) -> str:
         return descriptor['path']

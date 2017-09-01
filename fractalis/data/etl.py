@@ -10,6 +10,7 @@ from celery import Task
 from pandas import DataFrame
 
 from fractalis import app, redis
+from fractalis.data.check import IntegrityCheck
 from fractalis.utils import get_cache_encrypt_key
 
 logger = logging.getLogger(__name__)
@@ -51,8 +52,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         pass
 
-    @classmethod
-    def factory(cls, handler: str, descriptor: dict) -> 'ETL':
+    @staticmethod
+    def factory(handler: str, descriptor: dict) -> 'ETL':
         """Return an instance of the implementation ETL that can handle the
         given parameters.
         :param handler: Describes the handler. E.g.: transmart, ada
@@ -61,15 +62,15 @@ class ETL(Task, metaclass=abc.ABCMeta):
         can_handle()
         """
         from . import ETL_REGISTRY
-        for ETL_TASK in ETL_REGISTRY:
+        for ETLTask in ETL_REGISTRY:
             # noinspection PyBroadException
             try:
-                if ETL_TASK.can_handle(handler, descriptor):
-                    return ETL_TASK()
+                if ETLTask.can_handle(handler, descriptor):
+                    return ETLTask()
             except Exception as e:
                 logger.warning("Caught exception and assumed that ETL '{}' "
                                "cannot handle handler '{}' and descriptor: '{}'"
-                               " Exception:'{}'".format(type(ETL_TASK).__name__,
+                               " Exception:'{}'".format(type(ETLTask).__name__,
                                                         handler,
                                                         str(descriptor), e))
                 continue
@@ -98,7 +99,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         """
         pass
 
-    def update_redis(self, data_frame):
+    def update_redis(self, data_frame: DataFrame) -> None:
         """Set redis entry to 'loaded' state to indicate that the user has
         has read access. At this step we also set several meta information
         that can be used for preview functionality that do not require all
@@ -118,7 +119,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
                     value=json.dumps(data_state),
                     time=app.config['FRACTALIS_CACHE_EXP'])
 
-    def secure_load(self, data_frame: DataFrame, file_path: str) -> None:
+    @staticmethod
+    def secure_load(data_frame: DataFrame, file_path: str) -> None:
         """For the paranoid. Save data encrypted to the file system.
         Note from the dev: If someone has direct access to your FS an
         unencrypted cache will be one of your least worries.
@@ -134,7 +136,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
         with open(file_path, 'wb') as f:
             [f.write(x) for x in (cipher.nonce, tag, ciphertext)]
 
-    def load(self, data_frame: DataFrame, file_path: str) -> None:
+    @staticmethod
+    def load(data_frame: DataFrame, file_path: str) -> None:
         """Load (save) the data to the file system.
         :param data_frame: DataFrame to write.
         :param file_path: File to write to.
@@ -165,6 +168,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
         logger.info("(T)ransforming data to Fractalis format.")
         try:
             data_frame = self.transform(raw_data, descriptor)
+            checker = IntegrityCheck.factory(self.produces)
+            checker.check(data_frame)
         except Exception as e:
             logger.exception(e)
             raise RuntimeError("Data transformation failed. {}".format(e))

@@ -9,7 +9,7 @@ from fractalis.data.etl import ETL
 class RandomDFETL(ETL):
 
     name = 'test_randomdf_task'
-    produces = 'something'
+    produces = 'mock'
 
     @staticmethod
     def can_handle(handler, descriptor):

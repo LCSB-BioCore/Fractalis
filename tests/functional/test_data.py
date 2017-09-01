@@ -233,7 +233,7 @@ class TestData:
             assert 'meta' not in data_state
             assert data_state['etl_state'] == 'PENDING'
             assert not data_state['etl_message']
-            assert data_state['data_type'] == 'something'
+            assert data_state['data_type'] == 'mock'
             assert not data_state['loaded']
             assert 'task_id' in data_state
 
@@ -246,7 +246,7 @@ class TestData:
             assert 'file_path' not in data_state
             assert data_state['etl_state'] == 'SUCCESS'
             assert not data_state['etl_message']
-            assert data_state['data_type'] == 'something'
+            assert data_state['data_type'] == 'mock'
             assert data_state['loaded']
             assert 'task_id' in data_state
 
@@ -259,7 +259,7 @@ class TestData:
             assert 'file_path' not in data_state
             assert data_state['etl_state'] == 'FAILURE'
             assert data_state['etl_message']
-            assert data_state['data_type'] == 'something'
+            assert data_state['data_type'] == 'mock'
             assert not data_state['loaded']
             assert 'task_id' in data_state
 

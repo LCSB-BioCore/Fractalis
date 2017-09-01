@@ -73,8 +73,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
         :return The label (not necessarily unique) to the data."""
         pass
 
-    @classmethod
-    def create_redis_entry(cls, task_id: str, file_path: str,
+    def create_redis_entry(self, task_id: str, file_path: str,
                            descriptor: dict, data_type: str) -> None:
         """Creates an entry in Redis that reflects all meta data surrounding the
         downloaded data. E.g. data type, file system location, ...
@@ -86,7 +85,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
         data_state = {
             'task_id': task_id,
             'file_path': file_path,
-            'label': cls.make_label(descriptor),
+            'label': self.make_label(descriptor),
             'data_type': data_type,
             'meta': {
                 'descriptor': descriptor,
@@ -125,8 +124,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
                 async_result.get(propagate=False)
         return task_ids
 
-    @classmethod
-    def factory(cls, handler: str, server: str, auth: dict) -> 'ETLHandler':
+    @staticmethod
+    def factory(handler: str, server: str, auth: dict) -> 'ETLHandler':
         """Return an instance of the implementation of ETLHandler that can
         handle the given parameters.
         :param handler: Describes the handler. E.g.: transmart, ada
@@ -151,6 +150,5 @@ class ETLHandler(metaclass=abc.ABCMeta):
         """
         return handler == cls._handler
 
-    @abc.abstractmethod
     def _heartbeat(self):
-        pass
+        raise NotImplementedError()

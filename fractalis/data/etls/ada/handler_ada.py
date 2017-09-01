@@ -22,9 +22,6 @@ class AdaHandler(ETLHandler):
 
     _handler = 'ada'
 
-    def _heartbeat(self):
-        raise NotImplementedError()
-
     @staticmethod
     def make_label(descriptor: dict) -> str:
         return '{} ({})'.format(descriptor['dictionary']['label'],

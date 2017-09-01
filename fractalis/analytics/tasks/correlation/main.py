@@ -1,5 +1,6 @@
 """Module containing the Celery Task for the Correlation Analysis."""
 
+import logging
 from typing import List, TypeVar
 
 import pandas as pd
@@ -11,6 +12,7 @@ from fractalis.analytics.tasks.shared.utils import \
     apply_subsets, apply_categories
 
 
+logger = logging.getLogger(__name__)
 T = TypeVar('T')
 
 
@@ -36,10 +38,12 @@ class CorrelationTask(AnalyticTask):
         :param categories: List of DataFrames that categorise the data points.
         :return: corr. coef., p-value and other useful values.
         """
-        if x.shape[0] == 0 or y.shape[0] == 0:
-            raise ValueError("X or Y contain no data.")
-        if x.shape[1] < 2 or y.shape[1] < 2:
-            raise ValueError("X or Y are malformed.")
+        if len(x['feature'].unique().tolist()) != 1 \
+                or len(y['feature'].unique().tolist()) != 1:
+            error = "Input is invalid. Please make sure that the two " \
+                    "variables to compare have exactly one dimension, each."
+            logger.error(error)
+            raise ValueError(error)
         if method not in ['pearson', 'spearman', 'kendall']:
             raise ValueError("Unknown method '{}'".format(method))
 
