@@ -175,7 +175,7 @@ class TestAnalytics:
         assert new_response.status_code == 200
         new_body = flask.json.loads(new_response.get_data())
         assert not new_body['result']
-        assert new_body['state'] == 'PENDING'
+        assert new_body['state'] == 'SUBMITTED'
 
     def test_correct_response_if_task_fails(self, test_client):
         rv = test_client.post('/analytics', data=flask.json.dumps(dict(

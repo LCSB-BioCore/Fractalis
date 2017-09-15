@@ -231,7 +231,7 @@ class TestData:
         for data_state in body['data_states']:
             assert 'file_path' not in data_state
             assert 'meta' not in data_state
-            assert data_state['etl_state'] == 'PENDING'
+            assert data_state['etl_state'] == 'SUBMITTED'
             assert not data_state['etl_message']
             assert data_state['data_type'] == 'mock'
             assert not data_state['loaded']

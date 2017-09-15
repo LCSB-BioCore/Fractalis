@@ -3,7 +3,8 @@ Celery instance."""
 
 import logging
 
-from celery import Celery
+from celery import Celery, current_app
+from celery.signals import after_task_publish
 from flask import Flask
 
 from fractalis.analytics.task import AnalyticTask
@@ -12,6 +13,18 @@ from fractalis.utils import list_classes_with_base_class
 
 
 logger = logging.getLogger(__name__)
+
+
+# https://stackoverflow.com/questions/9824172/find-out-whether-celery-task-exists
+@after_task_publish.connect
+def update_submitted_state(sender=None, **kwargs):
+    """Add 'SUBMITTED' state to celery task."""
+    # the task may not exist if sent using `send_task` which
+    # sends tasks by name, so fall back to the default result backend
+    # if that is the case.
+    task = current_app.tasks.get(sender)
+    backend = task.backend if task else current_app.backend
+    backend.store_result(kwargs['headers']['id'], None, "SUBMITTED")
 
 
 def make_celery(app: Flask) -> Celery:
