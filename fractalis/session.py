@@ -1,9 +1,14 @@
 import json
+import logging
 from uuid import uuid4
 from time import sleep
 
 from werkzeug.datastructures import CallbackDict
+from flask import session
 from flask.sessions import SessionMixin, SessionInterface
+
+
+logger = logging.getLogger(__name__)
 
 
 class RedisSession(CallbackDict, SessionMixin):
@@ -21,11 +26,27 @@ class RedisSession(CallbackDict, SessionMixin):
 
 class RedisSessionInterface(SessionInterface):
 
-    def __init__(self, redis):
+    def __init__(self, redis, app):
         self.redis = redis
 
+        @app.teardown_request
+        def teardown_request(exc=None) -> None:
+            """Release session lock whatever happens.
+            :param exc: Unhandled exception that might have been thrown.
+            """
+            try:
+                app.session_interface.release_lock(session.sid)
+            except AttributeError:
+                logger.warning(
+                    "Attempted to release session lock but no session id was "
+                    "found. This happens only during testing and should never "
+                    "happen in production mode.")
+
     def acquire_lock(self, sid, request_id):
-        if self.redis.get(name='session:{}:lock'.format(sid)) == request_id:
+        if request_id is None:
+            return
+        lock_id = self.redis.get(name='session:{}:lock'.format(sid))
+        if lock_id == request_id:
             return
         while self.redis.getset(name='session:{}:lock'.format(sid),
                                 value=request_id):
@@ -58,7 +79,6 @@ class RedisSessionInterface(SessionInterface):
                 self.redis.delete('session:{}'.format(session.sid))
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
-            self.release_lock(session.sid)
             return
         session_expiration_time = app.config['PERMANENT_SESSION_LIFETIME']
         cookie_expiration_time = self.get_expiration_time(app, session)
@@ -66,7 +86,6 @@ class RedisSessionInterface(SessionInterface):
         self.redis.setex(name='session:{}'.format(session.sid),
                          time=session_expiration_time,
                          value=serialzed_session_data)
-        self.release_lock(session.sid)
         response.set_cookie(key=app.session_cookie_name, value=session.sid,
                             expires=cookie_expiration_time, httponly=True,
                             domain=domain)

@@ -49,7 +49,7 @@ redis = StrictRedis(host=app.config['REDIS_HOST'],
 
 # Set new session interface for app
 log.info("Replacing default session interface.")
-app.session_interface = RedisSessionInterface(redis)
+app.session_interface = RedisSessionInterface(redis, app)
 
 # allow everyone to submit requests
 log.info("Setting up CORS.")
