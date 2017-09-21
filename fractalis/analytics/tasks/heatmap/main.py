@@ -65,13 +65,15 @@ class HeatmapTask(AnalyticTask):
         # sort by ranking_value
         df = pd.merge(df, stats[['feature', ranking_method]], how='left',
                       left_index=True, right_on='feature')
-        df = df.sort_values(ranking_method, ascending=False) \
-            .drop(ranking_method, axis=1)
+        df.sort_values(ranking_method, ascending=False, inplace=True)
+        df.drop(ranking_method, axis=1, inplace=True)
 
         z_df = pd.merge(z_df, stats[['feature', ranking_method]], how='left',
                         left_index=True, right_on='feature')
-        z_df = z_df.sort_values(ranking_method, ascending=False) \
-            .drop(ranking_method, axis=1)
+        z_df.sort_values(ranking_method, ascending=False, inplace=True)
+        z_df.drop(ranking_method, axis=1, inplace=True)
+
+        stats.sort_values(ranking_method, ascending=False, inplace=True)
 
         # discard rows according to max_rows
         df = df[:max_rows]

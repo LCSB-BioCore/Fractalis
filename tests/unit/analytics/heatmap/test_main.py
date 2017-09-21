@@ -161,6 +161,7 @@ class TestHeatmap:
         data = pd.DataFrame(data)
         feature_col = data['feature'].tolist()
         assert ['D', 'C', 'A', 'B', 'D', 'C', 'A', 'B'] == feature_col
+        assert ['D', 'C', 'A', 'B'] == result['stats']['feature']
 
     def test_max_rows_works(self):
         numerical_arrays = [
@@ -182,3 +183,4 @@ class TestHeatmap:
         data = pd.DataFrame(data)
         feature_col = data['feature'].tolist()
         assert ['D', 'C', 'D', 'C'] == feature_col
+        assert result['stats']['feature'] == ['D', 'C']
