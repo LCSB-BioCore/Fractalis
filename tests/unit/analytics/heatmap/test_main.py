@@ -34,10 +34,10 @@ class TestHeatmap:
 
     def test_functional_with_nans_and_missing(self):
         numerical_arrays = [
-            pd.DataFrame([[101, 'foo', 5], [101, 'bar', 6],
+            pd.DataFrame([[101, 'foo', 5], [101, 'bar', 5],
                           [102, 'foo', 10],
-                          [103, 'foo', float('nan')], [103, 'bar', 16],
-                          [104, 'foo', 20], [104, 'bar', 21]],
+                          [103, 'foo', float('nan')], [103, 'bar', 15],
+                          [104, 'foo', 20], [104, 'bar', 20]],
                          columns=['id', 'feature', 'value'])
         ]
         subsets = [[101, 102], [103, 104]]
@@ -48,8 +48,9 @@ class TestHeatmap:
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
-        stats = json.loads(result['stats'])
-        assert stats[0] != stats[1]
+        for stat in result['stats']:
+            if stat != 'feature' and stat != 'AveExpr':
+                assert result['stats'][stat][0] == result['stats'][stat][1]
 
     def test_main_raises_if_invalid_data(self):
         numerical_arrays = [
@@ -136,7 +137,7 @@ class TestHeatmap:
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
-        data = json.loads(result['data'])
+        data = result['data']
         data = pd.DataFrame(data)
         assert not np.isnan(np.min(data['zscore']))
 
@@ -156,10 +157,10 @@ class TestHeatmap:
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
-        data = json.loads(result['data'])
+        data = result['data']
         data = pd.DataFrame(data)
         feature_col = data['feature'].tolist()
-        assert ['D', 'D', 'C', 'C', 'A', 'A', 'B', 'B'] == feature_col
+        assert ['D', 'C', 'A', 'B', 'D', 'C', 'A', 'B'] == feature_col
 
     def test_max_rows_works(self):
         numerical_arrays = [
@@ -177,7 +178,7 @@ class TestHeatmap:
                                 id_filter=[],
                                 max_rows=2,
                                 subsets=subsets)
-        data = json.loads(result['data'])
+        data = result['data']
         data = pd.DataFrame(data)
         feature_col = data['feature'].tolist()
-        assert ['D', 'D', 'C', 'C'] == feature_col
+        assert ['D', 'C', 'D', 'C'] == feature_col

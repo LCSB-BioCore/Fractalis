@@ -18,7 +18,8 @@ class RandomNumericalETL(ETL):
 
     def extract(self, server: str,
                 token: str, descriptor: dict) -> pd.DataFrame:
-        data = pd.DataFrame(np.random.randn(50000, 200).tolist())
+        data = pd.DataFrame(np.random.randn(
+            descriptor['num_samples'], descriptor['num_features']).tolist())
         return data
 
     def transform(self, raw_data: pd.DataFrame,

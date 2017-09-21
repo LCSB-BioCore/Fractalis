@@ -5,7 +5,6 @@ from typing import List, TypeVar
 import logging
 
 import pandas as pd
-from numpy import mean, median, var
 from rpy2 import robjects as R
 from rpy2.robjects import r, pandas2ri
 from rpy2.robjects.packages import importr
@@ -37,24 +36,24 @@ class StatisticTask(AnalyticTask):
 
     @staticmethod
     def get_mean_stats(df: pd.DataFrame) -> pd.DataFrame:
-        mean_series = df.apply(mean, axis=1)
-        df = mean_series.to_frame('mean')
-        df['feature'] = df.index
-        return df
+        means = [row.mean() for row in df.values]
+        stats = pd.DataFrame(means, columns=['mean'])
+        stats['feature'] = df.index
+        return stats
 
     @staticmethod
     def get_median_stats(df: pd.DataFrame) -> pd.DataFrame:
-        median_series = df.apply(median, axis=1)
-        df = median_series.to_frame('median')
-        df['feature'] = df.index
-        return df
+        means = [row.median() for row in df.values]
+        stats = pd.DataFrame(means, columns=['median'])
+        stats['feature'] = df.index
+        return stats
 
     @staticmethod
     def get_variance_stats(df: pd.DataFrame) -> pd.DataFrame:
-        var_series = df.apply(var, axis=1)
-        df = var_series.to_frame('var')
-        df['feature'] = df.index
-        return df
+        means = [row.var() for row in df.values]
+        stats = pd.DataFrame(means, columns=['var'])
+        stats['feature'] = df.index
+        return stats
 
     @staticmethod
     def get_limma_stats(df: pd.DataFrame,

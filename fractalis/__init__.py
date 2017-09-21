@@ -10,6 +10,7 @@ import yaml
 from flask import Flask
 from flask_cors import CORS
 from flask_request_id import RequestID
+from flask_compress import Compress
 from redis import StrictRedis
 
 from fractalis.session import RedisSessionInterface
@@ -39,6 +40,9 @@ if default_config:
 
 # Plugin that assigns every request an id
 RequestID(app)
+
+# Plugin that compresses all responses
+Compress(app)
 
 # create a redis instance
 log.info("Creating Redis connection.")

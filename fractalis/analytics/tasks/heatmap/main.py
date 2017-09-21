@@ -51,32 +51,41 @@ class HeatmapTask(AnalyticTask):
             raise ValueError(error)
 
         # make matrix of input data
-        _df = df.pivot(index='feature', columns='id', values='value')
+        df = df.pivot(index='feature', columns='id', values='value')
 
         # create z-score matrix used for visualising the heatmap
-        z_df = _df.apply(lambda row: (row - row.mean()) / row.std(ddof=0),
-                         axis=1)
+        z_df = [(df.iloc[i] - df.iloc[i].mean()) / df.iloc[i].std(ddof=0)
+                for i in range(df.shape[0])]
+        z_df = pd.DataFrame(z_df, columns=df.columns, index=df.index)
 
         # compute statistic for ranking
-        stats = self.stat_task.main(df=_df, subsets=subsets,
+        stats = self.stat_task.main(df=df, subsets=subsets,
                                     ranking_method=ranking_method)
-        del _df
-
-        # prepare output for front-end
-        z_df['feature'] = z_df.index
-        z_df = pd.melt(z_df, id_vars='feature')
-        df = df.merge(z_df, on=['id', 'feature'])
-        df.columns = ['id', 'feature', 'value', 'zscore']
 
         # sort by ranking_value
-        df['sort_value'] = df['feature'].apply(
-            lambda x: stats[stats['feature'] == x][ranking_method].tolist()[0])
-        df = df.sort_values('sort_value', ascending=False).drop('sort_value', 1)
+        df = pd.merge(df, stats[['feature', ranking_method]], how='left',
+                      left_index=True, right_on='feature')
+        df = df.sort_values(ranking_method, ascending=False) \
+            .drop(ranking_method, axis=1)
+
+        z_df = pd.merge(z_df, stats[['feature', ranking_method]], how='left',
+                        left_index=True, right_on='feature')
+        z_df = z_df.sort_values(ranking_method, ascending=False) \
+            .drop(ranking_method, axis=1)
 
         # discard rows according to max_rows
-        df = df[df['feature'].isin(df['feature'].unique()[:max_rows])]
+        df = df[:max_rows]
+        z_df = z_df[:max_rows]
+        stats = stats[:max_rows]
+
+        # prepare output for front-end
+        df = pd.melt(df, id_vars='feature', var_name='id')
+        z_df = pd.melt(z_df, id_vars='feature', var_name='id')
+        df = df.merge(z_df, on=['id', 'feature'])
+        df.rename(columns={'value_x': 'value', 'value_y': 'zscore'},
+                  inplace=True)
 
         return {
-            'data': df.to_json(orient='records'),
-            'stats': stats.to_json(orient='records')
+            'data': df.to_dict(orient='list'),
+            'stats': stats.to_dict(orient='list')
         }

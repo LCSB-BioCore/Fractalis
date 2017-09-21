@@ -120,7 +120,9 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         :param value: The string to test.
         :return: True if argument contains data_task_id.
         """
-        return value.startswith('$') and value.endswith('$')
+        return isinstance(value, str) and \
+               value.startswith('$') and \
+               value.endswith('$')
 
     @staticmethod
     def parse_value(value: str) -> Tuple[str, dict]:
@@ -157,7 +159,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
             value = args[arg]
 
             # value is data id
-            if isinstance(value, str) and self.contains_data_task_id(value):
+            if self.contains_data_task_id(value):
                 data_task_id, filters = self.parse_value(value)
                 df = self.data_task_id_to_data_frame(
                     data_task_id, session_data_tasks, decrypt)

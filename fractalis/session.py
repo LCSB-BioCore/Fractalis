@@ -24,6 +24,7 @@ class RedisSession(CallbackDict, SessionMixin):
         self.permanent = True
         self.modified = False
 
+
 class RedisSessionInterface(SessionInterface):
 
     def __init__(self, redis, app):
