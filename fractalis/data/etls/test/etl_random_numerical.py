@@ -8,24 +8,22 @@ import random
 from fractalis.data.etl import ETL
 
 
-class RandomNumericalArrayETL(ETL):
+class RandomNumericalETL(ETL):
 
-    name = 'test_numerical_array_etl'
-    produces = 'numerical_array'
+    name = 'test_numerical_etl'
+    produces = 'numerical'
 
     @staticmethod
     def can_handle(handler: str, descriptor: dict) -> bool:
         return handler == 'test' and \
-               descriptor['data_type'] == 'numerical_array'
+               descriptor['data_type'] == 'numerical'
 
     def extract(self, server: str,
                 token: str, descriptor: dict) -> pd.DataFrame:
-        features = [''.join(random.choice(string.ascii_letters + string.digits)
-                            for _ in range(10))
-                    for _ in range(descriptor['num_features'])]
-        data = pd.DataFrame(np.random.randn(
-            descriptor['num_samples'], descriptor['num_features']).tolist(),
-                            columns=features)
+        feature = ''.join(random.choice(string.ascii_letters + string.digits)
+                          for _ in range(30))
+        data = pd.DataFrame(np.random.randn(descriptor['num_samples']).tolist(),
+                            columns=[feature])
         return data
 
     def transform(self, raw_data: pd.DataFrame,

@@ -1,31 +1,25 @@
 """This module provides sample data."""
 
 import pandas as pd
-import numpy as np
-import string
 import random
 
 from fractalis.data.etl import ETL
 
 
-class RandomNumericalArrayETL(ETL):
+class RandomCategoricalETL(ETL):
 
-    name = 'test_numerical_array_etl'
-    produces = 'numerical_array'
+    name = 'test_categorical_etl'
+    produces = 'categorical'
 
     @staticmethod
     def can_handle(handler: str, descriptor: dict) -> bool:
         return handler == 'test' and \
-               descriptor['data_type'] == 'numerical_array'
+               descriptor['data_type'] == 'categorical'
 
     def extract(self, server: str,
                 token: str, descriptor: dict) -> pd.DataFrame:
-        features = [''.join(random.choice(string.ascii_letters + string.digits)
-                            for _ in range(10))
-                    for _ in range(descriptor['num_features'])]
-        data = pd.DataFrame(np.random.randn(
-            descriptor['num_samples'], descriptor['num_features']).tolist(),
-                            columns=features)
+        data = pd.DataFrame([random.choice(descriptor['values'])
+                             for i in range(descriptor['num_samples'])])
         return data
 
     def transform(self, raw_data: pd.DataFrame,
