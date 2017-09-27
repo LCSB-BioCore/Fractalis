@@ -80,6 +80,7 @@ class HeatmapTask(AnalyticTask):
         df = df.merge(z_df, on=['id', 'feature'])
         df.rename(columns={'value_x': 'value', 'value_y': 'zscore'},
                   inplace=True)
+        df = utils.apply_subsets(df, subsets)
 
         return {
             'data': df.to_dict(orient='list'),
