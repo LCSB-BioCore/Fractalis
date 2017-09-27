@@ -1,7 +1,5 @@
 """This module provides tests for the heatmap analysis main module."""
 
-import json
-
 import pytest
 import pandas as pd
 import numpy as np
@@ -184,3 +182,63 @@ class TestHeatmap:
         feature_col = data['feature'].tolist()
         assert ['D', 'C', 'D', 'C'] == feature_col
         assert result['stats']['feature'] == ['D', 'C']
+
+    def test_sorts_correct_for_different_criteria(self):
+        numerical_arrays = [
+            pd.DataFrame([[101, 'foo', 5], [101, 'bar', -12],
+                          [102, 'foo', 10], [102, 'bar', -25],
+                          [103, 'foo', 15], [103, 'bar', -20],
+                          [104, 'foo', 20], [104, 'bar', -50]],
+                         columns=['id', 'feature', 'value'])
+        ]
+        subsets = [[101, 102], [103, 104]]
+        result = self.task.main(numerical_arrays=numerical_arrays,
+                                numericals=[],
+                                categoricals=[],
+                                ranking_method='P.Value',
+                                id_filter=[],
+                                max_rows=100,
+                                subsets=subsets)
+        stats = result['stats']['P.Value']
+        assert all([stats[i] < stats[i + 1] for i in range(len(stats) - 1)])
+
+        result = self.task.main(numerical_arrays=numerical_arrays,
+                                numericals=[],
+                                categoricals=[],
+                                ranking_method='adj.P.Val',
+                                id_filter=[],
+                                max_rows=100,
+                                subsets=subsets)
+        stats = result['stats']['adj.P.Val']
+        assert all([stats[i] < stats[i + 1] for i in range(len(stats) - 1)])
+
+        result = self.task.main(numerical_arrays=numerical_arrays,
+                                numericals=[],
+                                categoricals=[],
+                                ranking_method='B',
+                                id_filter=[],
+                                max_rows=100,
+                                subsets=subsets)
+        stats = result['stats']['B']
+        assert all([stats[i] > stats[i + 1] for i in range(len(stats) - 1)])
+
+        result = self.task.main(numerical_arrays=numerical_arrays,
+                                numericals=[],
+                                categoricals=[],
+                                ranking_method='logFC',
+                                id_filter=[],
+                                max_rows=100,
+                                subsets=subsets)
+        stats = result['stats']['logFC']
+        assert all([abs(stats[i]) > abs(stats[i + 1])
+                    for i in range(len(stats) - 1)])
+
+        result = self.task.main(numerical_arrays=numerical_arrays,
+                                numericals=[],
+                                categoricals=[],
+                                ranking_method='t',
+                                id_filter=[],
+                                max_rows=100,
+                                subsets=subsets)
+        stats = result['stats']['t']
+        assert all([stats[i] > stats[i + 1] for i in range(len(stats) - 1)])

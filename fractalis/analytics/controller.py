@@ -1,6 +1,5 @@
 """The /analytics controller. Please refer to doc/api for more information."""
 
-import json
 import logging
 from typing import Tuple
 from uuid import UUID

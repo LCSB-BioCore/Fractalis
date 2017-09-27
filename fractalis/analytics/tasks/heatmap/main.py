@@ -63,17 +63,9 @@ class HeatmapTask(AnalyticTask):
                                     ranking_method=ranking_method)
 
         # sort by ranking_value
-        df = pd.merge(df, stats[['feature', ranking_method]], how='left',
-                      left_index=True, right_on='feature')
-        df.sort_values(ranking_method, ascending=False, inplace=True)
-        df.drop(ranking_method, axis=1, inplace=True)
-
-        z_df = pd.merge(z_df, stats[['feature', ranking_method]], how='left',
-                        left_index=True, right_on='feature')
-        z_df.sort_values(ranking_method, ascending=False, inplace=True)
-        z_df.drop(ranking_method, axis=1, inplace=True)
-
-        stats.sort_values(ranking_method, ascending=False, inplace=True)
+        self.sort(df, stats[ranking_method], ranking_method)
+        self.sort(z_df, stats[ranking_method], ranking_method)
+        self.sort(stats, stats[ranking_method], ranking_method)
 
         # discard rows according to max_rows
         df = df[:max_rows]
@@ -81,6 +73,8 @@ class HeatmapTask(AnalyticTask):
         stats = stats[:max_rows]
 
         # prepare output for front-end
+        df['feature'] = df.index
+        z_df['feature'] = z_df.index
         df = pd.melt(df, id_vars='feature', var_name='id')
         z_df = pd.melt(z_df, id_vars='feature', var_name='id')
         df = df.merge(z_df, on=['id', 'feature'])
@@ -91,3 +85,14 @@ class HeatmapTask(AnalyticTask):
             'data': df.to_dict(orient='list'),
             'stats': stats.to_dict(orient='list')
         }
+
+    @staticmethod
+    def sort(df, order, method):
+        order = order.tolist()
+        if method == 'P.Value' or method == 'adj.P.Val':
+            order = [1 - x for x in order]
+        elif method == 'logFC' or method == 't':
+            order = [abs(x) for x in order]
+        df['sort_value'] = order
+        df.sort_values('sort_value', ascending=False, inplace=True)
+        df.drop('sort_value', axis=1, inplace=True)
