@@ -6,7 +6,6 @@ import requests
 from pandas import DataFrame
 
 from fractalis.data.etl import ETL
-from fractalis.data.etls.transmart import observations_pb2
 
 logger = logging.getLogger(__name__)
 

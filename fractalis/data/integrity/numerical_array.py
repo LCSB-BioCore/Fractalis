@@ -39,7 +39,7 @@ class NumericalArrayIntegrityCheck(IntegrityCheck):
             error = "'value' column must be of type 'np.int' or 'np.float'."
             logger.error(error)
             raise ValueError(error)
-        if len(pd.unique(data[['id', 'feature']].values)) != data.shape[0]:
+        if data.groupby(['id', 'feature']).count().shape[0] != data.shape[0]:
             error = "Every combination of 'id' and 'feature' must be unique."
             logger.error(error)
             raise ValueError(error)

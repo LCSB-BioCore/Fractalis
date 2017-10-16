@@ -5,7 +5,7 @@ import json
 import logging
 import os
 
-from Crypto.Cipher import AES
+from Cryptodome.Cipher import AES
 from celery import Task
 from pandas import DataFrame
 

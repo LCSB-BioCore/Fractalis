@@ -22,7 +22,6 @@ setup(
         'sklearn',
         'requests',
         'PyYAML',
-        'pycrypto',
         'pycryptodomex',
         'rpy2'
     ],

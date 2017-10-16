@@ -8,7 +8,7 @@ from typing import List, Tuple
 
 from pandas import read_csv, DataFrame
 from celery import Task
-from Crypto.Cipher import AES
+from Cryptodome.Cipher import AES
 
 from fractalis import redis, app
 from fractalis.utils import get_cache_encrypt_key
