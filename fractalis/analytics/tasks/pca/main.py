@@ -26,7 +26,6 @@ class PCATask(AnalyticTask):
     def main(self,
              features: List[pd.DataFrame],
              categories: List[pd.DataFrame],
-             n_components: int,
              whiten: bool,
              id_filter: List[T],
              subsets: List[List[T]]) -> dict:
@@ -54,7 +53,7 @@ class PCATask(AnalyticTask):
         df = imp.transform(df)
 
         # PCA
-        pca = PCA(n_components=n_components, whiten=whiten)
+        pca = PCA(whiten=whiten)
         pca.fit(df)
         reduced_df = pca.transform(df)
 
@@ -76,7 +75,7 @@ class PCATask(AnalyticTask):
                                             categories=categories)
 
         return {
-            'data': reduced_df.to_json(orient='records'),
-            'loadings': loadings.to_json(orient='records'),
+            'data': reduced_df.to_dict(orient='list'),
+            'loadings': loadings.to_dict(orient='list'),
             'variance_ratios': variance_ratios.tolist()
         }

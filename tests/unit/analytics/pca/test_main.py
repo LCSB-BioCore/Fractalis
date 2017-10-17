@@ -1,6 +1,7 @@
 """This module provides test for the pca task."""
 
 import pandas as pd
+import numpy as np
 
 from fractalis.analytics.tasks.pca.main import PCATask
 
@@ -31,20 +32,19 @@ class TestPCATask:
         ]
         result = self.task.main(features=features,
                                 categories=categories,
-                                n_components=2,
                                 whiten=False,
                                 id_filter=[],
                                 subsets=[])
-        data = pd.read_json(result['data'])
-        assert data.shape == (5, 5)
-        assert '0' in list(data)
-        assert '1' in list(data)
-        assert 'category' in list(data)
-        assert 'subset' in list(data)
-        assert 'id' in list(data)
-        assert data['id'].tolist() == [101, 102, 103, 104, 105]
-        assert data['subset'].unique().tolist() == [0]
-        assert data['category'].unique().tolist() == ['a', None]
+        data = result['data']
+        assert 0 in data
+        assert 1 in data
+        assert 'category' in data
+        assert 'subset' in data
+        assert 'id' in data
+        assert data['id'] == [101, 102, 103, 104, 105]
+        assert data['subset'] == [0, 0, 0, 0, 0]
+        np.testing.assert_equal(data['category'],
+                                ['a', 'a', float('nan'), 'a', float('nan')])
 
     def test_id_filter_works(self):
         features = [
@@ -56,12 +56,11 @@ class TestPCATask:
         ]
         result = self.task.main(features=features,
                                 categories=[],
-                                n_components=2,
                                 whiten=False,
                                 id_filter=[101, 104],
                                 subsets=[])
-        data = pd.read_json(result['data'])
-        assert data['id'].unique().tolist() == [101, 104]
+        data = result['data']
+        assert all(np.unique(data['id']) == [101, 104])
 
     def test_correct_loadings(self):
         features = [
@@ -73,13 +72,12 @@ class TestPCATask:
         ]
         result = self.task.main(features=features,
                                 categories=[],
-                                n_components=2,
                                 whiten=False,
                                 id_filter=[],
                                 subsets=[])
-        loadings = pd.read_json(result['loadings'])
-        assert loadings['0'].tolist()[0] == -loadings['0'].tolist()[1]
-        assert loadings['1'].tolist()[0] == loadings['1'].tolist()[1]
+        loadings = result['loadings']
+        assert loadings[0][0] == -loadings[0][1]
+        assert loadings[1][0] == loadings[1][1]
 
     def test_correct_variance_ratios(self):
         features = [
@@ -91,7 +89,6 @@ class TestPCATask:
         ]
         result = self.task.main(features=features,
                                 categories=[],
-                                n_components=2,
                                 whiten=False,
                                 id_filter=[],
                                 subsets=[])
