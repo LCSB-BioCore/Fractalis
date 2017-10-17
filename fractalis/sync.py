@@ -55,7 +55,10 @@ def cleanup_all() -> None:
     for key in redis.keys('data:*'):
         value = redis.get(key)
         data_state = json.loads(value)
-        celery.AsyncResult(data_state['task_id']).get(propagate=False)
+        try:
+            celery.AsyncResult(data_state.get('task_id')).get(propagate=False)
+        except ValueError:
+            pass
         # celery.control.revoke(data_state['task_id'], terminate=True,
         #                       signal='SIGUSR1', wait=True)
     redis.flushall()

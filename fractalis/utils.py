@@ -1,8 +1,9 @@
 import os
-import glob
 import inspect
 import importlib
+from pathlib import Path
 from typing import List
+from importlib.machinery import SourceFileLoader
 
 
 def import_module_by_abs_path(module_path: str) -> object:
@@ -11,10 +12,7 @@ def import_module_by_abs_path(module_path: str) -> object:
     :return: A reference to the imported module.
     """
     module_name = os.path.splitext(os.path.basename(module_path))[0]
-    spec = importlib.util.spec_from_file_location(module_name, module_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return SourceFileLoader(module_name, module_path).load_module()
 
 
 def list_classes_with_base_class(
@@ -28,8 +26,8 @@ def list_classes_with_base_class(
     package = importlib.import_module(package)
     abs_path = os.path.dirname(os.path.abspath(package.__file__))
     class_list = []
-    for module_path in glob.iglob('{}/*/**/*.py'.format(abs_path),
-                                  recursive=True):
+    for f in Path(abs_path).glob('*/**/*.py'):
+        module_path = str(f)
         if not os.path.basename(module_path).startswith('_'):
             module = import_module_by_abs_path(module_path)
             classes = inspect.getmembers(module, inspect.isclass)
