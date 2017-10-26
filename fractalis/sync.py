@@ -14,7 +14,7 @@ from fractalis import redis, app, celery
 logger = logging.getLogger(__name__)
 
 
-def remove_data(task_id: str, wait: bool=False) -> None:
+def remove_data(task_id: str) -> None:
     """Remove all traces of any data associated with the given id. That includes
     redis and the file system.
     :param task_id: The id associated with a data state
@@ -26,18 +26,14 @@ def remove_data(task_id: str, wait: bool=False) -> None:
     redis.delete(key)
     if value:
         data_state = json.loads(value)
-        async_result = remove_file.delay(data_state['file_path'])
-        if wait:
-            async_result.get(propagate=False)
+        remove_file(data_state['file_path'])
     else:
         logger.warning("Can't delete file for task id '{}',because there is "
                        "no associated entry in Redis.".format(task_id))
 
 
-@celery.task
 def remove_file(file_path: str) -> None:
-    """Remove the file for the given file path. This is a task because celery
-    workers might not have the same file system than the web service.
+    """Remove the file for the given file path.
     :param file_path: Path of file to remove.
     """
     try:
