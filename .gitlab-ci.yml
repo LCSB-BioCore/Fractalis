@@ -7,7 +7,7 @@ before_script:
 
     # install dependencies
     - yum install -y rabbitmq-server redis python34 python34-pip python34-devel readline-devel R
-    - pip3 install -e . --default-timeout=180
+    - pip3 install -e . -i https://pypi.lcsb.uni.lu/simple
     - R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma")'
 
     # start services
