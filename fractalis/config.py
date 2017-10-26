@@ -26,10 +26,10 @@ CELERY_TASK_RESULT_EXPIRES = timedelta(hours=1)
 CELERYD_HIJACK_ROOT_LOGGER = False
 
 # Fractalis
-FRACTALIS_TMP_DIR = os.path.abspath(os.path.join(
-    os.sep, 'tmp', 'fractalis'))
+FRACTALIS_TMP_DIR = os.path.abspath(os.path.join(os.sep, 'tmp', 'fractalis'))
 FRACTALIS_CACHE_EXP = timedelta(days=10)
 FRACTALIS_ENCRYPT_CACHE = False
+FRACTALIS_LOG_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.yaml')
 
 
 # DO NOT MODIFY THIS FILE DIRECTLY

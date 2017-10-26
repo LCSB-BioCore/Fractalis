@@ -1,10 +1,6 @@
-"""Initialize Fractalis Flask app and configure it.
+"""Initialize Fractalis Flask app and configure it."""
 
-Modules in this package:
-    - config -- Manages Fractalis Flask app configuration
-"""
 import logging.config
-
 import os
 import yaml
 from flask import Flask
@@ -28,7 +24,7 @@ except RuntimeError:
     pass
 
 # setup logging
-with open(os.path.join(os.path.dirname(__file__), 'logging.yaml'), 'rt') as f:
+with open(app.config['FRACTALIS_LOG_CONFIG'], 'rt') as f:
     log_config = yaml.safe_load(f.read())
 logging.config.dictConfig(log_config)
 log = logging.getLogger(__name__)
