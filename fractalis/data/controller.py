@@ -107,7 +107,7 @@ def delete_data(task_id: str) -> Tuple[Response, int]:
     session['data_tasks'].remove(task_id)
     # possibly dangerous: http://stackoverflow.com/a/29627549
     celery.control.revoke(task_id, terminate=True, signal='SIGUSR1', wait=wait)
-    remove_data(task_id=task_id, wait=wait)
+    remove_data(task_id=task_id)
     logger.debug("Successfully removed data from session. Sending response.")
     return jsonify(''), 200
 
@@ -120,7 +120,7 @@ def delete_all_data() -> Tuple[Response, int]:
     logger.debug("Received DELETE request on /data.")
     wait = request.args.get('wait') == '1'
     for task_id in session['data_tasks']:
-        remove_data(task_id=task_id, wait=wait)
+        remove_data(task_id=task_id)
         # possibly dangerous: http://stackoverflow.com/a/29627549
         celery.control.revoke(task_id, terminate=True,
                               signal='SIGUSR1', wait=wait)
