@@ -1,7 +1,6 @@
 """Initialize Fractalis Flask app and configure it."""
 
 import logging.config
-import os
 import yaml
 from flask import Flask
 from flask_cors import CORS
@@ -75,5 +74,5 @@ log.info("Initialisation of service complete.")
 
 if __name__ == '__main__':
     log.info("Starting builtin web server.")
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
     log.info("Builtin web server started.")
