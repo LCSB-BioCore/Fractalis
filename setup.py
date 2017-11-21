@@ -24,7 +24,8 @@ setup(
         'requests==2.18.4',
         'PyYAML==3.12',
         'pycryptodomex==3.4.7',
-        'rpy2==2.9.0'
+        'rpy2==2.9.0',
+        'flake8==3.5.0'
     ],
     setup_requires=[
         'pytest-runner==2.12.1',

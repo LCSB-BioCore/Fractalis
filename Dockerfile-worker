@@ -10,14 +10,8 @@ RUN apt-get update \
 		python3.5-dev \
 		python3-pip \
 		python3-setuptools \
-		rabbitmq-server \
-		redis-server \
 		r-bioc-limma
 RUN pip3 install wheel
 RUN pip3 install -e /app --default-timeout 180
-RUN /etc/init.d/redis-server start
-RUN /etc/init.d/rabbitmq-server start
-RUN celery worker -A fractalis:celery -D -l info
 
-EXPOSE 5000
-CMD ["python3", "fractalis/__init__.py"]
+CMD ["celery", "worker", "-A", "fractalis:celery"]

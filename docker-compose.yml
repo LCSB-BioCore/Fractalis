@@ -1,0 +1,24 @@
+version: '3'
+services:
+    web:
+        build:
+            context: .
+            dockerfile: Dockerfile-web
+        environment:
+            - FRACTALIS_CONFIG=${FRACTALIS_CONFIG}
+            - REDIS_HOST=redis
+            - RABBITMQ_HOST=rabbitmq
+        ports:
+            - '5000:5000'
+    worker:
+        build:
+            context: .
+            dockerfile: Dockerfile-worker
+        environment:
+            - FRACTALIS_CONFIG=${FRACTALIS_CONFIG}
+            - REDIS_HOST=redis
+            - RABBITMQ_HOST=rabbitmq
+    redis:
+        image: 'redis:alpine'
+    rabbitmq:
+        image: 'rabbitmq:alpine'

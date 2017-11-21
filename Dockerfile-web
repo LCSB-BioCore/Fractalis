@@ -1,0 +1,17 @@
+FROM buildpack-deps:stretch
+
+WORKDIR /app
+COPY . /app
+
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends \
+		r-base \
+		python3.5 \
+		python3.5-dev \
+		python3-pip \
+		python3-setuptools \
+		r-bioc-limma
+RUN pip3 install wheel
+RUN pip3 install -e /app --default-timeout 180
+
+CMD ["python3", "fractalis/__init__.py"]
