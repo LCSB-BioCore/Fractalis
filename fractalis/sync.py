@@ -44,7 +44,7 @@ def remove_file(file_path: str) -> None:
 
 
 def cleanup_all() -> None:
-    """Reset redis, celery and the filesystem. This is only useful for testing 
+    """Reset redis, celery and the filesystem. This is only useful for testing
     and should !!!NEVER!!! be used for anything else.
     """
     celery.control.purge()

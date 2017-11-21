@@ -51,15 +51,19 @@ def apply_categories(df: pd.DataFrame,
         # drop 'feature' column from dfs
         categories = [df.drop('feature', axis=1) for df in categories]
         # merge all dfs into one
-        data = reduce(lambda l, r: l.merge(r, on='id', how='outer'), categories)
+        data = reduce(lambda l, r: l.merge(r, on='id', how='outer'),
+                      categories)
         # remember ids
         ids = data['id']
         # drop id column
         data = data.drop('id', axis=1)
         # replace everything that is not an category with ''
-        data = data.applymap(lambda el: el if isinstance(el, str) and el else '')
+        data = data.applymap(
+            lambda el: el if isinstance(el, str) and el else '')
         # join all columns with && into a single one. Ignore '' entries.
-        data = data.apply(lambda row: ' AND '.join(list(map(str, [el for el in row.tolist() if el]))), axis=1)
+        data = data.apply(
+            lambda row: ' AND '.join(
+                list(map(str, [el for el in row.tolist() if el]))), axis=1)
         # cast Series to DataFrame
         data = pd.DataFrame(data, columns=['category'])
         # reassign ids to collapsed df

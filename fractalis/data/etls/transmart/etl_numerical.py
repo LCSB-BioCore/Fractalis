@@ -18,7 +18,8 @@ class NumericalETL(ETL):
 
     @staticmethod
     def can_handle(handler: str, descriptor: dict) -> bool:
-        return handler == 'transmart' and descriptor['data_type'] == 'numerical'
+        return (handler == 'transmart' and
+                descriptor['data_type'] == 'numerical')
 
     def extract(self, server: str, token: str, descriptor: dict) -> dict:
         return extract_data(server=server, descriptor=descriptor, token=token)

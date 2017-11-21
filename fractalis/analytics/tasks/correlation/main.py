@@ -70,7 +70,7 @@ class CorrelationTask(AnalyticTask):
     @staticmethod
     def merge_x_y(x: pd.DataFrame, y: pd.DataFrame) -> pd.DataFrame:
         """Merge the x and y DataFrame and drop all rows containing NA.
-        :param x: The x-axis values. 
+        :param x: The x-axis values.
         :param y: The y-axis values.
         :return: The merged data frame.
         """
@@ -84,11 +84,11 @@ class CorrelationTask(AnalyticTask):
     def compute_stats(df: pd.DataFrame, method: str) -> dict:
         """Compute correlation statistics for the given data and the given
         correlation method.
-        :param df: The DataFrame containing our data. 
+        :param df: The DataFrame containing our data.
         :param method: The method to use.
         :param x_label: The name of the x-axis.
         :param y_label: The name of the y-axis.
-        :return: Coefficient, p-value, regression slope and regression intercept
+        :return: Several relevant statistics
         """
         df = df.drop_duplicates('id')
         df = df.dropna()

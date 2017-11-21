@@ -41,6 +41,7 @@ class SumDataFrameTask(AnalyticTask):
         result = {'sum': a.sum().sum()}
         return result
 
+
 class MergeDataFramesTask(AnalyticTask):
 
     name = 'merge_df_task'
@@ -50,6 +51,7 @@ class MergeDataFramesTask(AnalyticTask):
             return {'df': ''}
         df = reduce(lambda l, r: l.append(r), df_list)
         return {'df': df.to_json(orient='records')}
+
 
 class InvalidReturnTask(AnalyticTask):
 

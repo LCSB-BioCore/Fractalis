@@ -35,7 +35,7 @@ class TestTransmartHandler:
     def test_returns_token_for_credentials(self):
         with responses.RequestsMock() as response:
             response.add(response.POST, 'http://foo.bar/oauth/token',
-                         body='{"access_token":"foo-token","token_type":"bearer","expires_in":43185,"scope":"read write"}',
+                         body='{"access_token":"foo-token","token_type":"bearer","expires_in":43185,"scope":"read write"}',  # noqa: 501
                          status=200,
                          content_type='application/json')
             tmh = TransmartHandler(server='http://foo.bar',

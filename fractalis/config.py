@@ -1,6 +1,4 @@
 import os
-import logging
-from uuid import uuid4
 from datetime import timedelta
 
 # DO NOT MODIFY THIS FILE DIRECTLY

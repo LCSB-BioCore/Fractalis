@@ -20,8 +20,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
     """This is an abstract class that implements a celery Task and provides a
     factory method to create instances of implementations of itself. Its main
     purpose is to  manage extraction of the data from the target server. ETL
-    stands for (E)xtract (T)ransform (L)oad and not by coincidence similar named
-    methods can be found in this class.
+    stands for (E)xtract (T)ransform (L)oad and not by coincidence similar
+    named methods can be found in this class.
     """
 
     @property
@@ -69,10 +69,11 @@ class ETL(Task, metaclass=abc.ABCMeta):
                     return ETLTask()
             except Exception as e:
                 logger.warning("Caught exception and assumed that ETL '{}' "
-                               "cannot handle handler '{}' and descriptor: '{}'"
-                               " Exception:'{}'".format(type(ETLTask).__name__,
-                                                        handler,
-                                                        str(descriptor), e))
+                               "cannot handle handler '{}' "
+                               "and descriptor: '{}'. Exception:'{}'".format(
+                                   type(ETLTask).__name__,
+                                   handler,
+                                   str(descriptor), e))
                 continue
 
         raise NotImplementedError(
@@ -156,7 +157,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         :param descriptor: Contains all necessary information to download data
         :param file_path: The location where the data will be stored
         :param encrypt: Whether or not the data should be encrypted.
-        :return: The data id. Used to access the associated redis entry later on
+        :return: The data id. Used to access the associated redis entry later
         """
         logger.info("Starting ETL process ...")
         logger.info("(E)xtracting data from server '{}'.".format(server))

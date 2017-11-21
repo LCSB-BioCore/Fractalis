@@ -13,7 +13,8 @@ class TestCategoricalIntegrityCheck:
     checker = IntegrityCheck.factory('categorical')
 
     def test_correct_check_1(self):
-        df = pd.DataFrame([['1', '2', '3']], columns=['id', 'feature', 'value'])
+        df = pd.DataFrame([['1', '2', '3']],
+                          columns=['id', 'feature', 'value'])
         self.checker.check(df)
 
     def test_correct_check_2(self):

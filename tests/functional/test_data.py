@@ -263,7 +263,8 @@ class TestData:
             assert not data_state['loaded']
             assert 'task_id' in data_state
 
-    def test_valid_state_for_finished_etl_on_delete(self, test_client, payload):
+    def test_valid_state_for_finished_etl_on_delete(
+            self, test_client, payload):
         test_client.post('/data?wait=1', data=payload['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
@@ -345,7 +346,7 @@ class TestData:
             rv = test_client.get('/data/meta/{}'.format(data_state['task_id']))
             body = flask.json.loads(rv.get_data())
             assert rv.status_code == 200
-            assert not 'features' in body['meta']
+            assert 'features' not in body['meta']
 
     def test_valid_response_after_loaded_on_meta(self, test_client, payload):
         test_client.post('/data?wait=1', data=payload['serialized'])

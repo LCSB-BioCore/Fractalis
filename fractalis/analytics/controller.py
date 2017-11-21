@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def create_task() -> Tuple[Response, int]:
     """Create a new analytics task based on the parameters in the POST body.
     See doc/api/ for more information.
-    :return: Flask Response 
+    :return: Flask Response
     """
     logger.debug("Received POST request on /analytics.")
     json = request.get_json(force=True)
@@ -46,7 +46,7 @@ def get_task_details(task_id: UUID) -> Tuple[Response, int]:
     """Get task details for the given task_id.
      See doc/api/ for more information.
     :param task_id: ID returned on task creation.
-    :return: Flask Response 
+    :return: Flask Response
     """
     logger.debug("Received GET request on /analytics/task_id.")
     wait = request.args.get('wait') == '1'

@@ -66,12 +66,12 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
     def data_task_id_to_data_frame(
             self, data_task_id: str,
             session_data_tasks: List[str], decrypt: bool) -> DataFrame:
-        """Attempts to load the data frame associated with the provided data id.
+        """Attempts to load the data frame associated with the provided data id
         :param data_task_id: The data id associated with the previously loaded
         data.
         :param session_data_tasks: A list of data tasks previously executed by
         this the requesting session. This is used for permission checks.
-        :param decrypt: Specify whether the data have to be decrypted for usage.
+        :param decrypt: Specify whether the data have to be decrypted for usage
         only part of the data, for instance some genes out of thousands.
         :return: A pandas data frame associated with the data id.
         """
@@ -104,8 +104,8 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
     def apply_filters(df: DataFrame, filters: dict) -> DataFrame:
         """Apply filter to data frame and return it.
         :param df: The data frame.
-        :param filters: The filters where each key is represents a column in the
-        data frame and the value a list of values to keep.
+        :param filters: The filters where each key is represents a column
+        in the data frame and the value a list of values to keep.
         :return: Filtered data frame.
         """
         for key in filters:
@@ -121,8 +121,8 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         :return: True if argument contains data_task_id.
         """
         return isinstance(value, str) and \
-               value.startswith('$') and \
-               value.endswith('$')
+            value.startswith('$') and \
+            value.endswith('$')
 
     @staticmethod
     def parse_value(value: str) -> Tuple[str, dict]:
@@ -146,7 +146,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
 
     def prepare_args(self, session_data_tasks: List[str],
                      args: dict, decrypt: bool) -> dict:
-        """Replace data task ids in the arguments with their associated 
+        """Replace data task ids in the arguments with their associated
         data frame located on the file system. This currently works for non
         nested strings and non nested lists containing strings.
         :param session_data_tasks: We use this list to check access.

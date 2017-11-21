@@ -39,6 +39,7 @@ def make_celery(app: Flask) -> Celery:
     celery.conf.update(app.config)
 
     TaskBase = celery.Task
+
     class ContextTask(TaskBase):
         abstract = True
 
@@ -66,6 +67,3 @@ def register_tasks() -> None:
     for analytics_task_class in analytics_task_classes:
         logger.info("Registering task: {}".format(analytics_task_class.name))
         celery.tasks.register(analytics_task_class)
-
-
-

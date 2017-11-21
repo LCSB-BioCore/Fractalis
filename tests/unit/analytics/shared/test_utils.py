@@ -19,10 +19,14 @@ class TestCommonTasks:
     def test_apply_categorys(self):
         df = pd.DataFrame([[101, 'foo', 1], [102, 'foo', 2], [103, 'foo', 3]],
                           columns=['id', 'feature', 'value'])
-        c1 = pd.DataFrame([[101, 'c1', 'a'], [102, 'c1', 'b'], [105, 'c1', 'c']],
+        c1 = pd.DataFrame([[101, 'c1', 'a'],
+                           [102, 'c1', 'b'],
+                           [105, 'c1', 'c']],
                           columns=['id', 'feature', 'value'])
-        c2 = pd.DataFrame([[106, 'c2', 'd']], columns=['id', 'feature', 'value'])
-        c3 = pd.DataFrame([[102, 'c3', 'f']], columns=['id', 'feature', 'value'])
+        c2 = pd.DataFrame([[106, 'c2', 'd']],
+                          columns=['id', 'feature', 'value'])
+        c3 = pd.DataFrame([[102, 'c3', 'f']],
+                          columns=['id', 'feature', 'value'])
         result = utils.apply_categories(df=df, categories=[c1, c2, c3])
         assert result['category'].tolist()[:2] == ['a', 'b AND f']
         assert np.isnan(result['category'].tolist()[2])

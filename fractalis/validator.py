@@ -1,5 +1,5 @@
 """
-Documentation: http://stackoverflow.com/questions/24238743/flask-decorator-to-verify-json-and-json-schema
+Documentation: http://stackoverflow.com/questions/24238743/flask-decorator-to-verify-json-and-json-schema  # noqa: 501
 """
 from functools import wraps
 

@@ -90,4 +90,3 @@ class RedisSessionInterface(SessionInterface):
         response.set_cookie(key=app.session_cookie_name, value=session.sid,
                             expires=cookie_expiration_time, httponly=True,
                             domain=domain)
-

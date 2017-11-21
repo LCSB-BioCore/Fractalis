@@ -35,7 +35,8 @@ class TestNumericalArrayIntegrityCheck:
             assert "must be of type 'object'" in e
 
     def test_correct_check_5(self):
-        df = pd.DataFrame([['1', '2', '3']], columns=['id', 'feature', 'value'])
+        df = pd.DataFrame([['1', '2', '3']],
+                          columns=['id', 'feature', 'value'])
         with pytest.raises(ValueError) as e:
             self.checker.check(df)
             assert "must be of type 'np.int'" in e

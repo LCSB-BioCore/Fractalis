@@ -77,7 +77,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
                            descriptor: dict, data_type: str) -> None:
         """Creates an entry in Redis that reflects all meta data surrounding the
         downloaded data. E.g. data type, file system location, ...
-        :param task_id: Id associated with the loaded data. 
+        :param task_id: Id associated with the loaded data.
         :param file_path: Location of the data on the file system.
         :param descriptor: Describes the data and is used to download them.
         :param data_type: The fractalis internal data type of the loaded data.
@@ -98,8 +98,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
 
     def handle(self, descriptors: List[dict], wait: bool = False) -> List[str]:
         """Create instances of ETL for the given descriptors and submit them
-        (ETL implements celery.Task) to the broker. The task ids are returned to
-        keep track of them.
+        (ETL implements celery.Task) to the broker. The task ids are returned
+        to keep track of them.
         :param descriptors: A list of items describing the data to download.
         :param wait: Makes this method synchronous by waiting for the tasks to
         return.

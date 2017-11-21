@@ -57,8 +57,8 @@ class ClusteringTask(AnalyticTask):
             'col_clusters': list(zip(col_names, col_clusters))
         }
 
-    def _hclust(self, df: pd.DataFrame,
-                method: str, metric: str, n_clusters: int) -> Tuple[List, List]:
+    def _hclust(self, df: pd.DataFrame, method: str,
+                metric: str, n_clusters: int) -> Tuple[List, List]:
         names = list(df.index)
         values = df.values
         z = hclust.linkage(values, method=method, metric=metric)

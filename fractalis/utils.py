@@ -8,7 +8,7 @@ from importlib.machinery import SourceFileLoader
 
 def import_module_by_abs_path(module_path: str) -> object:
     """Import the module for the given path.
-    :param module_path: The absolute path to the module. 
+    :param module_path: The absolute path to the module.
     :return: A reference to the imported module.
     """
     module_name = os.path.splitext(os.path.basename(module_path))[0]
@@ -19,7 +19,7 @@ def list_classes_with_base_class(
         package: str, base_class: object) -> List[object]:
     """For the given base_class list classes in the given package that do
     implement it.
-    :param package: The package to search. 
+    :param package: The package to search.
     :param base_class: The base class.
     :return: A list of classes that implement the base class.
     """

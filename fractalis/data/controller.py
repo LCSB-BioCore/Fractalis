@@ -32,7 +32,8 @@ def create_data_task() -> Tuple[Response, int]:
     etl_handler = ETLHandler.factory(handler=payload['handler'],
                                      server=payload['server'],
                                      auth=payload['auth'])
-    task_ids = etl_handler.handle(descriptors=payload['descriptors'], wait=wait)
+    task_ids = etl_handler.handle(descriptors=payload['descriptors'],
+                                  wait=wait)
     session['data_tasks'] += task_ids
     session['data_tasks'] = list(set(session['data_tasks']))
     logger.debug("Tasks successfully submitted. Sending response.")
@@ -70,7 +71,7 @@ def get_all_data() -> Tuple[Response, int]:
     """Get information for all tasks that have been submitted in the lifetime
     of the current session.
     See doc/api/ for more information.
-    :return: Information associated with each submitted task 
+    :return: Information associated with each submitted task
     """
     logger.debug("Received GET request on /data.")
     wait = request.args.get('wait') == '1'

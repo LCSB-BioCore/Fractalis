@@ -34,4 +34,3 @@ class DoubleETL(ETL):
         data = shared.name_to_label(data, descriptor)
         df = shared.make_data_frame(data)
         return df
-

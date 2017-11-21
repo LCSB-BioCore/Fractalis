@@ -22,8 +22,9 @@ class RandomNumericalETL(ETL):
                 token: str, descriptor: dict) -> pd.DataFrame:
         feature = ''.join(random.choice(string.ascii_letters + string.digits)
                           for _ in range(30))
-        data = pd.DataFrame(np.random.randn(descriptor['num_samples']).tolist(),
-                            columns=[feature])
+        data = pd.DataFrame(
+            np.random.randn(descriptor['num_samples']).tolist(),
+            columns=[feature])
         return data
 
     def transform(self, raw_data: pd.DataFrame,

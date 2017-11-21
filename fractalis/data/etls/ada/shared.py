@@ -21,7 +21,7 @@ def get_field(server: str, data_set: str,
                      params={
                          'dataSet': data_set,
                          'projection': ['_id', projection],
-                         'filterOrId': '[{{"fieldName":"{}","conditionType":"!=","value":""}}]'.format(projection)
+                         'filterOrId': '[{{"fieldName":"{}","conditionType":"!=","value":""}}]'.format(projection)  # noqa: 501
                      },
                      cookies=cookie,
                      timeout=60)

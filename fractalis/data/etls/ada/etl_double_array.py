@@ -29,7 +29,8 @@ class DoubleArrayETL(ETL):
                                 cookie=cookie, projection=projection)
         return data
 
-    def transform(self, raw_data: List[dict], descriptor: dict) -> pd.DataFrame:
+    def transform(self, raw_data: List[dict],
+                  descriptor: dict) -> pd.DataFrame:
         name = descriptor['dictionary']['name']
         ids = []
         values = []
@@ -40,4 +41,3 @@ class DoubleArrayETL(ETL):
         df.insert(0, 'id', ids)
         df = pd.melt(df, id_vars='id', var_name='feature')
         return df
-

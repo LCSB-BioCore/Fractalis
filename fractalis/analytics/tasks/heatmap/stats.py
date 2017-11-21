@@ -112,8 +112,8 @@ class StatisticTask(AnalyticTask):
         r_design = r['model.matrix'](r_form)
         r_design.colnames = R.StrVector(groups)
         r_data = pandas2ri.py2ri(df)
-        # the next two lines are necessary if column ids are not unique, because
-        # the python to r transformation drops those columns otherwise
+        # the next two lines are necessary if column ids are not unique,
+        # because the python to r transformation drops those columns otherwise
         r_ids = R.StrVector(['X{}'.format(id) for id in ids])
         r_data = r_data.rx(r_ids)
         r_fit = r['lmFit'](r_data, r_design)

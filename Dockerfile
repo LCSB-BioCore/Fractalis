@@ -21,4 +21,3 @@ RUN celery worker -A fractalis:celery -D -l info
 
 EXPOSE 5000
 CMD ["python3", "fractalis/__init__.py"]
-
