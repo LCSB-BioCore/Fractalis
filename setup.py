@@ -6,7 +6,13 @@ from setuptools import find_packages
 setup(
     name='fractalis',
     packages=find_packages(),
+    author='Sascha Herzinger',
+    author_email='sascha.herzinger@uni.lu',
+    url='https://git-r3lab.uni.lu/Fractalis/fractalis',
+    version='0.1.1',
+    license='Apache2',
     include_package_data=True,
+    python_requires='>=3.4',
     install_requires=[
         'Flask==0.12.2',
         'flask-cors==3.0.3',
