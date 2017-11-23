@@ -36,9 +36,9 @@ pypi_package:
         - echo "password=" ${PYPI_PASSWORD} >> ~/.pypirc
         - python3 setup.py check sdist upload
     only:
-        tags
+        - tags
     except:
-        branches
+        - branches
 
 rm_secrets:
     stage: cleanup
