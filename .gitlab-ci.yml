@@ -7,34 +7,41 @@ variables:
 stage:
     - test
     - deploy
+    - cleanup
+
+before_script:
+    # add epel-repo to centos
+    - yum install -y epel-release
+    - yum update -y
+    # install dependencies
+    - yum install -y rabbitmq-server redis python34 python34-pip python34-devel readline-devel R
+    - pip3 install -e . -i https://pypi.lcsb.uni.lu/simple
+    - R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma")'
+    # start services
+    - redis-server --daemonize yes
+    - rabbitmq-server -detached
+    - celery worker -A fractalis:celery -D -l info
 
 tests:
     stage: test
-    before_script:
-        # add epel-repo to centos
-        - yum install -y epel-release
-        - yum update -y
-        # install dependencies
-        - yum install -y rabbitmq-server redis python34 python34-pip python34-devel readline-devel R
-        - pip3 install -e . -i https://pypi.lcsb.uni.lu/simple
-        - R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma")'
-        # start services
-        - redis-server --daemonize yes
-        - rabbitmq-server -detached
-        - celery worker -A fractalis:celery -D -l info
     script:
         - python3 setup.py test
         - flake8
 
 pypi_package:
     stage: deploy
-    before_script:
-        - echo "[server-login]" >> ~/.pypirc
+    script:
+        - echo "[server-login]" > ~/.pypirc
         - echo "username=" ${PYPI_USER} >> ~/.pypirc
         - echo "password=" ${PYPI_PASSWORD} >> ~/.pypirc
-    script:
-        - python setup.py check sdist upload
+        - python3 setup.py check sdist upload
     only:
         tags
     except:
         branches
+
+rm_secrets:
+    stage: cleanup
+    when: always
+    script:
+        - rm -f ~/.pypirc
