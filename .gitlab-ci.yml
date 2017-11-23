@@ -5,8 +5,8 @@ variables:
     PYPI_PASSWORD: SECURE
 
 stage:
-    test
-    deploy
+    - test
+    - deploy
 
 tests:
     stage: test
@@ -29,9 +29,10 @@ tests:
 pypi_package:
     stage: deploy
     before_script:
-        - echo "[server-login]" > ~/.pypirc
+        - echo "[server-login]" >> ~/.pypirc
         - echo "username=" ${PYPI_USER} >> ~/.pypirc
         - echo "password=" ${PYPI_PASSWORD} >> ~/.pypirc
+    script:
         - python setup.py check sdist upload
     only:
         tags
