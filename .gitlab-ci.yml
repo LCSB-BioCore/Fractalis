@@ -6,18 +6,15 @@ variables:
 
 stages:
     - test
-    - deploy
+    - publish
     - cleanup
 
-before_script:
-    # add epel-repo to centos
+script:
     - yum install -y epel-release
     - yum update -y
-    # install dependencies
     - yum install -y rabbitmq-server redis python34 python34-pip python34-devel readline-devel R
     - pip3 install -e . -i https://pypi.lcsb.uni.lu/simple
     - R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma")'
-    # start services
     - redis-server --daemonize yes
     - rabbitmq-server -detached
     - celery worker -A fractalis:celery -D -l info
@@ -28,8 +25,8 @@ tests:
         - python3 setup.py test
         - flake8
 
-pypi_package:
-    stage: deploy
+release:
+    stage: publish
     script:
         - echo "[server-login]" > ~/.pypirc
         - echo "username=" ${PYPI_USER} >> ~/.pypirc
