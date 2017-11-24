@@ -30,15 +30,6 @@ setup(
         'requests==2.18.4',
         'PyYAML==3.12',
         'pycryptodomex==3.4.7',
-        'rpy2==2.9.0',
-        'flake8==3.4.1'
-    ],
-    setup_requires=[
-        'pytest-runner==2.12.1',
-    ],
-    tests_require=[
-        'pytest==3.0.3',
-        'pytest-mock==1.6.3',
-        'responses==0.8.1'
+        'rpy2==2.9.0'
     ]
 )

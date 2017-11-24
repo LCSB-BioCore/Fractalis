@@ -1,0 +1,9 @@
+flake8
+jedi
+neovim
+ipython
+ipdb
+pytest
+pytest-runner
+pytest-mock
+responses
