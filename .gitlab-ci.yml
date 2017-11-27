@@ -36,8 +36,6 @@ release:pypi:
         - python3 setup.py check sdist upload
     only:
         - tags
-    dependencies:
-        - install_deps
 
 cleanup:secrets:
     stage: cleanup
