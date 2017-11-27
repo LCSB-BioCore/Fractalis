@@ -29,8 +29,8 @@ release:pypi:
         - yum install -y epel-release
         - yum update -y
         - yum install -y python34 python34-pip
-	- pip3 install twine
+        - pip3 install twine
         - python3 setup.py sdist
-	- twine upload dist/* -u ${PYPI_USER} -p ${PYPI_PASSWORD}
+        - twine upload dist/* -u ${PYPI_USER} -p ${PYPI_PASSWORD}
     only:
         - tags
