@@ -5,13 +5,12 @@ variables:
     PYPI_PASSWORD: SECURE
 
 stages:
-    - setup
     - test
-    - publish
+    - release
     - cleanup
 
-install_deps:
-    stage: setup
+test:all:
+    stage: test
     script:
         - yum install -y epel-release
         - yum update -y
@@ -19,33 +18,28 @@ install_deps:
         - pip3 install -e . -i https://pypi.lcsb.uni.lu/simple
         - pip3 install -r requirements.txt -i https://pypi.lcsb.uni.lu/simple
         - R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma")'
-
-tests:
-    stage: test
-    script:
         - redis-server --daemonize yes
         - rabbitmq-server -detached
         - celery worker -A fractalis:celery -D -l info
         - python3 setup.py test
         - flake8
-    dependencies:
-        - install_deps
 
-release:
-    stage: publish
+release:pypi:
+    stage: release
     script:
+        - yum install -y epel-release
+        - yum update -y
+        - yum install -y python34 python34-pip
         - echo "[server-login]" > ~/.pypirc
         - echo "username=" ${PYPI_USER} >> ~/.pypirc
         - echo "password=" ${PYPI_PASSWORD} >> ~/.pypirc
         - python3 setup.py check sdist upload
     only:
         - tags
-    except:
-        - branches
     dependencies:
         - install_deps
 
-rm_secrets:
+cleanup:secrets:
     stage: cleanup
     when: always
     script:
