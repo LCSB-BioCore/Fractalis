@@ -7,3 +7,4 @@ pytest
 pytest-runner
 pytest-mock
 responses
+twine

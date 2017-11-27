@@ -7,7 +7,6 @@ variables:
 stages:
     - test
     - release
-    - cleanup
 
 test:all:
     stage: test
@@ -30,15 +29,8 @@ release:pypi:
         - yum install -y epel-release
         - yum update -y
         - yum install -y python34 python34-pip
-        - echo "[server-login]" > ~/.pypirc
-        - echo "username=" ${PYPI_USER} >> ~/.pypirc
-        - echo "password=" ${PYPI_PASSWORD} >> ~/.pypirc
-        - python3 setup.py check sdist upload
+	- pip3 install twine
+        - python3 setup.py sdist
+	- twine upload dist/* -u ${PYPI_USER} -p ${PYPI_PASSWORD}
     only:
         - tags
-
-cleanup:secrets:
-    stage: cleanup
-    when: always
-    script:
-        - rm -f ~/.pypirc
