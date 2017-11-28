@@ -25,9 +25,13 @@ CELERY_TASK_RESULT_EXPIRES = timedelta(hours=1)
 CELERYD_HIJACK_ROOT_LOGGER = False
 
 # Fractalis
+# Location of cache and temporary files
 FRACTALIS_TMP_DIR = os.path.abspath(os.path.join(os.sep, 'tmp', 'fractalis'))
+# How long to store files in the cache
 FRACTALIS_CACHE_EXP = timedelta(days=10)
+# Should the Cache be encrypted? This might impact performance for little gain!
 FRACTALIS_ENCRYPT_CACHE = False
+# Location of your the log configuration file.
 FRACTALIS_LOG_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.yaml')
 
 

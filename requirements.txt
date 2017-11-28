@@ -5,6 +5,7 @@ ipython
 ipdb
 pytest
 pytest-runner
+pytest-cov
 pytest-mock
 responses
 twine
