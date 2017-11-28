@@ -24,5 +24,8 @@ This variable must be a) a valid python file (.py) and b) be available on all in
 Use the [default settings](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/fractalis/config.py) as an example for your own configuration file.
 Please note, that all this files combines [Flask Settings](http://flask.pocoo.org/docs/0.12/config/), [Celery Settings](http://docs.celeryproject.org/en/latest/userguide/configuration.html), and Fractalis Settings, which are all listed and documented within this file. A word of warning: Please don't overwrite default settings if you don't know what you are doing. This might have severe implications for security or might cause Fractalis to not work correctly.
 
+### Add support for new services
+Support for other services is exclusively implemented within [this folder](https://git-r3lab.uni.lu/Fractalis/fractalis/tree/master/fractalis/data/etls). We recommend looking at the *ada* example implementation. Just make sure you use the class inheritance (ETL, ETLHandler) correctly, and you will get readable error messages if something goes wrong.
+
 ### Citation
 Manuscript is in preparation.
