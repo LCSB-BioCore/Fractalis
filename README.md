@@ -4,6 +4,9 @@
 ### About
 This is the back-end component of the Fractalis project. It is a computational node that is responsible for the MicroETL process and the execution of analytical tasks.
 
+### Demo
+Please have a look at this playlist to see a demo of the visual aspects of Fractalis: [Playlist](https://www.youtube.com/playlist?list=PLNvp9GB9uBmH1NNAf-qTyj_jN2aCPISFU).
+
 ### Installation (Docker)
 The easiest and most convenient way to deploy Fractalis is using Docker.
 All necessary information can be found here [Fractalis-Docker](https://git-r3lab.uni.lu/Fractalis/Fractalis-Docker).
