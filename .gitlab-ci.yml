@@ -20,7 +20,7 @@ test:all:
         - redis-server --daemonize yes
         - rabbitmq-server -detached
         - celery worker -A fractalis:celery -D -l info
-        - py.test --cov=fractalis tests/
+        - pytest
         - flake8
 
 release:pypi:
