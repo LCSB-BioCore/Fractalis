@@ -122,9 +122,9 @@ class ETL(Task, metaclass=abc.ABCMeta):
 
     @staticmethod
     def secure_load(data_frame: DataFrame, file_path: str) -> None:
-        """For the paranoid. Save data encrypted to the file system.
-        Note from the dev: If someone has direct access to your FS an
-        unencrypted cache will be one of your least worries.
+        """Save data to the file system in encrypted form using AES and the
+        web service secret key. This can be useful to comply with certain
+        security standards.
         :param data_frame: DataFrame to write.
         :param file_path: File to write to.
         """
