@@ -30,7 +30,8 @@ class CategoricalETL(ETL):
             result_id=result_id, server=server, token=token)
         return raw_data
 
-    def transform(self, raw_data: List[dict], descriptor: dict) -> pd.DataFrame:
+    def transform(self, raw_data: List[dict],
+                  descriptor: dict) -> pd.DataFrame:
         df = pd.read_csv(StringIO(raw_data))
         feature = df.columns[1]
         df.columns = ['id', 'value']
