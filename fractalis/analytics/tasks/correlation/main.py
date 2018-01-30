@@ -54,12 +54,7 @@ class CorrelationTask(AnalyticTask):
         df = apply_subsets(df=df, subsets=subsets)
         df = apply_categories(df=df, categories=categories)
         global_stats = self.compute_stats(df, method)
-        subset_dfs = [df[df['subset'] == i] for i in range(len(subsets) or 1)]
-        subset_stats = [self.compute_stats(subset_df, method)
-                        for subset_df in subset_dfs]
-
         output = global_stats
-        output['subsets'] = subset_stats
         output['method'] = method
         output['data'] = df.to_json(orient='records')
         output['x_label'] = x_label

@@ -28,7 +28,6 @@ class TestCorrelation:
         assert result['p_value'] == 0
         assert result['slope']
         assert result['intercept']
-        assert result['subsets']
         assert result['method'] == 'pearson'
         assert result['data']
         assert result['x_label'] == 'foo'
@@ -115,8 +114,3 @@ class TestCorrelation:
                                 subsets=[[101], [102, 104], [103], []],
                                 categories=[])
         assert not np.isnan(result['coef'])
-        assert len(result['subsets']) == 4
-        assert np.isnan(result['subsets'][0]['coef'])
-        assert not np.isnan(result['subsets'][1]['coef'])
-        assert np.isnan(result['subsets'][2]['coef'])
-        assert np.isnan(result['subsets'][3]['coef'])
