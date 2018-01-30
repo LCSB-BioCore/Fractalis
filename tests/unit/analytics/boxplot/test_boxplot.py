@@ -27,6 +27,9 @@ class TestBoxplotAnalytics:
         json.dumps(results)  # check if result is json serializable
         assert 'data' in results
         assert 'statistics' in results
+        assert 'anova' in results
+        assert results['anova']['p_value'] == 1
+        assert results['anova']['f_value'] == 0
         assert len(json.loads(results['data'])) == 8
         assert len(results['statistics']) == 2
         assert 'foo////s1' in results['statistics']

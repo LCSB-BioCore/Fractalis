@@ -51,6 +51,7 @@ class BoxplotTask(AnalyticTask):
             'categories': df['category'].unique().tolist(),
             'subsets': df['subset'].unique().tolist()
         }
+        group_values = []
         for feature in results['features']:
             for subset in results['subsets']:
                 for category in results['categories']:
@@ -60,13 +61,19 @@ class BoxplotTask(AnalyticTask):
                     values = [value for value in values if not np.isnan(value)]
                     if len(values) < 2:
                         continue
+                    label = '{}//{}//s{}'.format(feature, category, subset + 1)
+                    group_values.append(values)
                     stats = self.boxplot_statistics(values)
                     kde = scipy.stats.gaussian_kde(values)
                     xs = np.linspace(start=stats['l_wsk'],
                                      stop=stats['u_wsk'], num=100)
                     stats['kde'] = kde(xs).tolist()
-                    label = '{}//{}//s{}'.format(feature, category, subset + 1)
                     results['statistics'][label] = stats
+        f_value, p_value = scipy.stats.f_oneway(*group_values)
+        results['anova'] = {
+            'p_value': p_value,
+            'f_value': f_value
+        }
         return results
 
     @staticmethod
