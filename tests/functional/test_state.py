@@ -27,17 +27,28 @@ class TestState:
         assert redis.get('state:{}'.format(body['state_id'])) == 'test'
 
     def test_404_if_request_invalid_state_id(self, test_client):
-        rv = test_client.post('/state/{}'.format(str(uuid4())))
+        rv = test_client.post(
+            '/state/{}'.format(str(uuid4())), data=flask.json.dumps(
+                {'handler': '', 'server': '', 'auth': {'token': ''}}))
+        assert rv.status_code == 404
+        body = flask.json.loads(rv.get_data())
+        assert 'error' in body
+        assert 'not find state associated with id' in body['error']
+
+    def test_404_if_state_id_is_no_uuid(self, test_client):
+        rv = test_client.post('/state/123')
         assert rv.status_code == 404
 
-    def test_400_if_state_id_is_no_uuid(self, test_client):
-        rv = test_client.post('/state/123')
+    def test_400_if_payload_schema_incorrect(self, test_client):
+        rv = test_client.post('/state/{}'.format(str(uuid4())),
+                              data=flask.json.dumps({'foo': 123}))
         assert rv.status_code == 400
 
     def test_error_if_task_id_is_no_etl_id(self, test_client):
         uuid = str(uuid4())
         redis.set('state:{}'.format(uuid), 'foo')
-        rv = test_client.post('/state/{}'.format(uuid))
+        rv = test_client.post('/state/{}'.format(uuid), data=flask.json.dumps(
+            {'handler': '', 'server': '', 'auth': {'token': ''}}))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 400, body
         assert 'error' in body
@@ -46,7 +57,9 @@ class TestState:
     def test_202_create_valid_state_if_valid_conditions(self, test_client):
         uuid = str(uuid4())
         redis.set('data:{}'.format(uuid), {'meta': {'descriptor': 'foo'}})
-        rv = test_client.post('/state/{}'.format(uuid))
+        rv = test_client.post(
+            '/state/{}'.format(uuid), data=flask.json.dumps(
+                {'handler': '', 'server': '', 'auth': {'token': ''}}))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 202, body
         assert not body
@@ -58,7 +71,9 @@ class TestState:
 
     def test_404_if_get_non_existing_state(self, test_client):
         uuid = str(uuid4())
-        rv = test_client.post('/state/{}'.format(uuid))
+        rv = test_client.post(
+            '/state/{}'.format(uuid), data=flask.json.dumps(
+                {'handler': '', 'server': '', 'auth': {'token': ''}}))
         assert rv.status_code == 404
 
     def test_400_if_get_non_uuid_state(self, test_client):
@@ -72,7 +87,9 @@ class TestState:
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 201, body
         state_id = body['state_id']
-        rv = test_client.post('/state/{}'.format(state_id))
+        rv = test_client.post(
+            '/state/{}'.format(state_id), data=flask.json.dumps(
+                {'handler': '', 'server': '', 'auth': {'token': ''}}))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 202, body
         with test_client.session_transaction() as sess:
@@ -89,7 +106,9 @@ class TestState:
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 201, body
         state_id = body['state_id']
-        rv = test_client.post('/state/{}'.format(state_id))
+        rv = test_client.post(
+            '/state/{}'.format(state_id), data=flask.json.dumps(
+                {'handler': '', 'server': '', 'auth': {'token': ''}}))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 202, body
         rv = test_client.get('/state/{}'.format(state_id))

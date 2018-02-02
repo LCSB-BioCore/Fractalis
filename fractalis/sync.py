@@ -50,7 +50,10 @@ def cleanup_all() -> None:
     celery.control.purge()
     for key in redis.keys('data:*'):
         value = redis.get(key)
-        data_state = json.loads(value)
+        try:
+            data_state = json.loads(value)
+        except ValueError:
+            continue
         task_id = data_state.get('task_id')
         if task_id is not None:
             async_result = celery.AsyncResult(task_id)

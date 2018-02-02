@@ -63,10 +63,12 @@ celery = make_celery(app)
 from fractalis.analytics.controller import analytics_blueprint  # noqa: E402
 from fractalis.data.controller import data_blueprint  # noqa: E402
 from fractalis.misc.controller import misc_blueprint  # noqa: E402
+from fractalis.state.controller import state_blueprint  # noqa: E402
 log.info("Registering Flask blueprints.")
 app.register_blueprint(analytics_blueprint, url_prefix='/analytics')
 app.register_blueprint(data_blueprint, url_prefix='/data')
 app.register_blueprint(misc_blueprint, url_prefix='/misc')
+app.register_blueprint(state_blueprint, url_prefix='/state')
 
 # registering all application celery tasks
 log.info("Registering celery tasks.")

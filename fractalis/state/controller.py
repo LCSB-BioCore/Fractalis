@@ -9,10 +9,11 @@ from typing import Tuple
 from flask import Blueprint, jsonify, Response, request, session
 
 from fractalis import redis
-from fractalis.validator import validate_json
+from fractalis.validator import validate_json, validate_schema
 from fractalis.analytics.task import AnalyticTask
 from fractalis.data.etlhandler import ETLHandler
 from fractalis.data.controller import get_data_state_for_task_id
+from fractalis.state.schema import request_state_access_schema
 
 
 state_blueprint = Blueprint('state_blueprint', __name__)
@@ -26,7 +27,22 @@ def save_state() -> Tuple[Response, int]:
     :return: UUID linked to the saved state.
     """
     logger.debug("Received POST request on /state.")
-    payload = request.get_json(force=True)
+    # check if task ids in payload are valid
+    for match in re.findall('\$.+?\$', request.data):
+        task_id = AnalyticTask.parse_value(match)
+        value = redis.get('data:{}'.format(task_id))
+        if value is None:
+            error = "Data task id is {} could not be found in redis. " \
+                    "State cannot be saved".format(task_id)
+            logger.error(error)
+            return jsonify({'error': error}), 400
+        try:
+            json.loads(value)['meta']['descriptor']
+        except (ValueError, KeyError):
+            error = "Task with id {} was found in redis but it is no valid " \
+                    "data task id. State cannot be saved.".format(task_id)
+            return jsonify({'error': error}), 400
+    payload = json.loads(request.data)
     uuid = uuid4()
     redis.set(name='state:{}'.format(uuid), value=payload)
     logger.debug("Successfully saved data to redis. Sending response.")
@@ -34,6 +50,8 @@ def save_state() -> Tuple[Response, int]:
 
 
 @state_blueprint.route('/<uuid:state_id>', methods=['POST'])
+@validate_json
+@validate_schema(request_state_access_schema)
 def request_state_access(state_id: UUID) -> Tuple[Response, int]:
     """Traverse through the state object linked to the given UUID and look for
     data ids. Then attempt to load the data into the current session to verify
@@ -52,22 +70,18 @@ def request_state_access(state_id: UUID) -> Tuple[Response, int]:
     descriptors = []
     for match in re.findall('\$.+?\$', value):
         task_id = AnalyticTask.parse_value(match)
-        data = redis.get('data:{}'.format(task_id))
-        try:
-            descriptors.append(data['meta']['descriptor'])
-        except KeyError:
-            error = "The given payload cannot be saved. One of more task " \
-                    "objects identified by the surrounding $ character is " \
-                    "either a) not a valid ETL task or " \
-                    "b) the corresponding ETL taskhas been deleted."
+        if redis.get('data:{}'.format(task_id)) is None:
+            error = "The state with id {} exists, but one or more of the " \
+                    "associated data task ids are missing. Hence this state " \
+                    "is lost forever because access can no longer be " \
+                    "verified. Deleting state..."
             logger.error(error)
-            return jsonify({'error': error}), 400
-
+            redis.delete('data:{}'.format(task_id))
+            return jsonify({'error': error}), 403
     etl_handler = ETLHandler.factory(handler=payload['handler'],
                                      server=payload['server'],
                                      auth=payload['auth'])
-    task_ids = etl_handler.handle(descriptors=payload['descriptors'],
-                                  wait=wait)
+    task_ids = etl_handler.handle(descriptors=descriptors, wait=wait)
     session['data_tasks'] += task_ids
     session['data_tasks'] = list(set(session['data_tasks']))
     # if all task finish successfully we now that session has access to state
