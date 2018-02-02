@@ -4,8 +4,7 @@ import json
 import logging
 from typing import Tuple
 
-from flask import Blueprint, session, request, jsonify
-from flask.wrappers import Response
+from flask import Blueprint, session, request, jsonify, Response
 
 from fractalis.data.etlhandler import ETLHandler
 from fractalis.data.schema import create_data_schema

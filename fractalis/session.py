@@ -15,7 +15,12 @@ class RedisSession(CallbackDict, SessionMixin):
 
     def __init__(self, sid, initial=None):
         if initial is None:
-            initial = {'data_tasks': [], 'analytic_tasks': [], 'subsets': []}
+            initial = {
+                'data_tasks': [],
+                'analytic_tasks': [],
+                'subsets': [],
+                'state_access': []
+            }
 
         def on_update(self):
             self.modified = True
