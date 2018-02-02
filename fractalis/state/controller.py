@@ -28,7 +28,14 @@ def save_state() -> Tuple[Response, int]:
     """
     logger.debug("Received POST request on /state.")
     # check if task ids in payload are valid
-    for match in re.findall('\$.+?\$', request.data):
+    matches = re.findall('\$.+?\$', request.data)
+    if not matches:
+        error = "This state cannot be saved because it contains no data " \
+                "task ids. These are used to verify access to the state and " \
+                "its potentially sensitive data."
+        logger.error(error)
+        return jsonify({'error': error}), 400
+    for match in matches:
         task_id = AnalyticTask.parse_value(match)
         value = redis.get('data:{}'.format(task_id))
         if value is None:
@@ -39,8 +46,9 @@ def save_state() -> Tuple[Response, int]:
         try:
             json.loads(value)['meta']['descriptor']
         except (ValueError, KeyError):
-            error = "Task with id {} was found in redis but it is no valid " \
-                    "data task id. State cannot be saved.".format(task_id)
+            error = "Task with id {} was found in redis but it represents " \
+                    "no valid data state. " \
+                    "State cannot be saved.".format(task_id)
             return jsonify({'error': error}), 400
     payload = json.loads(request.data)
     uuid = uuid4()
@@ -68,7 +76,8 @@ def request_state_access(state_id: UUID) -> Tuple[Response, int]:
         logger.error(error)
         return jsonify({'error': error}), 404
     descriptors = []
-    for match in re.findall('\$.+?\$', value):
+    matches = re.findall('\$.+?\$', value)
+    for match in matches:
         task_id = AnalyticTask.parse_value(match)
         if redis.get('data:{}'.format(task_id)) is None:
             error = "The state with id {} exists, but one or more of the " \

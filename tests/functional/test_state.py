@@ -19,8 +19,30 @@ class TestState:
             yield test_client
             sync.cleanup_all()
 
+    def test_400_if_no_task_id_in_payload(self, test_client):
+        rv = test_client.post('/state', data=flask.json.dumps('$...foo'))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 400, body
+        assert 'error' in body
+        assert 'contains no data task ids' in body['error']
+
+    def test_400_if_task_id_not_in_redis(self, test_client):
+        rv = test_client.post('/state', data=flask.json.dumps('$123$'))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 400, body
+        assert 'error' in body
+        assert 'could not be found in redis' in body['error']
+
+    def test_400_if_task_id_in_redis_but_no_data_state(self, test_client):
+        redis.set('data:123', '')
+        rv = test_client.post('/state', data=flask.json.dumps('$123$'))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 400, body
+        assert 'error' in body
+        assert 'not valid data state' in body['error']
+
     def test_save_state_saves_and_returns(self, test_client):
-        rv = test_client.post('/state', data=flask.json.dumps('test'))
+        rv = test_client.post('/state', data=flask.json.dumps('$123$'))
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 201, body
         assert UUID(body['state_id'])
@@ -52,7 +74,7 @@ class TestState:
         body = flask.json.loads(rv.get_data())
         assert rv.status_code == 400, body
         assert 'error' in body
-        assert 'given payload cannot be saved' in body['error']
+        assert 'data task ids are missing' in body['error']
 
     def test_202_create_valid_state_if_valid_conditions(self, test_client):
         uuid = str(uuid4())
