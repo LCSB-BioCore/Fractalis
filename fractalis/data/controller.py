@@ -46,7 +46,9 @@ def get_data_state_for_task_id(task_id: str, wait: bool) -> dict:
     :return: Data state that has been stored in Redis.
     """
     async_result = celery.AsyncResult(task_id)
-    if wait:
+    state = async_result.state
+    state = 'NOTFOUND' if state == 'PENDING' else state
+    if wait and state == 'SUBMITTED':
         logger.debug("'wait' was set. Waiting for tasks to finish ...")
         async_result.get(propagate=False)
     value = redis.get('data:{}'.format(task_id))
@@ -61,7 +63,7 @@ def get_data_state_for_task_id(task_id: str, wait: bool) -> dict:
     if isinstance(result, Exception):  # Exception -> str
         result = "{}: {}".format(type(result).__name__, str(result))
     data_state['etl_message'] = result
-    data_state['etl_state'] = async_result.state
+    data_state['etl_state'] = state
     return data_state
 
 

@@ -50,13 +50,12 @@ def cleanup_all() -> None:
     celery.control.purge()
     for key in redis.keys('data:*'):
         value = redis.get(key)
-        try:
-            data_state = json.loads(value)
-            celery.AsyncResult(data_state.get('task_id')).get(propagate=False)
-        except ValueError:
-            pass
-        # celery.control.revoke(data_state['task_id'], terminate=True,
-        #                       signal='SIGUSR1', wait=True)
+        data_state = json.loads(value)
+        task_id = data_state.get('task_id')
+        if task_id is not None:
+            async_result = celery.AsyncResult(task_id)
+            if async_result.state == 'SUBMITTED':
+                async_result.get(propagate=False)
     redis.flushall()
     tmp_dir = app.config['FRACTALIS_TMP_DIR']
     if os.path.exists(tmp_dir):

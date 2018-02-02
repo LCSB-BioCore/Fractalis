@@ -30,7 +30,7 @@ class TestState:
         rv = test_client.post('/state/{}'.format(str(uuid4())))
         assert rv.status_code == 404
 
-    def test_error_if_state_id_is_no_uuid(self, test_client):
+    def test_400_if_state_id_is_no_uuid(self, test_client):
         rv = test_client.post('/state/123')
         assert rv.status_code == 400
 
@@ -43,13 +43,57 @@ class TestState:
         assert 'error' in body
         assert 'given payload cannot be saved' in body['error']
 
-    def test_201_and_valid_state_if_valid_conditions(self, test_client):
+    def test_202_create_valid_state_if_valid_conditions(self, test_client):
         uuid = str(uuid4())
-        redis.set('state:{}'.format(uuid), {'meta': {'descriptor': 'foo'}})
+        redis.set('data:{}'.format(uuid), {'meta': {'descriptor': 'foo'}})
         rv = test_client.post('/state/{}'.format(uuid))
-        assert rv.status_code == 201
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 202, body
+        assert not body
         with test_client.session_transaction() as sess:
             assert sess['data_tasks']
             assert sess['state_access']
             assert sess['data_tasks'] == sess['state_access']
-            assert [UUID(uuid) for id in sess['data_tasks']]
+            assert [UUID(uuid) for uuid in sess['data_tasks']]
+
+    def test_404_if_get_non_existing_state(self, test_client):
+        uuid = str(uuid4())
+        rv = test_client.post('/state/{}'.format(uuid))
+        assert rv.status_code == 404
+
+    def test_400_if_get_non_uuid_state(self, test_client):
+        rv = test_client.post('/state/123')
+        assert rv.status_code == 400
+
+    def test_403_if_get_not_previously_self_requested_state(self, test_client):
+        uuid = str(uuid4())
+        redis.set('data:{}'.format(uuid), {'meta': {'descriptor': 'foo'}})
+        rv = test_client.post('/state', data=flask.json.dumps('test'))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        state_id = body['state_id']
+        rv = test_client.post('/state/{}'.format(state_id))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 202, body
+        with test_client.session_transaction() as sess:
+            del sess['state_access'][state_id]
+        rv = test_client.get('/state/{}'.format(state_id))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 403, body
+        assert 'error' in body
+
+    def test_return_state(self, test_client):
+        uuid = str(uuid4())
+        redis.set('data:{}'.format(uuid), {'meta': {'descriptor': 'foo'}})
+        rv = test_client.post('/state', data=flask.json.dumps('test'))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 201, body
+        state_id = body['state_id']
+        rv = test_client.post('/state/{}'.format(state_id))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 202, body
+        rv = test_client.get('/state/{}'.format(state_id))
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 200, body
+        assert 'state' in body
+        assert body['state'] == 'test'

@@ -73,7 +73,7 @@ def request_state_access(state_id: UUID) -> Tuple[Response, int]:
     # if all task finish successfully we now that session has access to state
     session['state_access'][state_id] = task_ids
     logger.debug("Tasks successfully submitted. Sending response.")
-    return jsonify(''), 201
+    return jsonify(''), 202
 
 
 @state_blueprint.route('/<uuid:state_id>', methods=['GET'])
@@ -88,8 +88,7 @@ def get_state_data(state_id: UUID) -> Tuple[Response, int]:
     wait = request.args.get('wait') == '1'
     for task_id in session['state_access'][state_id]:
         data_state = get_data_state_for_task_id(task_id=task_id, wait=wait)
-        if (data_state['etl_state'] == 'PENDING' or
-                data_state['etl_state'] == 'SUBMITTED'):
+        if data_state['etl_state'] == 'SUBMITTED':
             return jsonify({'message': 'ETLs are still running.'}), 200
         elif data_state['etl_state'] == 'SUCCESS':
             continue
