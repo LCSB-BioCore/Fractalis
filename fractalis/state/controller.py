@@ -113,10 +113,18 @@ def get_state_data(state_id: UUID) -> Tuple[Response, int]:
     """
     logger.debug("Received GET request on /state/<uuid:state_id>.")
     wait = request.args.get('wait') == '1'
+    state_id = str(state_id)
+    if state_id not in session['state_access']:
+        error = "Cannot get state. Make sure to submit a POST request " \
+                "to this very same URL containing credentials and server " \
+                "data to launch access verification. Only after that a GET " \
+                "request might or might not return you the saved state."
+        logger.error(error)
+        return jsonify({'error': error}), 404
     for task_id in session['state_access'][state_id]:
         data_state = get_data_state_for_task_id(task_id=task_id, wait=wait)
         if data_state['etl_state'] == 'SUBMITTED':
-            return jsonify({'message': 'ETLs are still running.'}), 200
+            return jsonify({'message': 'ETLs are still running.'}), 202
         elif data_state['etl_state'] == 'SUCCESS':
             continue
         else:

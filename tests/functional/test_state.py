@@ -103,48 +103,78 @@ class TestState:
 
     def test_404_if_get_non_existing_state(self, test_client):
         uuid = str(uuid4())
-        rv = test_client.post(
-            '/state/{}'.format(uuid), data=flask.json.dumps(
-                {'handler': '', 'server': '', 'auth': {'token': ''}}))
+        rv = test_client.get('/state/{}'.format(uuid))
+        body = flask.json.loads(rv.get_data())
+        assert 404 == rv.status_code
+        assert 'error' in body
+        assert 'Cannot get state.' in body['error']
+
+    def test_404_if_get_non_uuid_state(self, test_client):
+        rv = test_client.get('/state/123')
         assert 404 == rv.status_code
 
-    def test_400_if_get_non_uuid_state(self, test_client):
-        rv = test_client.post('/state/123')
-        assert 400 == rv.status_code
-
-    def test_403_if_get_not_previously_self_requested_state(self, test_client):
+    def test_404_if_get_not_previously_self_requested_state(self, test_client):
         uuid = str(uuid4())
-        redis.set('data:{}'.format(uuid), {'meta': {'descriptor': 'foo'}})
-        rv = test_client.post('/state', data=flask.json.dumps('test'))
+        redis.set(name='data:{}'.format(uuid),
+                  value=json.dumps(
+                      {'meta': {'descriptor': {'data_type': 'default'}}}))
+        rv = test_client.post('/state',
+                              data=flask.json.dumps('${}$'.format(uuid)))
         body = flask.json.loads(rv.get_data())
         assert 201 == rv.status_code, body
         state_id = body['state_id']
         rv = test_client.post(
             '/state/{}'.format(state_id), data=flask.json.dumps(
-                {'handler': '', 'server': '', 'auth': {'token': ''}}))
+                {'handler': 'test', 'server': 'foo', 'auth': {'token': ''}}))
         body = flask.json.loads(rv.get_data())
         assert 202 == rv.status_code, body
         with test_client.session_transaction() as sess:
             del sess['state_access'][state_id]
         rv = test_client.get('/state/{}'.format(state_id))
         body = flask.json.loads(rv.get_data())
+        assert 404 == rv.status_code, body
+        assert 'error' in body
+        assert 'Cannot get state.' in body['error']
+
+    def test_403_if_etl_fails(self, test_client):
+        redis.set(name='data:123',
+                  value=json.dumps(
+                      {'meta': {'descriptor': {'data_type': 'default'}}}))
+        rv = test_client.post('/state', data=flask.json.dumps('$123$'))
+        body = flask.json.loads(rv.get_data())
+        state_id = body['state_id']
+        test_client.post(
+            '/state/{}'.format(state_id),
+            data=flask.json.dumps(
+                {'handler': 'test',
+                 'server': 'foo',
+                 'auth': {'token': 'fail'}}))
+        rv = test_client.get('/state/{}?wait=1'.format(state_id))
+        body = flask.json.loads(rv.get_data())
         assert 403 == rv.status_code, body
         assert 'error' in body
+        assert 'ETLs failed' in body['error']
 
-    def test_return_state(self, test_client):
-        uuid = str(uuid4())
-        redis.set('data:{}'.format(uuid), {'meta': {'descriptor': 'foo'}})
-        rv = test_client.post('/state', data=flask.json.dumps('test'))
+    def test_202_then_200_for_running_etl(self, test_client):
+        redis.set(name='data:123',
+                  value=json.dumps(
+                      {'meta': {'descriptor': {'data_type': 'default'}}}))
+        rv = test_client.post('/state', data=flask.json.dumps('$123$'))
         body = flask.json.loads(rv.get_data())
-        assert 201 == rv.status_code, body
         state_id = body['state_id']
-        rv = test_client.post(
-            '/state/{}'.format(state_id), data=flask.json.dumps(
-                {'handler': '', 'server': '', 'auth': {'token': ''}}))
+        test_client.post(
+            '/state/{}'.format(state_id),
+            data=flask.json.dumps(
+                {'handler': 'test',
+                 'server': 'foo',
+                 'auth': {'token': ''}}))
+        rv = test_client.get('/state/{}'.format(state_id))
         body = flask.json.loads(rv.get_data())
         assert 202 == rv.status_code, body
-        rv = test_client.get('/state/{}'.format(state_id))
+        assert 'message' in body
+        assert 'ETLs are still running.' in body['message']
+        rv = test_client.get('/state/{}?wait=1'.format(state_id))
         body = flask.json.loads(rv.get_data())
         assert 200 == rv.status_code, body
         assert 'state' in body
-        assert body['state'] == 'test'
+        assert '$123$' in body['state']
