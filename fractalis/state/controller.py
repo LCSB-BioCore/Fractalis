@@ -27,8 +27,9 @@ def save_state() -> Tuple[Response, int]:
     :return: UUID linked to the saved state.
     """
     logger.debug("Received POST request on /state.")
+    payload = request.get_json(force=True)
     # check if task ids in payload are valid
-    matches = re.findall('\$.+?\$', request.data)
+    matches = re.findall('\$.+?\$', str(payload))
     if not matches:
         error = "This state cannot be saved because it contains no data " \
                 "task ids. These are used to verify access to the state and " \
@@ -36,7 +37,7 @@ def save_state() -> Tuple[Response, int]:
         logger.error(error)
         return jsonify({'error': error}), 400
     for match in matches:
-        task_id = AnalyticTask.parse_value(match)
+        task_id, _ = AnalyticTask.parse_value(match)
         value = redis.get('data:{}'.format(task_id))
         if value is None:
             error = "Data task id is {} could not be found in redis. " \
@@ -50,9 +51,8 @@ def save_state() -> Tuple[Response, int]:
                     "no valid data state. " \
                     "State cannot be saved.".format(task_id)
             return jsonify({'error': error}), 400
-    payload = json.loads(request.data)
     uuid = uuid4()
-    redis.set(name='state:{}'.format(uuid), value=payload)
+    redis.set(name='state:{}'.format(uuid), value=json.dumps(payload))
     logger.debug("Successfully saved data to redis. Sending response.")
     return jsonify({'state_id': uuid}), 201
 
@@ -78,7 +78,7 @@ def request_state_access(state_id: UUID) -> Tuple[Response, int]:
     descriptors = []
     matches = re.findall('\$.+?\$', value)
     for match in matches:
-        task_id = AnalyticTask.parse_value(match)
+        task_id, _ = AnalyticTask.parse_value(match)
         if redis.get('data:{}'.format(task_id)) is None:
             error = "The state with id {} exists, but one or more of the " \
                     "associated data task ids are missing. Hence this state " \
