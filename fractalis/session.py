@@ -19,7 +19,7 @@ class RedisSession(CallbackDict, SessionMixin):
                 'data_tasks': [],
                 'analytic_tasks': [],
                 'subsets': [],
-                'state_access': []
+                'state_access': {}
             }
 
         def on_update(self):

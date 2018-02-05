@@ -39,7 +39,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     def __init__(self, server, auth):
-        if not isinstance(server, str) or len(server) < 10:
+        if not isinstance(server, str) or not server:
             error = ("{} is not a valid server url.".format(server))
             logger.error(error)
             raise ValueError(error)

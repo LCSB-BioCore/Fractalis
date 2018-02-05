@@ -74,28 +74,31 @@ class TestState:
 
     def test_error_if_task_id_is_no_etl_id(self, test_client):
         uuid = str(uuid4())
-        redis.set('state:{}'.format(uuid), 'foo')
+        redis.set('state:{}'.format(uuid), '$123$')
         rv = test_client.post('/state/{}'.format(uuid), data=flask.json.dumps(
             {'handler': '', 'server': '', 'auth': {'token': ''}}))
         body = flask.json.loads(rv.get_data())
-        assert 400 == rv.status_code, body
+        assert 403 == rv.status_code, body
         assert 'error' in body
         assert 'data task ids are missing' in body['error']
+        assert not redis.exists('state:{}'.format(uuid))
 
     def test_202_create_valid_state_if_valid_conditions(self, test_client):
         uuid = str(uuid4())
-        redis.set(name='data:{}'.format(uuid),
-                  value=json.dumps({'meta': {'descriptor': 'foo'}}))
+        redis.set(name='data:123',
+                  value=json.dumps(
+                      {'meta': {'descriptor': {'data_type': 'default'}}}))
+        redis.set(name='state:{}'.format(uuid), value='$123$')
         rv = test_client.post(
             '/state/{}'.format(uuid), data=flask.json.dumps(
-                {'handler': '', 'server': '', 'auth': {'token': ''}}))
+                {'handler': 'test', 'server': 'foo', 'auth': {'token': ''}}))
         body = flask.json.loads(rv.get_data())
         assert 202 == rv.status_code, body
         assert not body
         with test_client.session_transaction() as sess:
             assert sess['data_tasks']
             assert sess['state_access']
-            assert sess['data_tasks'] == sess['state_access']
+            assert sess['data_tasks'] == sess['state_access'][uuid]
             assert [UUID(uuid) for uuid in sess['data_tasks']]
 
     def test_404_if_get_non_existing_state(self, test_client):

@@ -70,6 +70,7 @@ def request_state_access(state_id: UUID) -> Tuple[Response, int]:
     logger.debug("Received POST request on /state/<uuid:state_id>.")
     wait = request.args.get('wait') == '1'
     payload = request.get_json(force=True)
+    state_id = str(state_id)
     value = redis.get('state:{}'.format(state_id))
     if not value:
         error = "Could not find state associated with id {}".format(state_id)
@@ -79,14 +80,17 @@ def request_state_access(state_id: UUID) -> Tuple[Response, int]:
     matches = re.findall('\$.+?\$', value)
     for match in matches:
         task_id, _ = AnalyticTask.parse_value(match)
-        if redis.get('data:{}'.format(task_id)) is None:
+        value = redis.get('data:{}'.format(task_id))
+        if value is None:
             error = "The state with id {} exists, but one or more of the " \
-                    "associated data task ids are missing. Hence this state " \
-                    "is lost forever because access can no longer be " \
+                    "associated data task ids are missing. Hence this saved " \
+                    "state is lost forever because access can no longer be " \
                     "verified. Deleting state..."
             logger.error(error)
-            redis.delete('data:{}'.format(task_id))
+            redis.delete('state:{}'.format(state_id))
             return jsonify({'error': error}), 403
+        data_state = json.loads(value)
+        descriptors.append(data_state['meta']['descriptor'])
     etl_handler = ETLHandler.factory(handler=payload['handler'],
                                      server=payload['server'],
                                      auth=payload['auth'])
