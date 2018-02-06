@@ -74,7 +74,8 @@ class TestState:
 
     def test_error_if_task_id_is_no_etl_id(self, test_client):
         uuid = str(uuid4())
-        redis.set('state:{}'.format(uuid), '$123$')
+        redis.set(name='state:{}'.format(uuid),
+                  value=json.dumps({'foo': '$123$'}))
         rv = test_client.post('/state/{}'.format(uuid), data=flask.json.dumps(
             {'handler': '', 'server': '', 'auth': {'token': ''}}))
         body = flask.json.loads(rv.get_data())
@@ -88,7 +89,8 @@ class TestState:
         redis.set(name='data:123',
                   value=json.dumps(
                       {'meta': {'descriptor': {'data_type': 'default'}}}))
-        redis.set(name='state:{}'.format(uuid), value='$123$')
+        redis.set(name='state:{}'.format(uuid),
+                  value=json.dumps({'foo': '$123$'}))
         rv = test_client.post(
             '/state/{}'.format(uuid), data=flask.json.dumps(
                 {'handler': 'test', 'server': 'foo', 'auth': {'token': ''}}))

@@ -77,7 +77,7 @@ def request_state_access(state_id: UUID) -> Tuple[Response, int]:
         logger.error(error)
         return jsonify({'error': error}), 404
     descriptors = []
-    matches = re.findall('\$.+?\$', value)
+    matches = re.findall('\$.+?\$', str(json.loads(value)))
     for match in matches:
         task_id, _ = AnalyticTask.parse_value(match)
         value = redis.get('data:{}'.format(task_id))
