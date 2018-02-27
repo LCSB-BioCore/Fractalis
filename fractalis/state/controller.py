@@ -13,7 +13,8 @@ from fractalis.validator import validate_json, validate_schema
 from fractalis.analytics.task import AnalyticTask
 from fractalis.data.etlhandler import ETLHandler
 from fractalis.data.controller import get_data_state_for_task_id
-from fractalis.state.schema import request_state_access_schema
+from fractalis.state.schema import request_state_access_schema, \
+    save_state_schema
 
 
 state_blueprint = Blueprint('state_blueprint', __name__)
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 @state_blueprint.route('', methods=['POST'])
 @validate_json
+@validate_schema(save_state_schema)
 def save_state() -> Tuple[Response, int]:
     """Save given payload to redis, so it can be accessed later on.
     :return: UUID linked to the saved state.

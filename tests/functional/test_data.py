@@ -58,10 +58,12 @@ class TestData:
 
     @pytest.fixture(scope='function', params=['small', 'big'])
     def payload(self, request):
-        load = self.small_load() if request.param == 'small' \
-            else self.big_load()
-        return {'size': len(load['descriptors']),
-                'serialized': flask.json.dumps(load)}
+        def _payload():
+            load = self.small_load() if request.param == 'small' \
+                else self.big_load()
+            return {'size': len(load['descriptors']),
+                    'serialized': flask.json.dumps(load)}
+        return _payload
 
     @pytest.fixture(scope='function', params=['small', 'big'])
     def faiload(self, request):
@@ -144,15 +146,17 @@ class TestData:
         assert bad_post().status_code == 400
 
     def test_valid_response_on_post(self, test_client, payload):
-        rv = test_client.post('/data', data=payload['serialized'])
+        data = payload()
+        rv = test_client.post('/data', data=data['serialized'])
         assert rv.status_code == 201
         body = flask.json.loads(rv.get_data())
         assert not body
 
     def test_valid_redis_before_loaded_on_post(self, test_client, payload):
-        test_client.post('/data', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data', data=data['serialized'])
         keys = redis.keys('data:*')
-        assert len(keys) == payload['size']
+        assert len(keys) == data['size']
         for key in keys:
             value = redis.get(key)
             data_state = json.loads(value)
@@ -162,9 +166,10 @@ class TestData:
             assert 'meta' in data_state
 
     def test_valid_redis_after_loaded_on_post(self, test_client, payload):
-        test_client.post('/data?wait=1', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data?wait=1', data=data['serialized'])
         keys = redis.keys('data:*')
-        assert len(keys) == payload['size']
+        assert len(keys) == data['size']
         for key in keys:
             value = redis.get(key)
             data_state = json.loads(value)
@@ -176,7 +181,8 @@ class TestData:
     def test_valid_filesystem_before_loaded_on_post(
             self, test_client, payload):
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
-        test_client.post('/data', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data', data=data['serialized'])
         if os.path.exists(data_dir):
             assert len(os.listdir(data_dir)) == 0
         keys = redis.keys('data:*')
@@ -188,8 +194,9 @@ class TestData:
     def test_valid_filesystem_after_loaded_on_post(
             self, test_client, payload):
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
-        test_client.post('/data?wait=1', data=payload['serialized'])
-        assert len(os.listdir(data_dir)) == payload['size']
+        data = payload()
+        test_client.post('/data?wait=1', data=data['serialized'])
+        assert len(os.listdir(data_dir)) == data['size']
         for f in os.listdir(data_dir):
             assert UUID(f)
         keys = redis.keys('data:*')
@@ -199,13 +206,15 @@ class TestData:
             assert os.path.exists(data_state['file_path'])
 
     def test_valid_session_on_post(self, test_client, payload):
-        test_client.post('/data', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data', data=data['serialized'])
         with test_client.session_transaction() as sess:
-            assert len(sess['data_tasks']) == payload['size']
+            assert len(sess['data_tasks']) == data['size']
 
     def test_session_matched_redis_in_post_big_payload(
             self, test_client, payload):
-        test_client.post('/data', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data', data=data['serialized'])
         with test_client.session_transaction() as sess:
             for task_id in sess['data_tasks']:
                 assert redis.exists('data:{}'.format(task_id))
@@ -213,14 +222,18 @@ class TestData:
     def test_many_post_and_valid_state(self, test_client, payload):
         requests = 5
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        size = 0
         for i in range(requests):
-            rv = test_client.post('/data?wait=1', data=payload['serialized'])
+            data = payload()
+            size += data['size']
+            rv = test_client.post('/data?wait=1', data=data['serialized'])
             assert rv.status_code == 201
-        assert len(os.listdir(data_dir)) == requests * payload['size']
-        assert len(redis.keys('data:*')) == requests * payload['size']
+        assert len(os.listdir(data_dir)) == size
+        assert len(redis.keys('data:*')) == size
 
     def test_valid_response_before_loaded_on_get(self, test_client, payload):
-        test_client.post('/data', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data', data=data['serialized'])
         rv = test_client.get('/data')
         assert rv.status_code == 200
         body = flask.json.loads(rv.get_data())
@@ -233,7 +246,8 @@ class TestData:
             assert 'task_id' in data_state
 
     def test_valid_response_after_loaded_on_get(self, test_client, payload):
-        test_client.post('/data', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data', data=data['serialized'])
         rv = test_client.get('/data?wait=1')
         assert rv.status_code == 200
         body = flask.json.loads(rv.get_data())
@@ -258,7 +272,8 @@ class TestData:
 
     def test_valid_state_for_finished_etl_on_delete(
             self, test_client, payload):
-        test_client.post('/data?wait=1', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data?wait=1', data=data['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
             data_state = json.loads(value)
@@ -270,7 +285,8 @@ class TestData:
                 assert data_state['task_id'] not in sess['data_tasks']
 
     def test_valid_state_for_running_etl_on_delete(self, test_client, payload):
-        test_client.post('/data', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data', data=data['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
             data_state = json.loads(value)
@@ -294,7 +310,8 @@ class TestData:
                 assert data_state['task_id'] not in sess['data_tasks']
 
     def test_403_if_no_auth_on_delete(self, test_client, payload):
-        test_client.post('/data?wait=1', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data?wait=1', data=data['serialized'])
         with test_client.session_transaction() as sess:
             sess['data_tasks'] = []
         for key in redis.keys('data:*'):
@@ -312,7 +329,8 @@ class TestData:
     def test_valid_state_for_finished_etl_on_delete_all(
             self, test_client, payload):
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
-        test_client.post('/data?wait=1', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data?wait=1', data=data['serialized'])
         test_client.delete('/data?wait=1')
         assert not redis.keys('data:*')
         assert len(os.listdir(data_dir)) == 0
@@ -321,7 +339,8 @@ class TestData:
 
     def test_encryption_works(self, test_client, payload):
         app.config['FRACTALIS_ENCRYPT_CACHE'] = True
-        test_client.post('/data?wait=1', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data?wait=1', data=data['serialized'])
         keys = redis.keys('data:*')
         for key in keys:
             value = redis.get(key)
@@ -332,7 +351,8 @@ class TestData:
         app.config['FRACTALIS_ENCRYPT_CACHE'] = False
 
     def test_valid_response_before_loaded_on_meta(self, test_client, payload):
-        test_client.post('/data', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data', data=data['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
             data_state = json.loads(value)
@@ -342,7 +362,8 @@ class TestData:
             assert 'features' not in body['meta']
 
     def test_valid_response_after_loaded_on_meta(self, test_client, payload):
-        test_client.post('/data?wait=1', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data?wait=1', data=data['serialized'])
         for key in redis.keys('data:*'):
             value = redis.get(key)
             data_state = json.loads(value)
@@ -353,7 +374,8 @@ class TestData:
             assert 'features' in body['meta']
 
     def test_403_if_no_auth_on_get_meta(self, test_client, payload):
-        test_client.post('/data?wait=1', data=payload['serialized'])
+        data = payload()
+        test_client.post('/data?wait=1', data=data['serialized'])
         with test_client.session_transaction() as sess:
             sess['data_tasks'] = []
         for key in redis.keys('data:*'):
