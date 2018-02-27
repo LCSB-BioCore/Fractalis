@@ -32,6 +32,8 @@ def create_data_task() -> Tuple[Response, int]:
                                      server=payload['server'],
                                      auth=payload['auth'])
     task_ids = etl_handler.handle(descriptors=payload['descriptors'],
+                                  data_tasks=session['data_tasks'],
+                                  use_existing=False,
                                   wait=wait)
     session['data_tasks'] += task_ids
     session['data_tasks'] = list(set(session['data_tasks']))
