@@ -87,7 +87,8 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
             logger.error(error)
             raise LookupError(error)
         data_state = json.loads(entry)
-        if not data_state['loaded']:
+        async_result = self.AsyncResult(data_task_id)
+        if async_result.state != 'SUCCESS':
             error = "The data task '{}' has not been loaded, yet. " \
                     "Wait for it to complete before using it in an " \
                     "analysis task.".format(data_task_id)

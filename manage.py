@@ -2,12 +2,13 @@ import os
 
 from flask_script import Manager
 
-from fractalis import app, redis, sync
+from fractalis import app, redis, sync, celery
 
 
 manager = Manager(app)
 
 
+@celery.task
 @manager.command
 def janitor():
     """Ideally this is maintained by a systemd service to cleanup redis and the

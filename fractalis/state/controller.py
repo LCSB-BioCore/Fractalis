@@ -123,9 +123,9 @@ def get_state_data(state_id: UUID) -> Tuple[Response, int]:
         return jsonify({'error': error}), 404
     for task_id in session['state_access'][state_id]:
         data_state = get_data_state_for_task_id(task_id=task_id, wait=wait)
-        if data_state['etl_state'] == 'SUBMITTED':
+        if data_state is not None and data_state['etl_state'] == 'SUBMITTED':
             return jsonify({'message': 'ETLs are still running.'}), 202
-        elif data_state['etl_state'] == 'SUCCESS':
+        elif data_state is not None and data_state['etl_state'] == 'SUCCESS':
             continue
         else:
             error = "One or more ETLs failed or has unknown status. " \

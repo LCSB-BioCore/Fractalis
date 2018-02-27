@@ -101,10 +101,8 @@ class ETL(Task, metaclass=abc.ABCMeta):
         pass
 
     def update_redis(self, data_frame: DataFrame) -> None:
-        """Set redis entry to 'loaded' state to indicate that the user has
-        has read access. At this step we also set several meta information
-        that can be used for preview functionality that do not require all
-        data to be loaded.
+        """Set several meta information that can be used to filter the data
+        before the analysis.
         :param data_frame: The extracted and transformed data.
         """
         value = redis.get(name='data:{}'.format(self.request.id))
@@ -114,7 +112,6 @@ class ETL(Task, metaclass=abc.ABCMeta):
             features = data_frame['feature'].unique().tolist()
         else:
             features = []
-        data_state['loaded'] = True
         data_state['meta']['features'] = features
         redis.setex(name='data:{}'.format(self.request.id),
                     value=json.dumps(data_state),

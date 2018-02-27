@@ -75,8 +75,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
 
     def create_redis_entry(self, task_id: str, file_path: str,
                            descriptor: dict, data_type: str) -> None:
-        """Creates an entry in Redis that reflects all meta data surrounding the
-        downloaded data. E.g. data type, file system location, ...
+        """Creates an entry in Redis that contains meta information for the
+        data that are to be downloaded.
         :param task_id: Id associated with the loaded data.
         :param file_path: Location of the data on the file system.
         :param descriptor: Describes the data and is used to download them.
@@ -89,8 +89,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
             'data_type': data_type,
             'meta': {
                 'descriptor': descriptor,
-            },
-            'loaded': False,
+            }
         }
         redis.setex(name='data:{}'.format(task_id),
                     value=json.dumps(data_state),
@@ -119,7 +118,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
             async_result = etl.apply_async(kwargs=kwargs, task_id=task_id)
             assert async_result.id == task_id
             task_ids.append(task_id)
-            if wait:
+            if wait and async_result.state == 'SUBMITTED':
                 logger.debug("'wait' was set. Waiting for tasks to finish ...")
                 async_result.get(propagate=False)
         return task_ids

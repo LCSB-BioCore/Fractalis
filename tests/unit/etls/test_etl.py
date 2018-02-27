@@ -51,7 +51,7 @@ class TestETL:
         df1 = pd.DataFrame([[1, 2, 3]], columns=['id', 'feature', 'value'])
         df2 = pd.DataFrame([[1, 3]], columns=['id', 'value'])
         df3 = pd.DataFrame([], columns=['id', 'feature', 'value'])
-        redis.set('data:123', json.dumps({'loaded': False, 'meta': {}}))
+        redis.set('data:123', json.dumps({'meta': {}}))
 
         self.etl.update_redis(data_frame=df1)
         data_state = json.loads(redis.get('data:123'))

@@ -7,8 +7,6 @@ from celery import Celery, current_app
 from celery.signals import after_task_publish
 from flask import Flask
 
-from fractalis.analytics.task import AnalyticTask
-from fractalis.data.etl import ETL
 from fractalis.utils import list_classes_with_base_class
 
 
@@ -54,6 +52,8 @@ def make_celery(app: Flask) -> Celery:
 def register_tasks() -> None:
     """Register all of our Task classes with celery."""
     from fractalis import celery
+    from fractalis.analytics.task import AnalyticTask
+    from fractalis.data.etl import ETL
 
     logger.info("Registering ETLs ...")
     etl_classes = list_classes_with_base_class('fractalis.data.etls', ETL)

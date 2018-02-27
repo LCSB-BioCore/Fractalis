@@ -56,7 +56,7 @@ CORS(app, supports_credentials=True)
 
 # create celery app
 log.info("Creating celery app.")
-from fractalis.celeryapp import make_celery, register_tasks  # noqa
+from fractalis.celeryapp import make_celery, register_tasks  # noqa: E402
 celery = make_celery(app)
 
 # register blueprints

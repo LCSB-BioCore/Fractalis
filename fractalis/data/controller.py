@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Tuple
+from typing import Tuple, Union
 
 from flask import Blueprint, session, request, jsonify, Response
 
@@ -39,7 +39,7 @@ def create_data_task() -> Tuple[Response, int]:
     return jsonify(''), 201
 
 
-def get_data_state_for_task_id(task_id: str, wait: bool) -> dict:
+def get_data_state_for_task_id(task_id: str, wait: bool) -> Union[dict, None]:
     """Return data state associated with task id.
     :param task_id: The id associated with the ETL task.
     :param wait: If true and ETL is still running wait for it.
@@ -51,10 +51,7 @@ def get_data_state_for_task_id(task_id: str, wait: bool) -> dict:
         async_result.get(propagate=False)
     value = redis.get('data:{}'.format(task_id))
     if not value:
-        error = "Could not find data entry in " \
-                "Redis for task_id '{}'.".format(task_id)
-        logger.error(error)
-        return {}
+        return None
     data_state = json.loads(value)
     # add additional information to data_state
     result = async_result.result
@@ -77,10 +74,10 @@ def get_all_data() -> Tuple[Response, int]:
     data_states = []
     for task_id in session['data_tasks']:
         data_state = get_data_state_for_task_id(task_id, wait)
-        if not data_state:
-            # remove expired data task id
-            session['data_tasks'].remove(task_id)
-            continue
+        if data_state is None:
+            warning = "Data state with task_id '{}' expired. " \
+                      "Discarding...".format(task_id)
+            logger.warning(warning)
         # remove internal information from response
         del data_state['file_path']
         del data_state['meta']
@@ -143,5 +140,10 @@ def get_meta_information(task_id: str) -> Tuple[Response, int]:
         logger.warning(error)
         return jsonify({'error': error}), 403
     data_state = get_data_state_for_task_id(task_id, wait)
+    if data_state is None:
+        error = "Could not find redis entry for this task id '{}'. " \
+                "The entry probably expired.".format(task_id)
+        logger.error(error)
+        return jsonify({'error': error}), 404
     logger.debug("Successfully gather meta information. Sending response.")
     return jsonify({'meta': data_state['meta']}), 200

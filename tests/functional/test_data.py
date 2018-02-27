@@ -159,9 +159,7 @@ class TestData:
             assert 'file_path' in data_state
             assert 'label' in data_state
             assert 'data_type' in data_state
-            assert 'loaded' in data_state
             assert 'meta' in data_state
-            assert not data_state['loaded']
 
     def test_valid_redis_after_loaded_on_post(self, test_client, payload):
         test_client.post('/data?wait=1', data=payload['serialized'])
@@ -173,9 +171,7 @@ class TestData:
             assert 'file_path' in data_state
             assert 'label' in data_state
             assert 'data_type' in data_state
-            assert 'loaded' in data_state
             assert 'meta' in data_state
-            assert data_state['loaded']
 
     def test_valid_filesystem_before_loaded_on_post(
             self, test_client, payload):
@@ -234,7 +230,6 @@ class TestData:
             assert data_state['etl_state'] == 'SUBMITTED'
             assert not data_state['etl_message']
             assert data_state['data_type'] == 'mock'
-            assert not data_state['loaded']
             assert 'task_id' in data_state
 
     def test_valid_response_after_loaded_on_get(self, test_client, payload):
@@ -247,7 +242,6 @@ class TestData:
             assert data_state['etl_state'] == 'SUCCESS'
             assert not data_state['etl_message']
             assert data_state['data_type'] == 'mock'
-            assert data_state['loaded']
             assert 'task_id' in data_state
 
     def test_valid_response_if_failing_on_get(self, test_client, faiload):
@@ -260,7 +254,6 @@ class TestData:
             assert data_state['etl_state'] == 'FAILURE'
             assert data_state['etl_message']
             assert data_state['data_type'] == 'mock'
-            assert not data_state['loaded']
             assert 'task_id' in data_state
 
     def test_valid_state_for_finished_etl_on_delete(
