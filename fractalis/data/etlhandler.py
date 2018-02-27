@@ -175,6 +175,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
                 task_id = self.find_duplicate_task_id(data_tasks, descriptor)
                 if task_id:
                     task_ids.append(task_id)
+                    data_tasks.append(task_id)
                     continue
             else:
                 self.remove_duplicates(data_tasks, descriptor)
@@ -189,6 +190,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
             async_result = etl.apply_async(kwargs=kwargs, task_id=task_id)
             assert async_result.id == task_id
             task_ids.append(task_id)
+            data_tasks.append(task_id)
             if wait and async_result.state == 'SUBMITTED':
                 logger.debug("'wait' was set. Waiting for tasks to finish ...")
                 async_result.get(propagate=False)
