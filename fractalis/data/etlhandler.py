@@ -96,7 +96,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
                     value=json.dumps(data_state),
                     time=app.config['FRACTALIS_CACHE_EXP'])
 
-    def descriptor_to_hash(self, descriptor):
+    def descriptor_to_hash(self, descriptor: dict) -> int:
         """Compute hash for the given descriptor. Used to identify duplicates.
         :param descriptor: ETL descriptor. Used to identify duplicates.
         :return: Unique hash.
@@ -126,8 +126,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
                 task_ids.append(task_id)
         return task_ids
 
-    def remove_duplicates(self, data_tasks: List[str],
-                          descriptor: dict) -> None:
+    def remove_duplicates(self, data_tasks: List[str], descriptor: dict) -> None:
         """Delete the duplicates of the given descriptor from redis and call
         the janitor afterwards to cleanup orphaned files.
         :param data_tasks: Limit duplicate search to.
