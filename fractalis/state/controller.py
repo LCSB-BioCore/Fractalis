@@ -8,11 +8,10 @@ from typing import Tuple
 
 from flask import Blueprint, jsonify, Response, request, session
 
-from fractalis import redis
+from fractalis import redis, celery
 from fractalis.validator import validate_json, validate_schema
 from fractalis.analytics.task import AnalyticTask
 from fractalis.data.etlhandler import ETLHandler
-from fractalis.data.controller import get_data_state_for_task_id
 from fractalis.state.schema import request_state_access_schema, \
     save_state_schema
 
@@ -30,7 +29,7 @@ def save_state() -> Tuple[Response, int]:
     """
     logger.debug("Received POST request on /state.")
     payload = request.get_json(force=True)
-    state = str(payload['state'])
+    state = json.dumps(payload['state'])
     matches = re.findall('\$.+?\$', state)
     task_ids = [AnalyticTask.parse_value(match)[0] for match in matches]
     task_ids = list(set(task_ids))
@@ -48,15 +47,9 @@ def save_state() -> Tuple[Response, int]:
                     "State cannot be saved".format(task_id)
             logger.error(error)
             return jsonify({'error': error}), 400
-        try:
-            data_state = json.loads(value)
-            descriptors.append(data_state['meta']['descriptor'])
-        except (ValueError, KeyError, TypeError):
-            error = "Task with id {} was found in redis but it represents " \
-                    "no valid data state. " \
-                    "State cannot be saved.".format(task_id)
-            return jsonify({'error': error}), 400
-    assert len(matches) == len(descriptors)
+        data_state = json.loads(value)
+        descriptors.append(data_state['meta']['descriptor'])
+    assert len(task_ids) == len(descriptors)
     meta_state = {
         'state': state,
         'server': payload['server'],
@@ -115,21 +108,22 @@ def get_state_data(state_id: UUID) -> Tuple[Response, int]:
     :return: Previously saved state.
     """
     logger.debug("Received GET request on /state/<uuid:state_id>.")
-    wait = request.args.get('wait') == '1'
     state_id = str(state_id)
-    meta_state = json.loads(redis.get('state:{}'.format(state_id)))
-    if state_id not in session['state_access']:
+    value = redis.get('state:{}'.format(state_id))
+    if not value or state_id not in session['state_access']:
         error = "Cannot get state. Make sure to submit a POST request " \
                 "to this very same URL containing credentials and server " \
                 "data to launch access verification. Only after that a GET " \
                 "request might or might not return you the saved state."
         logger.error(error)
         return jsonify({'error': error}), 404
+    meta_state = json.loads(value)
+    state = json.dumps(meta_state['state'])
     for task_id in session['state_access'][state_id]:
-        data_state = get_data_state_for_task_id(task_id=task_id, wait=wait)
-        if data_state is not None and data_state['etl_state'] == 'SUBMITTED':
+        async_result = celery.AsyncResult(task_id)
+        if async_result.state == 'SUBMITTED':
             return jsonify({'message': 'ETLs are still running.'}), 202
-        elif data_state is not None and data_state['etl_state'] == 'SUCCESS':
+        elif async_result.state == 'SUCCESS':
             continue
         else:
             error = "One or more ETLs failed or has unknown status. " \
@@ -138,7 +132,7 @@ def get_state_data(state_id: UUID) -> Tuple[Response, int]:
             return jsonify({'error': error}), 403
     # replace task ids in state with the ids of the freshly loaded data
     for i, task_id in enumerate(meta_state['task_ids']):
-        meta_state['state'] = re.sub(pattern=task_id,
-                                     repl=session['state_access'][i],
-                                     string=meta_state['state'])
-    return jsonify({'state': meta_state}), 200
+        state = re.sub(pattern=task_id,
+                       repl=session['state_access'][state_id][i],
+                       string=state)
+    return jsonify({'state': json.loads(state)}), 200

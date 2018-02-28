@@ -143,7 +143,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                            "but nothing else.")
             data_task_id = value
             filters = None
-        return data_task_id, filters
+        return str(data_task_id), filters
 
     def prepare_args(self, session_data_tasks: List[str],
                      args: dict, decrypt: bool) -> dict:

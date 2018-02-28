@@ -126,7 +126,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
                 task_ids.append(task_id)
         return task_ids
 
-    def remove_duplicates(self, data_tasks: List[str], descriptor: dict) -> None:
+    def remove_duplicates(self, data_tasks: List[str],
+                          descriptor: dict) -> None:
         """Delete the duplicates of the given descriptor from redis and call
         the janitor afterwards to cleanup orphaned files.
         :param data_tasks: Limit duplicate search to.
@@ -194,6 +195,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
             if wait and async_result.state == 'SUBMITTED':
                 logger.debug("'wait' was set. Waiting for tasks to finish ...")
                 async_result.get(propagate=False)
+        task_ids = list(set(task_ids))
         return task_ids
 
     @staticmethod

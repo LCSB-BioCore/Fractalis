@@ -193,7 +193,8 @@ class TestETLHandler:
             data_tasks=['123'], descriptor=descriptor)
         assert task_id is None
 
-    def test_find_duplicate_limits_search_to_data_tasks(self, monkeypatch, redis):
+    def test_find_duplicate_limits_search_to_data_tasks(
+            self, monkeypatch, redis):
         descriptor = {'a': {'b': 3}, 'c': 4}
         self.etlhandler.create_redis_entry(task_id='123',
                                            file_path='',
@@ -278,6 +279,7 @@ class TestETLHandler:
         task_ids = self.etlhandler.handle(descriptors=[descriptor, descriptor],
                                           data_tasks=[],
                                           use_existing=False)
+        assert len(task_ids) == 2
         assert task_ids[0] != task_ids[1]
         assert len(redis.keys('data:*')) == 1
 
@@ -287,5 +289,5 @@ class TestETLHandler:
         task_ids = self.etlhandler.handle(descriptors=[descriptor, descriptor],
                                           data_tasks=[],
                                           use_existing=True)
-        assert task_ids[0] == task_ids[1]
+        assert len(task_ids) == 1
         assert len(redis.keys('data:*')) == 1

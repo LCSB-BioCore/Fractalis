@@ -35,9 +35,9 @@ class TestAnalyticsTask:
         arg1 = '${"id": 123, "filters": {"foo": [1,2]}}$'
         arg2 = '$123$'
         data_task_id, filters = self.task.parse_value(arg1)
-        assert data_task_id == 123
+        assert data_task_id == '123'
         assert 'foo' in filters
         assert filters['foo'] == [1, 2]
         data_task_id, filters = self.task.parse_value(arg2)
-        assert data_task_id == 123
+        assert data_task_id == '123'
         assert not filters
