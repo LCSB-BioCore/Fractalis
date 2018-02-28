@@ -258,6 +258,23 @@ class TestData:
             assert data_state['data_type'] == 'mock'
             assert 'task_id' in data_state
 
+    def test_discard_expired_states(self, test_client):
+        data_state = {
+            'a': 'b',
+            'file_path': '',
+            'meta': ''
+        }
+        redis.set(name='data:456', value=json.dumps(data_state))
+        with test_client.session_transaction() as sess:
+            sess['data_tasks'] = ['123', '456']
+        rv = test_client.get('/data?wait=1')
+        body = flask.json.loads(rv.get_data())
+        assert rv.status_code == 200, body
+        assert len(body['data_states']) == 1
+        assert body['data_states'][0]['a'] == 'b'
+        with test_client.session_transaction() as sess:
+            sess['data_tasks'] = ['456']
+
     def test_valid_response_if_failing_on_get(self, test_client, faiload):
         test_client.post('/data', data=faiload['serialized'])
         rv = test_client.get('/data?wait=1')
