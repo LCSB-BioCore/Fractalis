@@ -32,6 +32,8 @@ def create_data_task() -> Tuple[Response, int]:
                                      server=payload['server'],
                                      auth=payload['auth'])
     task_ids = etl_handler.handle(descriptors=payload['descriptors'],
+                                  data_tasks=session['data_tasks'],
+                                  use_existing=False,
                                   wait=wait)
     session['data_tasks'] += task_ids
     session['data_tasks'] = list(set(session['data_tasks']))
@@ -72,17 +74,21 @@ def get_all_data() -> Tuple[Response, int]:
     logger.debug("Received GET request on /data.")
     wait = request.args.get('wait') == '1'
     data_states = []
+    existing_data_tasks = []
     for task_id in session['data_tasks']:
         data_state = get_data_state_for_task_id(task_id, wait)
         if data_state is None:
             warning = "Data state with task_id '{}' expired. " \
                       "Discarding...".format(task_id)
             logger.warning(warning)
+            continue
         # remove internal information from response
         del data_state['file_path']
         del data_state['meta']
         # add additional information to response
         data_states.append(data_state)
+        existing_data_tasks.append(task_id)
+    session['data_tasks'] = existing_data_tasks
     logger.debug("Data states collected. Sending response.")
     return jsonify({'data_states': data_states}), 200
 

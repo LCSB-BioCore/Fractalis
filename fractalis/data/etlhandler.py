@@ -5,10 +5,10 @@ import abc
 import json
 import logging
 from uuid import uuid4
-from typing import List
+from typing import List, Union
 
-
-from fractalis import app, redis
+import manage
+from fractalis import app, redis, celery
 from fractalis.data.etl import ETL
 
 
@@ -87,6 +87,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
             'file_path': file_path,
             'label': self.make_label(descriptor),
             'data_type': data_type,
+            'hash': self.descriptor_to_hash(descriptor),
             'meta': {
                 'descriptor': descriptor,
             }
@@ -95,11 +96,75 @@ class ETLHandler(metaclass=abc.ABCMeta):
                     value=json.dumps(data_state),
                     time=app.config['FRACTALIS_CACHE_EXP'])
 
-    def handle(self, descriptors: List[dict], wait: bool = False) -> List[str]:
+    def descriptor_to_hash(self, descriptor: dict) -> int:
+        """Compute hash for the given descriptor. Used to identify duplicates.
+        :param descriptor: ETL descriptor. Used to identify duplicates.
+        :return: Unique hash.
+        """
+        string = '{}-{}-{}'.format(self._server,
+                                   self._handler,
+                                   str(descriptor))
+        hash_value = int.from_bytes(string.encode('utf-8'), 'little')
+        return hash_value
+
+    def find_duplicates(self, data_tasks: List[str],
+                        descriptor: dict) -> List[str]:
+        """Search for duplicates of the given descriptor and return a list
+        of associated task ids.
+        :param data_tasks: Limit duplicate search to.
+        :param descriptor: ETL descriptor. Used to identify duplicates.
+        :return: The list of duplicates.
+        """
+        task_ids = []
+        hash_value = self.descriptor_to_hash(descriptor)
+        for task_id in data_tasks:
+            value = redis.get('data:{}'.format(task_id))
+            if value is None:
+                continue
+            data_state = json.loads(value)
+            if hash_value == data_state['hash']:
+                task_ids.append(task_id)
+        return task_ids
+
+    def remove_duplicates(self, data_tasks: List[str],
+                          descriptor: dict) -> None:
+        """Delete the duplicates of the given descriptor from redis and call
+        the janitor afterwards to cleanup orphaned files.
+        :param data_tasks: Limit duplicate search to.
+        :param descriptor: ETL descriptor. Used to identify duplicates.
+        """
+        task_ids = self.find_duplicates(data_tasks, descriptor)
+        for task_id in task_ids:
+            redis.delete('data:{}'.format(task_id))
+        manage.janitor.delay()
+
+    def find_duplicate_task_id(self, data_tasks: List[str],
+                               descriptor: dict) -> Union[str, None]:
+        """Search for duplicates of the given descriptor and return their
+        task id if the state is SUBMITTED or SUCCESS, meaning the data are
+        reusable.
+        :param data_tasks: Limit search to this list.
+        :param descriptor: ETL descriptor. Used to identify duplicates.
+        :return: TaskID if valid duplicate has been found, None otherwise.
+        """
+        task_ids = self.find_duplicates(data_tasks, descriptor)
+        for task_id in task_ids:
+            async_result = celery.AsyncResult(task_id)
+            if (async_result.state == 'SUBMITTED' or
+                    async_result.state == 'SUCCESS'):
+                return task_id
+        return None
+
+    def handle(self, descriptors: List[dict], data_tasks: List[str],
+               use_existing: bool, wait: bool = False) -> List[str]:
         """Create instances of ETL for the given descriptors and submit them
         (ETL implements celery.Task) to the broker. The task ids are returned
         to keep track of them.
         :param descriptors: A list of items describing the data to download.
+        :param data_tasks: Limit search for duplicates to this list.
+        :param use_existing: If a duplicate with state 'SUBMITTED' or 'SUCCESS'
+        already exists use it instead of starting a new ETL. If this is False
+        duplicates are deleted!
         :param wait: Makes this method synchronous by waiting for the tasks to
         return.
         :return: The list of task ids for the submitted tasks.
@@ -107,6 +172,14 @@ class ETLHandler(metaclass=abc.ABCMeta):
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
         task_ids = []
         for descriptor in descriptors:
+            if use_existing:
+                task_id = self.find_duplicate_task_id(data_tasks, descriptor)
+                if task_id:
+                    task_ids.append(task_id)
+                    data_tasks.append(task_id)
+                    continue
+            else:
+                self.remove_duplicates(data_tasks, descriptor)
             task_id = str(uuid4())
             file_path = os.path.join(data_dir, task_id)
             etl = ETL.factory(handler=self._handler, descriptor=descriptor)
@@ -118,9 +191,11 @@ class ETLHandler(metaclass=abc.ABCMeta):
             async_result = etl.apply_async(kwargs=kwargs, task_id=task_id)
             assert async_result.id == task_id
             task_ids.append(task_id)
+            data_tasks.append(task_id)
             if wait and async_result.state == 'SUBMITTED':
                 logger.debug("'wait' was set. Waiting for tasks to finish ...")
                 async_result.get(propagate=False)
+        task_ids = list(set(task_ids))
         return task_ids
 
     @staticmethod

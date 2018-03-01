@@ -2,6 +2,7 @@
 
 import pandas as pd
 
+from uuid import uuid4
 from fractalis.analytics.task import AnalyticTask
 
 
@@ -32,12 +33,18 @@ class TestAnalyticsTask:
         assert df2.shape == (3, 3)
 
     def test_parse_value(self):
+        uuid = str(uuid4())
         arg1 = '${"id": 123, "filters": {"foo": [1,2]}}$'
-        arg2 = '$123$'
+        arg2 = '${}$'.format(uuid)
+        arg3 = '${{"id": "{}", "filters": {{"foo": [1,2]}}}}$'.format(uuid)
         data_task_id, filters = self.task.parse_value(arg1)
-        assert data_task_id == 123
+        assert data_task_id is None
         assert 'foo' in filters
         assert filters['foo'] == [1, 2]
         data_task_id, filters = self.task.parse_value(arg2)
-        assert data_task_id == 123
+        assert data_task_id == uuid
         assert not filters
+        data_task_id, filters = self.task.parse_value(arg3)
+        assert data_task_id == uuid
+        assert 'foo' in filters
+        assert filters['foo'] == [1, 2]

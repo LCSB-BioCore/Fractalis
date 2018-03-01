@@ -4,7 +4,8 @@ import abc
 import json
 import re
 import logging
-from typing import List, Tuple
+from uuid import UUID
+from typing import List, Tuple, Union
 
 from pandas import read_csv, DataFrame
 from celery import Task
@@ -126,7 +127,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
             value.endswith('$')
 
     @staticmethod
-    def parse_value(value: str) -> Tuple[str, dict]:
+    def parse_value(value: str) -> Tuple[Union[str, None], dict]:
         """Extract data task id and filters from the string.
         :param value: A string that contains a data task id.
         :return: A tuple of id and filters to apply later.
@@ -135,7 +136,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         # noinspection PyBroadException
         try:
             value = json.loads(value)
-            data_task_id = value['id']
+            data_task_id = str(value['id'])
             filters = value.get('filters')
         except Exception:
             logger.warning("Failed to parse value. "
@@ -143,6 +144,12 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
                            "but nothing else.")
             data_task_id = value
             filters = None
+        # noinspection PyBroadException
+        try:
+            data_task_id = str(UUID(data_task_id))
+        except Exception:
+            logger.warning("'{}' is no valid task id.".format(data_task_id))
+            data_task_id = None
         return data_task_id, filters
 
     def prepare_args(self, session_data_tasks: List[str],

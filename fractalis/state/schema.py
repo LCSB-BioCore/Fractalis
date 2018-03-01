@@ -1,8 +1,17 @@
+save_state_schema = {
+    "type": "object",
+    "properties": {
+        "state": {"type": "object"},
+        "handler": {"type": "string"},
+        "server": {"type": "string"}
+    },
+    "required": ["handler", "server", "state"]
+}
+
+
 request_state_access_schema = {
     "type": "object",
     "properties": {
-        "handler": {"type": "string"},
-        "server": {"type": "string"},
         "auth": {
             "type": "object",
             "properties": {
@@ -13,5 +22,5 @@ request_state_access_schema = {
             "minProperties": 1
         }
     },
-    "required": ["handler", "server", "auth"]
+    "required": ["auth"]
 }
