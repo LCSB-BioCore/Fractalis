@@ -36,7 +36,7 @@ class TestState:
 
     def test_400_if_task_id_not_in_redis(self, test_client):
         payload = {
-            'state': {'abc': '$123$'},
+            'state': {'abc': '${}$'.format(uuid4())},
             'handler': 'test',
             'server': 'localfoo'
         }
@@ -47,30 +47,35 @@ class TestState:
         assert 'could not be found in redis' in body['error']
 
     def test_save_state_saves_and_returns(self, test_client):
+        uuid = str(uuid4())
         payload = {
-            'state': {'test': ['$123$']},
+            'state': {'test': ['${}$'.format(uuid), '${${}']},
             'handler': 'test',
             'server': 'localfoo'
         }
-        redis.set(name='data:123',
+        redis.set(name='data:{}'.format(uuid),
                   value=json.dumps({'meta': {'descriptor': 'foo'}}))
         rv = test_client.post('/state', data=flask.json.dumps(payload))
         body = flask.json.loads(rv.get_data())
         assert 201 == rv.status_code, body
         assert UUID(body['state_id'])
         meta_state = json.loads(redis.get('state:{}'.format(body['state_id'])))
-        state = json.loads(meta_state['state'])
-        assert ['$123$'] == state.get('test')
+        assert meta_state['task_ids'] == [uuid]
+        assert meta_state['state']['test'][0] == '${}$'.format(uuid)
 
     def test_save_state_discards_duplicates(self, test_client):
+        uuid1 = str(uuid4())
+        uuid2 = str(uuid4())
         payload = {
-            'state': {'test': ['$123$', '$123$', '$456$']},
+            'state': {'test': ['${}$'.format(uuid1),
+                               '${}$'.format(uuid1),
+                               '${}$'.format(uuid2)]},
             'handler': 'test',
             'server': 'localfoo'
         }
-        redis.set(name='data:123',
+        redis.set(name='data:{}'.format(uuid1),
                   value=json.dumps({'meta': {'descriptor': 'foo'}}))
-        redis.set(name='data:456',
+        redis.set(name='data:{}'.format(uuid2),
                   value=json.dumps({'meta': {'descriptor': 'bar'}}))
         rv = test_client.post('/state', data=flask.json.dumps(payload))
         body = flask.json.loads(rv.get_data())
@@ -79,14 +84,14 @@ class TestState:
         meta_state = json.loads(redis.get('state:{}'.format(body['state_id'])))
         assert len(meta_state['task_ids']) == 2
         assert len(meta_state['descriptors']) == 2
-        assert '123' in meta_state['task_ids']
-        assert '456' in meta_state['task_ids']
+        assert uuid1 in meta_state['task_ids']
+        assert uuid2 in meta_state['task_ids']
         assert 'foo' in meta_state['descriptors']
         assert 'bar' in meta_state['descriptors']
 
     def test_400_if_payload_schema_incorrect_1(self, test_client):
         payload = {
-            'state': {'test': ['$123$']},
+            'state': {'test': ['${}$'.format(uuid4())]},
             'server': 'localfoo'
         }
         rv = test_client.post('/state', data=flask.json.dumps(payload))
@@ -142,11 +147,13 @@ class TestState:
 
     def test_request_state_access_reuses_duplicate(
             self, test_client):
+        uuid1 = str(uuid4())
+        uuid2 = str(uuid4())
         meta_state = {
-            'state': {'foo': ['$123$', '$456$']},
+            'state': {'foo': ['${}$'.format(uuid1), '${}$'.format(uuid2)]},
             'handler': 'test',
             'server': 'localfoo',
-            'task_ids': ['123', '456'],
+            'task_ids': [uuid1, uuid2],
             'descriptors': [
                 {'data_type': 'default'},
                 {'data_type': 'default'}
@@ -173,15 +180,17 @@ class TestState:
 
     def test_request_state_reuses_previous_etls_but_only_in_own_scope(
             self, test_client, monkeypatch):
+        uuid1 = str(uuid4())
+        uuid2 = str(uuid4())
         descriptor_1 = {'data_type': 'default', 'id': 1}
         descriptor_2 = {'data_type': 'default', 'id': 2}
         handler = 'test'
         server = 'localfoo'
         meta_state = {
-            'state': {'foo': ['$123$', '$456$']},
+            'state': {'foo': ['${}$'.format(uuid1), '${}$'.format(uuid2)]},
             'handler': handler,
             'server': server,
-            'task_ids': ['123', '456'],
+            'task_ids': [uuid1, uuid2],
             'descriptors': [
                 descriptor_1,
                 descriptor_2
@@ -193,16 +202,16 @@ class TestState:
         etlhandler = ETLHandler.factory(handler=handler,
                                         server=server,
                                         auth={})
-        etlhandler.create_redis_entry(task_id='123',
+        etlhandler.create_redis_entry(task_id=uuid1,
                                       file_path='',
                                       descriptor=descriptor_1,
                                       data_type='')
-        etlhandler.create_redis_entry(task_id='456',
+        etlhandler.create_redis_entry(task_id=uuid2,
                                       file_path='',
                                       descriptor=descriptor_2,
                                       data_type='')
         with test_client.session_transaction() as sess:
-            sess['data_tasks'] = ['456']
+            sess['data_tasks'] = [uuid2]
 
         class FakeAsyncResult:
             def __init__(self, *args, **kwargs):

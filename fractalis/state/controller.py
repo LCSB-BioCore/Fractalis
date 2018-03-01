@@ -3,6 +3,7 @@
 import re
 import json
 import logging
+import ast
 from uuid import UUID, uuid4
 from typing import Tuple
 
@@ -29,11 +30,11 @@ def save_state() -> Tuple[Response, int]:
     """
     logger.debug("Received POST request on /state.")
     payload = request.get_json(force=True)
-    state = json.dumps(payload['state'])
+    state = str(payload['state'])
     matches = re.findall('\$.+?\$', state)
     task_ids = [AnalyticTask.parse_value(match)[0] for match in matches]
-    task_ids = list(set(task_ids))
-    if not matches:
+    task_ids = [task_id for task_id in set(task_ids) if task_id is not None]
+    if not task_ids:
         error = "This state cannot be saved because it contains no data " \
                 "task ids. These are used to verify access to the state and " \
                 "its potentially sensitive data."
@@ -51,7 +52,7 @@ def save_state() -> Tuple[Response, int]:
         descriptors.append(data_state['meta']['descriptor'])
     assert len(task_ids) == len(descriptors)
     meta_state = {
-        'state': state,
+        'state': ast.literal_eval(state),
         'server': payload['server'],
         'handler': payload['handler'],
         'task_ids': task_ids,
