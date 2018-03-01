@@ -14,8 +14,8 @@ test:all:
         - yum install -y epel-release
         - yum update -y
         - yum install -y rabbitmq-server redis python34 python34-pip python34-devel readline-devel R
-        - pip3 install -e . -i https://pypi.lcsb.uni.lu/simple
-        - pip3 install -r requirements.txt -i https://pypi.lcsb.uni.lu/simple
+        - pip3 install -e . --trusted-host 10.79.2.238 -i https://10.79.2.238/simple
+        - pip3 install -r requirements.txt --trusted-host 10.79.2.238 -i https://10.79.2.238/simple
         - R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma")'
         - redis-server --daemonize yes
         - rabbitmq-server -detached
@@ -29,7 +29,7 @@ release:pypi:
         - yum install -y epel-release
         - yum update -y
         - yum install -y python34 python34-pip
-        - pip3 install twine
+        - pip3 install twine --trusted-host 10.79.2.238 -i https://10.79.2.238/simple
         - python3 setup.py sdist
         - twine upload dist/* -u ${PYPI_USER} -p ${PYPI_PASSWORD}
     only:
