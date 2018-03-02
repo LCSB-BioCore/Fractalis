@@ -7,7 +7,7 @@ import logging
 from uuid import uuid4
 from typing import List, Union
 
-import manage
+from fractalis.cleanup import janitor
 from fractalis import app, redis, celery
 from fractalis.data.etl import ETL
 
@@ -136,7 +136,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
         task_ids = self.find_duplicates(data_tasks, descriptor)
         for task_id in task_ids:
             redis.delete('data:{}'.format(task_id))
-        manage.janitor.delay()
+        janitor.delay()
 
     def find_duplicate_task_id(self, data_tasks: List[str],
                                descriptor: dict) -> Union[str, None]:

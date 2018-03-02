@@ -1,2 +1,1 @@
 include fractalis/logging.yaml
-include manage.py

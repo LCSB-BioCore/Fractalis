@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-import manage
+from fractalis.cleanup import janitor
 from fractalis import app, redis
 
 
@@ -14,7 +14,7 @@ class TestManage:
         tmp_dir = app.config['FRACTALIS_TMP_DIR']
         os.makedirs(tmp_dir, exist_ok=True)
         Path(os.path.join(tmp_dir, 'abc')).touch()
-        manage.janitor()
+        janitor()
         assert not os.path.exists(os.path.join(tmp_dir, 'abc'))
 
     def test_janitor_does_not_remove_tracked_files(self):
@@ -22,5 +22,5 @@ class TestManage:
         os.makedirs(tmp_dir, exist_ok=True)
         Path(os.path.join(tmp_dir, 'abc')).touch()
         redis.set('data:abc', '')
-        manage.janitor()
+        janitor()
         assert os.path.exists(os.path.join(tmp_dir, 'abc'))
