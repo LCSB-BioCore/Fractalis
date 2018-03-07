@@ -14,7 +14,7 @@ test:all:
         - yum install -y epel-release
         - yum update -y
         - yum install -y rabbitmq-server redis python34 python34-pip python34-devel readline-devel R
-        - pip3 install -e . --trusted-host 10.79.2.238 -i https://10.79.2.238/simple
+        - pip3 install . --trusted-host 10.79.2.238 -i https://10.79.2.238/simple
         - pip3 install -r requirements.txt --trusted-host 10.79.2.238 -i https://10.79.2.238/simple
         - R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma")'
         - redis-server --daemonize yes
