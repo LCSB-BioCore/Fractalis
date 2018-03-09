@@ -24,18 +24,7 @@ prepare:
   script:
       - yum install -y epel-release
       - yum update -y
-      - >
-        yum install -y
-        python34
-        python34-pip
-        yum-utils
-        device-mapper-persistent-data
-        lvm2
-      - >
-        yum-config-manager
-        --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-      - yum install -y docker-ce
-      - systemctl start docker
+      - yum install -y python34 python34-pip
       - pip3 install twine
   artifacts:
       untracked: true
