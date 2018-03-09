@@ -1,4 +1,4 @@
-image: centos:7
+image: centos:latest
 
 services:
     - redis:3.2-alpine
