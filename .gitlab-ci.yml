@@ -14,24 +14,16 @@ variables:
     SDIST: fractalis-$CI_COMMIT_TAG.tar.gz
 
 stages:
-    - prepare
     - build
     - test
     - release
 
-prepare:
-  stage: prepare
-  script:
-      - yum install -y epel-release
-      - yum update -y
-      - yum install -y python34 python34-pip
-      - pip3 install twine
-  artifacts:
-      untracked: true
-
 build:
   stage: build
   script:
+      - yum install -y epel-release
+      - yum update -y
+      - yum install -y python34
       - python3 setup.py sdist
       - docker build -t $DOCKER_IMAGE_TAG --build-arg SDIST=$SDIST .
       - docker save $DOCKER_IMAGE_TAG -o image.tar
@@ -55,6 +47,10 @@ test:
 release:pypi:
     stage: release
     script:
+        - yum install -y epel-release
+        - yum update -y
+        - yum install -y python34 python34-pip
+        - pip3 install twine
         - twine upload dist/$SDIST -u $PYPI_USER -p $PYPI_PASS
     only:
         - tags
