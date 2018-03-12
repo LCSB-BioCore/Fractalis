@@ -3,6 +3,10 @@ variables:
     PYPI_PASS: SECURE
     DOCKER_USER: SECURE
     DOCKER_PASS: SECURE
+    DOCKER_DRIVER: overlay2
+
+services:
+    - docker:dind
 
 before_script:
     - FRACTALIS_VERSION=$(grep version setup.py | grep -o "[0-9]\.[0-9]\.[0-9]")
@@ -26,7 +30,7 @@ build:sdist:
 
 build:image:
   stage: build_image
-  image: docker:dind
+  image: docker:latest
   tags:
       - privileged
   script:
@@ -40,7 +44,7 @@ build:image:
 
 test:
     stage: test
-    image: docker:dind
+    image: docker:latest
     tags:
         - privileged
     services:
@@ -71,7 +75,7 @@ release:pypi:
 
 release:docker:
     stage: release
-    image: docker:dind
+    image: docker:latest
     tags:
         - privileged
     script:
