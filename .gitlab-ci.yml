@@ -8,7 +8,6 @@ before_script:
     - FRACTALIS_VERSION=$(grep version setup.py | grep -o "[0-9]\.[0-9]\.[0-9]")
     - DOCKER_IMAGE_TAG="fractalis:$FRACTALIS_VERSION"
     - SDIST=fractalis-$FRACTALIS_VERSION.tar.gz
-    - docker info
 
 stages:
     - build_sdist
