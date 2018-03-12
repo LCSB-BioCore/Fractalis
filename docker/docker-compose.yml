@@ -1,0 +1,40 @@
+version: '2'
+services:
+    redis:
+        image: 'redis:3.2-alpine'
+    rabbitmq:
+        image: 'rabbitmq:3.7-alpine'
+    app:
+        image: 'sherzinger/fractalis:0.3.0'
+        environment:
+            - FRACTALIS_CONFIG=${FRACTALIS_CONFIG}
+            - REDIS_HOST=redis
+            - RABBITMQ_HOST=rabbitmq
+        command: gunicorn -w 3 -b :5000 --log-file gunicorn.log fractalis:app
+        expose:
+            - '5000'
+        depends_on:
+            - redis
+            - rabbitmq
+    worker:
+        image: 'sherzinger/fractalis:0.3.0'
+        environment:
+            - FRACTALIS_CONFIG=${FRACTALIS_CONFIG}
+            - REDIS_HOST=redis
+            - RABBITMQ_HOST=rabbitmq
+        command: celery worker -A fractalis:celery
+        depends_on:
+            - redis
+            - rabbitmq
+    nginx:
+        image: 'nginx:1.13-alpine'
+        volumes:
+            - ./config/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+            - ./config/nginx/html:/usr/share/nginx/html
+            - ./config/nginx/certs/server.crt:/etc/nginx/server.crt
+            - ./config/nginx/certs/server.key:/etc/nginx/server.key
+        ports:
+            - '80:80'
+            - '443:443'
+        depends_on:
+            - app
