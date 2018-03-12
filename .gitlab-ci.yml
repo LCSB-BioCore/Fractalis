@@ -11,7 +11,7 @@ services:
 before_script:
     - FRACTALIS_VERSION=$(grep version setup.py | grep -o "[0-9]\.[0-9]\.[0-9]")
     - DOCKER_IMAGE_TAG="fractalis:$FRACTALIS_VERSION"
-    - SDIST=fractalis-$FRACTALIS_VERSION.tar.gz
+    - SDIST=dist/fractalis-$FRACTALIS_VERSION.tar.gz
 
 stages:
     - build_sdist
@@ -26,7 +26,7 @@ build:sdist:
       - python3 setup.py sdist
   artifacts:
       paths:
-          - dist/$SDIST
+          - $SDIST
 
 build:image:
   stage: build_image
@@ -67,7 +67,7 @@ release:pypi:
     image: python:3.6-alpine
     script:
         - pip3 install twine
-        - twine upload dist/$SDIST -u $PYPI_USER -p $PYPI_PASS
+        - twine upload $SDIST -u $PYPI_USER -p $PYPI_PASS
     dependencies:
         - build:sdist
     only:
