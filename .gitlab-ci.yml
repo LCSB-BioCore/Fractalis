@@ -27,6 +27,8 @@ build:sdist:
 build:image:
   stage: build_image
   image: docker:dind
+  tags:
+      - privileged
   script:
       - docker build -t $DOCKER_IMAGE_TAG --build-arg SDIST=$SDIST .
       - docker save $DOCKER_IMAGE_TAG -o image.tar
@@ -39,6 +41,8 @@ build:image:
 test:
     stage: test
     image: docker:dind
+    tags:
+        - privileged
     services:
         - redis:3.2-alpine
         - rabbitmq:3.7-alpine
@@ -68,6 +72,8 @@ release:pypi:
 release:docker:
     stage: release
     image: docker:dind
+    tags:
+        - privileged
     script:
         - docker load -i image.tar
         - docker login -u $DOCKER_USER -p $DOCKER_PASS
