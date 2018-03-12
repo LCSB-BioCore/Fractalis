@@ -30,7 +30,7 @@ build:image:
   tags:
       - privileged
   script:
-      - docker build -t $DOCKER_IMAGE_TAG --build-arg SDIST=$SDIST .
+      - docker build -t $DOCKER_IMAGE_TAG -f docker/Dockerfile --build-arg SDIST=$SDIST .
       - docker save $DOCKER_IMAGE_TAG -o image.tar
   dependencies:
       - build:sdist
