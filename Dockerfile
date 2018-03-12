@@ -1,17 +1,12 @@
-FROM buildpack-deps:stretch
+FROM python:3.6
 ARG SDIST
 RUN mkdir /app/
-COPY dist/$SDIST /app/
+COPY $SDIST /app/
 COPY requirements.txt /app/
 COPY tests/ /app/tests/
 WORKDIR /app/
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends \
-		r-base \
-		python3.5 \
-		python3.5-dev \
-		python3-pip \
-		python3-setuptools \
+	&& apt-get install -y --no-install-recommends
 		r-bioc-limma
 RUN pip3 install wheel
-RUN pip3 install $SDIST gunicorn
+RUN pip3 install fractalis-*.tar.gz gunicorn

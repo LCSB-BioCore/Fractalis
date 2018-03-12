@@ -10,9 +10,9 @@ setup(
     author_email='sascha.herzinger@uni.lu',
     url='https://git-r3lab.uni.lu/Fractalis/fractalis',
     version='0.3.2',
-    license='Apache2',
+    license='Apache2.0',
     include_package_data=True,
-    python_requires='>=3.4',
+    python_requires='>=3.4.0',
     install_requires=[
         'Flask==0.12.2',
         'flask-cors==3.0.3',

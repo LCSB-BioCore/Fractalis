@@ -1,11 +1,3 @@
-image: centos:7
-
-services:
-    - redis:3.2-alpine
-    - rabbitmq:3.7-alpine
-    - docker:dind
-
-
 variables:
     PYPI_USER: SECURE
     PYPI_PASS: SECURE
@@ -15,27 +7,38 @@ variables:
     SDIST: fractalis-$CI_COMMIT_TAG.tar.gz
 
 stages:
-    - build
+    - build_sdist
+    - build_image
     - test
     - release
 
-build:
-  stage: build
+build:sdist:
+  stage: build_sdist
+  image: python:3.6-alpine
   script:
-      - yum install -y epel-release
-      - yum update -y
-      - yum install -y python34 python34-pip
-      - pip3 install setuptools
       - python3 setup.py sdist
-      - docker build -t $DOCKER_IMAGE_TAG --build-arg SDIST=$SDIST .
-      - docker save $DOCKER_IMAGE_TAG -o image.tar
   artifacts:
       paths:
           - dist/$SDIST
+
+build:image:
+  stage: build_image
+  image: docker:dind
+  script:
+      - docker build -t $DOCKER_IMAGE_TAG --build-arg SDIST=$SDIST .
+      - docker save $DOCKER_IMAGE_TAG -o image.tar
+  dependencies:
+      - build:sdist
+  artifacts:
+      paths:
           - image.tar
 
 test:
     stage: test
+    image: docker:dind
+    services:
+        - redis:3.2-alpine
+        - rabbitmq:3.7-alpine
     script:
         - docker load -i image.tar
         - >
@@ -45,23 +48,28 @@ test:
                 && pip3 install -r requirements.txt
                 && flake8
                 && pytest tests"
+    dependencies:
+        - build:image
 
 release:pypi:
     stage: release
+    image: python:3.6-alpine
     script:
-        - yum install -y epel-release
-        - yum update -y
-        - yum install -y python34 python34-pip
         - pip3 install twine
         - twine upload dist/$SDIST -u $PYPI_USER -p $PYPI_PASS
+    dependencies:
+        - build:sdist
     only:
         - tags
 
 release:docker:
     stage: release
+    image: docker:dind
     script:
         - docker load -i image.tar
         - docker login -u $DOCKER_USER -p $DOCKER_PASS
         - docker push $DOCKER_IMAGE_TAG
+    dependencies:
+        - build:image
     only:
         - tags
