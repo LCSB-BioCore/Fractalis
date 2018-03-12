@@ -55,8 +55,9 @@ test:
     script:
         - docker load -i image.tar
         - >
-          docker run $DOCKER_IMAGE_TAG
+          docker run
           -e REDIS_HOST=redis -e RABBITMQ_HOST=rabbitmq
+          $DOCKER_IMAGE_TAG
           sh -c "celery worker -D -A fractalis:celery
                 && pip3 install -r requirements.txt
                 && flake8
