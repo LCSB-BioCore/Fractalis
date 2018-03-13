@@ -87,7 +87,7 @@ release:docker:
     script:
         - docker load -i image.tar
         - docker login -u $DOCKER_USER -p $DOCKER_PASS
-        - docker push $DOCKER_IMAGE_TAG
+        - docker push $DOCKER_USER/$DOCKER_IMAGE_TAG
     dependencies:
         - build:image
     only:
