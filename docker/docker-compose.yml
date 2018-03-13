@@ -22,7 +22,7 @@ services:
             - FRACTALIS_CONFIG=${FRACTALIS_CONFIG}
             - REDIS_HOST=redis
             - RABBITMQ_HOST=rabbitmq
-        command: celery worker -A fractalis:celery
+        command: celery worker -A fractalis:celery -l info --autoscale 16,4
         depends_on:
             - redis
             - rabbitmq
