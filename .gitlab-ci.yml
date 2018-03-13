@@ -35,7 +35,7 @@ build:image:
       - privileged
   script:
       - docker build -t $DOCKER_USER/$DOCKER_IMAGE_TAG -f docker/Dockerfile --build-arg SDIST=dist/$SDIST .
-      - docker save $DOCKER_IMAGE_TAG -o image.tar
+      - docker save $DOCKER_USER/$DOCKER_IMAGE_TAG -o image.tar
   dependencies:
       - build:sdist
   artifacts:
@@ -58,7 +58,7 @@ test:
           docker run
           -e REDIS_HOST=$REDIS_PORT_6379_TCP_ADDR
           -e RABBITMQ_HOST=$RABBITMQ_PORT_5672_TCP_ADDR
-          $DOCKER_IMAGE_TAG
+          $DOCKER_USER/$DOCKER_IMAGE_TAG
           sh -c "celery worker -D -A fractalis:celery -l debug --concurrency=1
           && pip3 install -r requirements.txt
           && flake8
