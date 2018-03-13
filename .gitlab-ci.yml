@@ -56,7 +56,7 @@ test:
         - docker load -i image.tar
         - >
           docker run
-          -e REDIS_HOST=docker -e RABBITMQ_HOST=docker
+          -e REDIS_HOST=$DOCKER_HOST -e RABBITMQ_HOST=$DOCKER_HOST
           $DOCKER_IMAGE_TAG
           sh -c "celery worker -A fractalis:celery -l debug
           && pip3 install -r requirements.txt
