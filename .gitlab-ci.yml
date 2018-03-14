@@ -58,9 +58,7 @@ test:
           docker run
           $DOCKER_USER/$DOCKER_IMAGE_TAG
           sh -c "
-          printf \"REDIS_HOST='$REDIS_PORT_6379_TCP_ADDR'\n
-          BROKER_URL='amqp://guest:guest@$RABBITMQ_PORT_5672_TCP_ADDR:5672//'\n
-          CELERY_RESULT_BACKEND='redis://$REDIS_PORT_6379_TCP_ADDR:6379'\"
+          printf \"REDIS_HOST='$REDIS_PORT_6379_TCP_ADDR'\nBROKER_URL='amqp://guest:guest@$RABBITMQ_PORT_5672_TCP_ADDR:5672//'\nCELERY_RESULT_BACKEND='redis://$REDIS_PORT_6379_TCP_ADDR:6379'\"
           > /config.py
           && export FRACTALIS_CONFIG=/config.py
           && celery worker -D -A fractalis:celery -l debug --concurrency=1
