@@ -15,11 +15,11 @@ app = Flask(__name__)
 # Configure app with defaults
 app.config.from_object('fractalis.config')
 # Configure app with manually settings
+default_config = True
 try:
     app.config.from_envvar('FRACTALIS_CONFIG')
     default_config = False
 except RuntimeError:
-    default_config = True
     pass
 
 # setup logging

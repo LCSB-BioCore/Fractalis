@@ -8,7 +8,7 @@ from datetime import timedelta
 SECRET_KEY = 'OVERWRITE ME IN PRODUCTION!!!'
 DEBUG = False
 TESTING = False
-REDIS_HOST = os.environ.get('REDIS_HOST') or '127.0.0.1'
+REDIS_HOST = 'localhost'
 REDIS_PORT = '6379'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False
@@ -16,12 +16,11 @@ SESSION_REFRESH_EACH_REQUEST = True
 PERMANENT_SESSION_LIFETIME = timedelta(days=1)
 
 # Celery
-RABBITMQ_HOST = os.environ.get('RABBITMQ_HOST') or '127.0.0.1'
-BROKER_URL = 'amqp://guest:guest@{}:5672//'.format(RABBITMQ_HOST)
-CELERY_RESULT_BACKEND = 'redis://{}:{}'.format(REDIS_HOST, REDIS_PORT)
+BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERYD_TASK_SOFT_TIME_LIMIT = 60 * 20
 CELERYD_TASK_TIME_LIMIT = 60 * 30
-CELERY_TASK_RESULT_EXPIRES = timedelta(hours=1)
+CELERY_TASK_RESULT_EXPIRES = timedelta(days=10)
 CELERYD_HIJACK_ROOT_LOGGER = False
 
 # Fractalis
