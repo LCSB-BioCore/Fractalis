@@ -54,7 +54,8 @@ test:
         - docker:dind
     script:
         - docker load -i image.tar
-        - > docker create --name fractalis_tests -i -t $DOCKER_USER/$DOCKER_IMAGE_TAG
+        - >
+          docker create --name fractalis_tests -i -t $DOCKER_USER/$DOCKER_IMAGE_TAG
           sh -c "
           find tests/ -type d -name '__pycache__'  -exec rm -rf {} + \
           && printf \"REDIS_HOST='$REDIS_PORT_6379_TCP_ADDR'\nBROKER_URL='amqp://guest:guest@$RABBITMQ_PORT_5672_TCP_ADDR:5672//'\nCELERY_RESULT_BACKEND='redis://$REDIS_PORT_6379_TCP_ADDR:6379'\"
