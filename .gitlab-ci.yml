@@ -54,18 +54,22 @@ test:
         - docker:dind
     script:
         - docker load -i image.tar
-        - >
-          docker run
-          $DOCKER_USER/$DOCKER_IMAGE_TAG
+        - > docker create --name fractalis_tests -i -t $DOCKER_USER/$DOCKER_IMAGE_TAG
           sh -c "
-          printf \"REDIS_HOST='$REDIS_PORT_6379_TCP_ADDR'\nBROKER_URL='amqp://guest:guest@$RABBITMQ_PORT_5672_TCP_ADDR:5672//'\nCELERY_RESULT_BACKEND='redis://$REDIS_PORT_6379_TCP_ADDR:6379'\"
+          find tests/ -type d -name '__pycache__'  -exec rm -rf {} + \
+          && printf \"REDIS_HOST='$REDIS_PORT_6379_TCP_ADDR'\nBROKER_URL='amqp://guest:guest@$RABBITMQ_PORT_5672_TCP_ADDR:5672//'\nCELERY_RESULT_BACKEND='redis://$REDIS_PORT_6379_TCP_ADDR:6379'\"
           > /config.py
           && export FRACTALIS_CONFIG=/config.py
           && celery worker -D -A fractalis:celery -l debug --concurrency=1
+          && cd /tests
           && pip3 install -r requirements.txt
-          && flake8
-          && pytest tests
+          && flake8 /usr/local/lib/python3.6/site-packages/fractalis/
+          && pytest --cov /usr/local/lib/python3.6/site-packages/fractalis/ tests/
           "
+        - docker cp requirements.txt fractalis_tests:.
+        - docker cp tests/ fractalis_tests:.
+        - docker start -a fractalis_tests
+
     dependencies:
         - build:image
 

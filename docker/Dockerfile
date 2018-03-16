@@ -6,4 +6,6 @@ RUN apt-get update \
 	    r-bioc-limma \
     && pip3 install wheel gunicorn \
     && pip3 install fractalis-*.tar.gz \
-    && rm -rf /var/lib/apt/lists/*
+    && rm fractalis-*.tar.gz \
+    && rm -rf /var/lib/apt/lists/* \
+    && find /usr/local -type d -name '__pycache__'  -exec rm -rf {} +
