@@ -209,7 +209,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
             logger.exception(e)
             raise
         # NaN is invalid JSON and JS can't parse it. null on the other hand...
-        result = re.sub(r': NaN', ': null', result)
+        result = re.sub(r'NaN', 'null', result)
         return result
 
     def run(self, session_data_tasks: List[str],
