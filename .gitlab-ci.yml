@@ -6,7 +6,7 @@ variables:
     DOCKER_DRIVER: overlay2
 
 before_script:
-    - FRACTALIS_VERSION=$(grep version setup.py | grep -o "[0-9]\.[0-9]\.[0-9]")
+    - FRACTALIS_VERSION=$(grep version setup.py | grep -o "[0-9]\+.[0-9]\+.[0-9]\+")
     - DOCKER_IMAGE_TAG="fractalis:$FRACTALIS_VERSION"
     - SDIST=fractalis-$FRACTALIS_VERSION.tar.gz
 
