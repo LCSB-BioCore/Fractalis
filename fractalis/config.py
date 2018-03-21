@@ -32,6 +32,7 @@ FRACTALIS_CACHE_EXP = timedelta(days=10)
 FRACTALIS_ENCRYPT_CACHE = False
 # Location of your the log configuration file.
 FRACTALIS_LOG_CONFIG = os.path.join(os.path.dirname(__file__), 'logging.yaml')
-
+# Whether to verify the certs of https data sources
+ETL_VERIFY_SSL_CERT = False
 
 # DO NOT MODIFY THIS FILE DIRECTLY

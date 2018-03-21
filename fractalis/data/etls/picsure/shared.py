@@ -2,6 +2,8 @@ from time import sleep
 
 import requests
 
+from fractalis import app
+
 
 def submit_query(query: str, server: str, token: str) -> int:
     r = requests.post(
@@ -10,7 +12,8 @@ def submit_query(query: str, server: str, token: str) -> int:
         headers={
             'Content-Type': 'application/json',
             'Authorization': 'Bearer {}'.format(token)
-        }
+        },
+        verify=app.config['ETL_VERIFY_SSL_CERT']
     )
     r.raise_for_status()
     result_id = r.json()['resultId']
@@ -25,7 +28,8 @@ def wait_for_completion(result_id: int, server, token):
             headers={
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer {}'.format(token)
-            }
+            },
+            verify=app.config['ETL_VERIFY_SSL_CERT']
         ).json()
     while _check_status()['status'] == 'RUNNING':
         sleep(1)
@@ -38,7 +42,8 @@ def get_data(result_id, server, token):
         headers={
             'Content-Type': 'application/json',
             'Authorization': 'Bearer {}'.format(token)
-        }
+        },
+        verify=app.config['ETL_VERIFY_SSL_CERT']
     )
     r.raise_for_status()
     return r.text
