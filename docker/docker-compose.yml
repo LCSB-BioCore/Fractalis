@@ -9,7 +9,7 @@ services:
     rabbitmq:
         image: 'rabbitmq:alpine'
     app:
-        image: 'sherzinger/fractalis:0.3.9'
+        image: 'sherzinger/fractalis:0.3.10'
         volumes:
             - ./config/fractalis/config.py:/config.py
         environment:
@@ -21,7 +21,7 @@ services:
             - redis
             - rabbitmq
     worker:
-        image: 'sherzinger/fractalis:0.3.9'
+        image: 'sherzinger/fractalis:0.3.10'
         volumes:
             - ./config/fractalis/config.py:/config.py
         environment:
