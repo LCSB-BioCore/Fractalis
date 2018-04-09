@@ -9,23 +9,36 @@ Please have a look at this playlist to see a demo of the visual aspects of Fract
 
 ### Installation (Docker)
 The easiest and most convenient way to deploy Fractalis is using Docker.
-All necessary information can be found here [Fractalis-Docker](https://git-r3lab.uni.lu/Fractalis/Fractalis-Docker).
+All necessary information can be found in the docker folder.
 
 ### Installation (Manual)
-If you do not want to use docker or want a higher level of control of the several components, that's fine. In fact it isn't difficult to setup Fractalis manually.
-We highly recommend having a look at the [CI File](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/.gitlab-ci.yml) that is used to setup a *very* simple environment in which tests can be executed. For a more advanced setup in production please follow these steps:
-- Install and run [Redis](https://redis.io/), which is available for most Linux distributions. This instance must be accessible by the web service and the workers.
-- Install and run [RabbitMQ](https://www.rabbitmq.com/), which is available in most Linux distributions. This instance must be accessible by the web service and the workers.
-- Install Fractalis via `pip3 install fractalis`. Please note that Fractalis requires Python3.4 or higher. This must be installed on all machines that will run the web service or the workers.
-- Install required all required R packages. We won't list these packages excplicitely, as they can change frequently. Please refer instead to the [CI File](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/.gitlab-ci.yml), which is *always* up-to-date, as a new version of Fractalis is only released when this script works. This must be installed on all machines that will run the web service or the workers.
-- Run and expose the Fractalis web service with whatever tools you want. We recommend **gunicorn** and **nginx**, but others should work, too. Here is an example how we run the Fractalis web service in the [Dockerfile.web](https://git-r3lab.uni.lu/Fractalis/Fractalis-Docker/blob/master/Dockerfile.web). You likely want to use nginx on top of that.
-- Run workers on any machine that you want. (For a simple setup this can be the very same machine that the web service runs on). Here is an example how we run a Fractalis worker in the [Dockerfile.worker](https://git-r3lab.uni.lu/Fractalis/Fractalis-Docker/blob/master/Dockerfile.worker)
+If you do not want to use docker or want a higher level of control of the several components, that's fine. In fact it isn't difficult to setup Fractalis manually:
 
-### Configuration
-All setups, manual, docker, or any future setup method will always rely on the environment variable `FRACTALIS_CONFIG` for configuration.
+- Install and run [Redis](https://redis.io/), which is available on most Linux distributions. This instance must be accessible by the web service and the workers.
+- Install and run [RabbitMQ](https://www.rabbitmq.com/), which is available on most Linux distributions. This instance must be accessible by the web service and the workers.
+- Install Fractalis via `pip3 install fractalis`. Please note that Fractalis requires Python3.4 or higher. This must be installed on all machines that will run the web service or the workers.
+- Install required all required R packages. We won't list these packages excplicitely, as they can change frequently. Please refer instead to the [Dockerfile](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/docker/Dockerfile), which is *always* up-to-date, as a new version of Fractalis is only released when the Docker image passes all tests. This must be installed on all machines that will run the web service or the workers.
+- Run and expose the Fractalis web service with whatever tools you want. We recommend **gunicorn** and **nginx**, but others should work, too.
+- Run the celery workers on any machine that you want within the same network. (For a simple setup this can be the very same machine that the web service runs on).
+
+Note: The [docker-compose.yml](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/docker/docker-compose.yml) describes how the different services are started and how they connect with each other.
+
+### Configuration (Docker)
+1. Modify [docker/fractalis/config.py](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/docker/config/fractalis/config.py) before `running docker-compose up`.
+
+2. Replace the [dummy certificates](https://git-r3lab.uni.lu/Fractalis/fractalis/tree/master/docker/config/nginx/certs) with your own. The included one are only for development purposes.
+
+Tip: Use the [default settings](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/fractalis/config.py) as an example for your own configuration file.
+Please note, that all this files combines [Flask settings](http://flask.pocoo.org/docs/0.12/config/), [Celery settings](http://docs.celeryproject.org/en/latest/userguide/configuration.html), and Fractalis settings, which are all listed and documented within this file. 
+Please don't overwrite default settings if you don't know what you are doing. This might have severe implications for security or might cause Fractalis to not work correctly.
+
+### Configuration (Manual)
+Use the environment variable `FRACTALIS_CONFIG` to define the configuration file path.
 This variable must be a) a valid python file (.py) and b) be available on all instances that host a Fractalis web service or a Fractalis worker.
-Use the [default settings](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/fractalis/config.py) as an example for your own configuration file.
-Please note, that all this files combines [Flask Settings](http://flask.pocoo.org/docs/0.12/config/), [Celery Settings](http://docs.celeryproject.org/en/latest/userguide/configuration.html), and Fractalis Settings, which are all listed and documented within this file. A word of warning: Please don't overwrite default settings if you don't know what you are doing. This might have severe implications for security or might cause Fractalis to not work correctly.
+
+Tip: Use the [default settings](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/fractalis/config.py) as an example for your own configuration file.
+Please note, that all this files combines [Flask settings](http://flask.pocoo.org/docs/0.12/config/), [Celery settings](http://docs.celeryproject.org/en/latest/userguide/configuration.html), and Fractalis settings, which are all listed and documented within this file. 
+Please don't overwrite default settings if you don't know what you are doing. This might have severe implications for security or might cause Fractalis to not work correctly.
 
 ### Add support for new services
 Support for other services is exclusively implemented within [this folder](https://git-r3lab.uni.lu/Fractalis/fractalis/tree/master/fractalis/data/etls). We recommend looking at the *ada* example implementation. Just make sure you use the class inheritance (ETL, ETLHandler) correctly, and you will get readable error messages if something goes wrong.

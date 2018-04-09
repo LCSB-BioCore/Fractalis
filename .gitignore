@@ -12,3 +12,4 @@ dist/
 .coverage
 dump.rdb
 venv/
+.pytest_cache/
