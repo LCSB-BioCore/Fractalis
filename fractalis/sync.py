@@ -63,5 +63,4 @@ def cleanup_all() -> None:
     tmp_dir = app.config['FRACTALIS_TMP_DIR']
     if os.path.exists(tmp_dir):
         rmtree(tmp_dir)
-    assert len(redis.keys('*')) == 0
     assert not os.path.exists(tmp_dir)
