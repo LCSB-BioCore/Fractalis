@@ -44,6 +44,7 @@ class BoxplotTask(AnalyticTask):
             df = df[df['id'].isin(id_filter)]
         df = apply_subsets(df=df, subsets=subsets)
         df = apply_categories(df=df, categories=categories)
+        df['outlier'] = None
         results = {
             'statistics': {},
             'features': df['feature'].unique().tolist(),
@@ -56,22 +57,23 @@ class BoxplotTask(AnalyticTask):
                 for category in results['categories']:
                     values = df[(df['subset'] == subset) &
                                 (df['category'] == category) &
-                                (df['feature'] == feature)]['value'].tolist()
-                    values = [value for value in values if not np.isnan(value)]
+                                (df['feature'] == feature)]['value']
                     if len(values) < 2:
                         continue
                     label = '{}//{}//s{}'.format(feature, category, subset + 1)
                     group_values.append(values)
                     stats = self.boxplot_statistics(values)
+                    u_outliers = values > stats['u_wsk']
+                    l_outliers = values < stats['l_wsk']
+                    outliers = np.bitwise_or(u_outliers, l_outliers)
+                    df.loc[(df['subset'] == subset) &
+                           (df['category'] == category) &
+                           (df['feature'] == feature), 'outlier'] = outliers
                     kde = scipy.stats.gaussian_kde(values)
                     xs = np.linspace(start=stats['l_wsk'],
                                      stop=stats['u_wsk'], num=100)
                     stats['kde'] = kde(xs).tolist()
                     results['statistics'][label] = stats
-        u_outliers = df['value'] > results['statistics']['foo////s1']['u_wsk']
-        l_outliers = df['value'] < results['statistics']['foo////s1']['l_wsk']
-        outliers = np.bitwise_or(u_outliers, l_outliers)
-        df['outlier'] = outliers
         results['data'] = df.to_json(orient='records')
         f_value, p_value = scipy.stats.f_oneway(*group_values)
         results['anova'] = {
@@ -90,10 +92,10 @@ class BoxplotTask(AnalyticTask):
         median = np.percentile(values, 50)
         u_qrt = np.percentile(values, 75)
         iqr = u_qrt - l_qrt
-        values.sort()
+        values = sorted(values)
         # lower whisker as defined by John W. Tukey
         l_wsk = next(value for value in values if value >= l_qrt - 1.5 * iqr)
-        values.sort(reverse=True)
+        values = values[::-1]
         # upper whisker as defined by John W. Tukey
         u_wsk = next(value for value in values if value <= u_qrt + 1.5 * iqr)
         return {
