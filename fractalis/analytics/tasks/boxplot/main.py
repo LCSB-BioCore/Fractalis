@@ -45,7 +45,6 @@ class BoxplotTask(AnalyticTask):
         df = apply_subsets(df=df, subsets=subsets)
         df = apply_categories(df=df, categories=categories)
         results = {
-            'data': df.to_json(orient='records'),
             'statistics': {},
             'features': df['feature'].unique().tolist(),
             'categories': df['category'].unique().tolist(),
@@ -69,6 +68,11 @@ class BoxplotTask(AnalyticTask):
                                      stop=stats['u_wsk'], num=100)
                     stats['kde'] = kde(xs).tolist()
                     results['statistics'][label] = stats
+        u_outliers = df['value'] > results['statistics']['foo////s1']['u_wsk']
+        l_outliers = df['value'] < results['statistics']['foo////s1']['l_wsk']
+        outliers = np.bitwise_or(u_outliers, l_outliers)
+        df['outlier'] = outliers
+        results['data'] = df.to_json(orient='records')
         f_value, p_value = scipy.stats.f_oneway(*group_values)
         results['anova'] = {
             'p_value': p_value,

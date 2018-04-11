@@ -40,3 +40,15 @@ class TestBoxplotAnalytics:
         assert not np.isnan(stats['u_qrt'])
         assert not np.isnan(stats['l_wsk'])
         assert not np.isnan(stats['u_wsk'])
+
+    def test_marks_outliers(self):
+        df = pd.DataFrame([[100, 'foo', -50],
+                           [101, 'foo', 1],
+                           [102, 'foo', 2],
+                           [103, 'foo', 3],
+                           [104, 'foo', 100]],
+                          columns=['id', 'feature', 'value'])
+        results = self.task.main(features=[df], categories=[],
+                                 id_filter=[], subsets=[])
+        df = pd.DataFrame.from_dict(json.loads(results['data']))
+        assert np.all(df['outlier'] == [True, False, False, False, True])
