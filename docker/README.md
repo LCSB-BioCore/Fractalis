@@ -2,12 +2,19 @@
 This folder contains all files necessary to setup the Fractalis service in a production environment.
 
 ### Usage
-`docker-compose up` That's all! This will expose the service on port 443 and 80. (Please read the entire document before doing this in a public production setup.)
+`docker-compose up` That's all! This will expose the service on port 443 and 80 by default.
+This behavior can be changed by setting the environment variables `FRACTALIS_HTTP_PORT` and `FRACTALIS_HTTPS_PORT`.
 For more detailed information please look into the files. They are rather self-explanatory and good place to do own modifications.
 
 ### Configuration (Fractalis / Celery / Flask)
-You can configure nearly every aspect of Fractalis by setting the environment variable `FRACTALIS_CONFIG`.
-Please have a look at [the Fractalis repository](https://git-r3lab.uni.lu/Fractalis/fractalis) for more details.
+1. Modify [docker/fractalis/config.py](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/docker/config/fractalis/config.py) before `running docker-compose up`.
+
+2. Replace the [dummy certificates](https://git-r3lab.uni.lu/Fractalis/fractalis/tree/master/docker/config/nginx/certs) with your own. The included one are only for development purposes.
+
+Tip: Use the [default settings](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/fractalis/config.py) as an example for your own configuration file.
+Please note, that all this files combines [Flask settings](http://flask.pocoo.org/docs/0.12/config/), [Celery settings](http://docs.celeryproject.org/en/latest/userguide/configuration.html), and Fractalis settings, which are all listed and documented within this file. 
+Please don't overwrite default settings if you don't know what you are doing. This might have severe implications for security or might cause Fractalis to not work correctly.
+
 
 ### Configuration (Nginx)
 - (Mandatory) **Change the certificates!!** The certificates in `./config/nginx/certs` are only dummy certs for development. Do not use them in production! You can do this by replacing the dummy certs with your own or change the path in `docker-compose.yml`.
