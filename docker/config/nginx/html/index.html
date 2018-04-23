@@ -11,14 +11,27 @@
     <style type="text/css">
         body {
             text-align: center;
-            width: 40vw;
             margin: 0 auto;
         }
+        .header {
+            width: 100%;
+            max-height: 150px;
+        }
         .fractalis-logo {
-            height: 20vh;
+            height: 30vh;
         }
         .footer-logo {
-            height: 10vh;
+            height: 25vh;
+        }
+        p {
+            max-width: 800px;
+            margin: auto;
+            text-align: justify;
+            hyphens: auto;
+        }
+        .welcome-message {
+            max-width: 800px;
+            margin: auto;
         }
     </style>
 </head>
@@ -26,16 +39,46 @@
 <style type="text/css">
 </style>
 <body>
-    <a href="https://git-r3lab.uni.lu/Fractalis"><img class="fractalis-logo" src="Fractalis_logo.png"/></a>
-    <h2>Fractalis - A scalable open-source service for platform-independent interactive visual analytics</h2>
-
-    <p>
+    <header>
+        <a href="https://wwwen.uni.lu/lcsb">
+            <img class="header" src="ul-header-with-lcsb.svg"/>
+        </a>
+    </header>
+    <a href="https://fractalis.lcsb.uni.lu/"><img class="fractalis-logo" src="Fractalis_logo.png"/></a>
+    <h1>Fractalis - A scalable open-source service for platform-independent interactive visual analytics</h1>
+    <br/>
+    <hr/>
+    <h3 class="welcome-message">
         The fact that you see this message means that you successfully deployed Fractalis via the provided Docker image.
-        This host serves from now on as a computational endpoint for the Fractalis stack.
+        This system serves from now on as a computational endpoint for the Fractalis stack.
+    </h3>
+    <hr/>
+    <br/>
+    <h2>About</h2>
+    <p>
+        Fractalis is a service and a library that work in tandem to equip existing platforms with visual analytical capabilities for explorative data analysis.
+        This is achieved by isolating all platform-dependent code into a single layer, which is responsible for migrating currently needed data into the Fractalis analysis cache.
+        Here are some videos that show the current state of the project: <a href="https://www.youtube.com/playlist?list=PLNvp9GB9uBmH1NNAf-qTyj_jN2aCPISFU">Playlist</a>.
     </p>
-
+    <h2>Documentation</h2>
+        <p>
+            All documents are and will always be available within the project repositories.
+            <a href="https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/README.md">Fractalis README</a> and <a href="https://git-r3lab.uni.lu/Fractalis/fractal.js">Fractal.js README</a> are good points to begin with.
+        </p>
+    <h2>Repositories</h2>
+    <p>
+        The entire code base for this project is publicly available <a href="https://git-r3lab.uni.lu/Fractalis">here</a>.
+    </p>
+    <h2>License</h2>
+    <p>
+        This project is licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache 2.0 License</a>
+        and may be freely downloaded, modified, and reused.
+    </p>
+    <h2>Citation</h2>
+    <p>
+        Manuscript in preparation.
+    </p>
     <footer>
-        <p>For more information please visit <a href="https://git-r3lab.uni.lu/Fractalis">project page of Fractalis</a>.</p>
         <a href="http://lcsb.uni.lu"><img class="footer-logo" src="LCSB_UL_Logo.png"/></a>
     </footer>
 </body>
