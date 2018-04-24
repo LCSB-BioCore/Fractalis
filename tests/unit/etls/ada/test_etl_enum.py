@@ -42,7 +42,7 @@ class TestEnumETL:
     def test_extract_raises_readable_if_not_200(self):
         with responses.RequestsMock() as response:
             response.add(response.GET,
-                         'http://foo.bar/studies/records/findCustom',
+                         'http://foo.bar/dataSets/records/findCustom',
                          body='{}',
                          status=400,
                          content_type='application/json')
@@ -55,7 +55,7 @@ class TestEnumETL:
     def test_extract_raises_readable_if_not_json(self):
         with responses.RequestsMock() as response:
             response.add(response.GET,
-                         'http://foo.bar/studies/records/findCustom',
+                         'http://foo.bar/dataSets/records/findCustom',
                          body='abc{//}',
                          status=200,
                          content_type='application/json')
@@ -69,7 +69,7 @@ class TestEnumETL:
         body = json.dumps([{'foo': 0, '_id': {'$oid': '12345'}}])
         with responses.RequestsMock() as response:
             response.add(response.GET,
-                         'http://foo.bar/studies/records/findCustom',
+                         'http://foo.bar/dataSets/records/findCustom',
                          body=body,
                          status=200,
                          content_type='application/json')
@@ -82,7 +82,7 @@ class TestEnumETL:
         body = json.dumps([{'foo': 0, '_id': {'$oid': '12345'}}])
         with responses.RequestsMock() as response:
             response.add(response.GET,
-                         'http://foo.bar/studies/records/findCustom',
+                         'http://foo.bar/dataSets/records/findCustom',
                          body=body,
                          status=200,
                          content_type='application/json')
