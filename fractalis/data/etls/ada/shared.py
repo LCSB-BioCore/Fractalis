@@ -16,7 +16,7 @@ def make_cookie(token: str) -> dict:
 
 def get_field(server: str, data_set: str,
               cookie: dict, projection: str) -> List[dict]:
-    r = requests.get(url='{}/studies/records/findCustom'.format(server),
+    r = requests.get(url='{}/dataSets/records/findCustom'.format(server),
                      headers={'Accept': 'application/json'},
                      params={
                          'dataSet': data_set,
