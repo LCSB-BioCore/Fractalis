@@ -11,7 +11,7 @@ class NumericalETL(ETL):
     """NumericalETL implements support for the
     numerical data of the wine quality data set. """
 
-    name = 'demo-wine-quality-etl'
+    name = 'demo-wine-quality-numerical-etl'
     produces = 'numerical'
 
     @staticmethod

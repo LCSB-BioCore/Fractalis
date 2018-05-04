@@ -152,7 +152,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         :param file_path: File to write to.
         """
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        data_frame.to_csv(file_path, index=False)
+        data_frame.to_pickle(file_path, compression='gzip')
 
     def run(self, server: str, token: str,
             descriptor: dict, file_path: str,

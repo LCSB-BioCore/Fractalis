@@ -34,8 +34,8 @@
 
   const fjs = fractal.init({
     handler: 'demo',
-    dataSource: 'https://' + window.location.host,
-    fractalisNode: 'http://' + window.location.host,
+    dataSource: location.protocol + '//' + window.location.host,
+    fractalisNode: location.protocol + '//' + window.location.host,
     getAuth () {
       return {token: ''}
     },

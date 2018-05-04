@@ -7,7 +7,7 @@ import logging
 from uuid import UUID
 from typing import List, Tuple, Union
 
-from pandas import read_csv, DataFrame
+from pandas import read_pickle, DataFrame
 from celery import Task
 from Cryptodome.Cipher import AES
 
@@ -99,7 +99,7 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         if decrypt:
             return self.secure_load(file_path)
         else:
-            df = read_csv(file_path)
+            df = read_pickle(file_path, compression='gzip')
         return df
 
     @staticmethod

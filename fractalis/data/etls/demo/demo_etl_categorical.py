@@ -11,7 +11,7 @@ class CategoricalETL(ETL):
     """CategoricalETL implements support for the
     categorical data of the wine quality data set. """
 
-    name = 'demo-wine-quality-etl'
+    name = 'demo-wine-quality-categorical-etl'
     produces = 'categorical'
 
     @staticmethod
