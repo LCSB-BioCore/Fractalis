@@ -7,15 +7,12 @@
     <meta name="description" content="Fractalis Endpoint">
     <meta name="author" content="Sascha Herzinger">
     <link rel="icon" type="image/png" href="Fractalis_logo.png" sizes="96x96">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <style type="text/css">
         body {
             text-align: center;
             margin: 0 auto;
-        }
-        .header {
-            width: 100%;
-            max-height: 150px;
         }
         .fractalis-logo {
             height: 30vh;
@@ -33,23 +30,32 @@
             max-width: 800px;
             margin: auto;
         }
+        .links {
+            display: flex;
+            justify-content: center;
+        }
+
+        .links > div {
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        .material-icons {
+            color: grey;
+        }
     </style>
 </head>
 
 <style type="text/css">
 </style>
 <body>
-    <header>
-        <a href="https://wwwen.uni.lu/lcsb">
-            <img class="header" src="ul-header-with-lcsb.svg"/>
-        </a>
-    </header>
     <a href="https://fractalis.lcsb.uni.lu/"><img class="fractalis-logo" src="Fractalis_logo.png"/></a>
     <h1>Fractalis - A scalable open-source service for platform-independent interactive visual analytics</h1>
     <br/>
     <hr/>
     <h3 class="welcome-message">
-        The fact that you see this message means that you successfully deployed Fractalis via the provided Docker image.
+        The fact that you see this message means that Fractalis has been successfully deployed via the provided Docker image.
         This system serves from now on as a computational endpoint for the Fractalis stack.
     </h3>
     <hr/>
@@ -58,26 +64,17 @@
     <p>
         Fractalis is a service and a library that work in tandem to equip existing platforms with visual analytical capabilities for explorative data analysis.
         This is achieved by isolating all platform-dependent code into a single layer, which is responsible for migrating currently needed data into the Fractalis analysis cache.
-        Here are some videos that show the current state of the project: <a href="https://www.youtube.com/playlist?list=PLNvp9GB9uBmH1NNAf-qTyj_jN2aCPISFU">Playlist</a>.
     </p>
-    <h2>Documentation</h2>
-        <p>
-            All documents are and will always be available within the project repositories.
-            <a href="https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/README.md">Fractalis README</a> and <a href="https://git-r3lab.uni.lu/Fractalis/fractal.js">Fractal.js README</a> are good points to begin with.
-        </p>
-    <h2>Repositories</h2>
-    <p>
-        The entire code base for this project is publicly available <a href="https://git-r3lab.uni.lu/Fractalis">here</a>.
-    </p>
-    <h2>License</h2>
-    <p>
-        This project is licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache 2.0 License</a>
-        and may be freely downloaded, modified, and reused.
-    </p>
-    <h2>Citation</h2>
-    <p>
-        Manuscript in preparation.
-    </p>
+    <br/>
+    <br/>
+    <div class="links">
+        <div><a href="https://www.youtube.com/playlist?list=PLNvp9GB9uBmH1NNAf-qTyj_jN2aCPISFU"><i class="material-icons">video_library</i></a><span>Videos</span></div>
+        <div><a href="demo.html"><i class="material-icons">apps</i></a><span>Hands-on</span></div>
+        <div><a href="https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/README.md"><i class="material-icons">library_books</i></a><span>Fractalis</span></div>
+        <div><a href="https://git-r3lab.uni.lu/Fractalis/fractal.js/blob/master/README.md"><i class="material-icons">library_books</i></a><span>Fractal.js</span></div>
+        <div><a href="https://git-r3lab.uni.lu/Fractalis"><i class="material-icons">code</i></a><span>Repository</span></div>
+        <div><a href="https://www.apache.org/licenses/LICENSE-2.0"><i class="material-icons">book</i></a><span>Apache 2.0</span></div>
+    </div>
     <footer>
         <a href="http://lcsb.uni.lu"><img class="footer-logo" src="LCSB_UL_Logo.png"/></a>
     </footer>

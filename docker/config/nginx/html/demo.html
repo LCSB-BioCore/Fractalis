@@ -1,0 +1,137 @@
+<!doctype html>
+<meta charset="UTF-8">
+
+<head>
+  <script src="fractal-0.5.1.min.js"></script>
+</head>
+
+<body>
+<h1>Fractalis Test Page</h1>
+<p>
+  This page is for demonstration purpose only.
+  It showcases the functionality of Fractalis for researchers and
+  serves as an example on how to use the API for developers.
+</p>
+<input type="button" onclick="loadData()" value="Prepare data for analysis"/>
+<input type="button" onclick="deleteData()" value="Clear analysis cache"/>
+<br/>
+<br/>
+<div class="charts">
+  <div class="chart chart-1"></div>
+  <div class="chart chart-2"></div>
+  <div class="chart chart-3"></div>
+  <div class="chart chart-4"></div>
+  <div class="chart chart-5"></div>
+  <div class="chart chart-6"></div>
+  <div class="chart chart-7"></div>
+  <div class="chart chart-8"></div>
+</div>
+
+</body>
+
+<script>
+  /* eslint-disable */
+
+  const fjs = fractal.init({
+    handler: 'demo',
+    dataSource: 'https://' + window.location.host,
+    fractalisNode: 'http://' + window.location.host,
+    getAuth () {
+      return {token: ''}
+    },
+    options: {
+      controlPanelPosition: 'right'
+    }
+  })
+
+  fjs.setSubsets([])
+
+  function loadData () {
+    fjs.loadData([
+      {
+        dataType: 'numerical',
+        field: 'alcohol'
+      },
+      {
+        dataType: 'numerical',
+        field: 'chlorides'
+      },
+      {
+        dataType: 'numerical',
+        field: 'citric acid'
+      },
+      {
+        dataType: 'numerical',
+        field: 'density'
+      },
+      {
+        dataType: 'numerical',
+        field: 'fixed acidity'
+      },
+      {
+        dataType: 'numerical',
+        field: 'free sulfur dioxide'
+      },
+      {
+        dataType: 'numerical',
+        field: 'pH'
+      },
+      {
+        dataType: 'numerical',
+        field: 'quality'
+      },
+      {
+        dataType: 'numerical',
+        field: 'residual sugar'
+      },
+      {
+        dataType: 'numerical',
+        field: 'sulphates'
+      },
+      {
+        dataType: 'numerical',
+        field: 'total sulfur dioxide'
+      },
+      {
+        dataType: 'categorical',
+        field: 'type'
+      },
+      {
+        dataType: 'numerical',
+        field: 'volatile acidity'
+      }
+    ])
+  }
+
+  function deleteData () {
+    fjs.clearCache()
+  }
+
+  function setCharts () {
+    const vms = [
+      fjs.setChart('correlation-analysis', '.chart-1'),
+      fjs.setChart('correlation-analysis', '.chart-2'),
+      fjs.setChart('correlation-analysis', '.chart-3'),
+      fjs.setChart('correlation-analysis', '.chart-4'),
+      fjs.setChart('boxplot', '.chart-5'),
+      fjs.setChart('boxplot', '.chart-6'),
+      fjs.setChart('pca-analysis', '.chart-7'),
+      fjs.setChart('pca-analysis', '.chart-8')
+    ]
+  }
+
+  window.addEventListener('load', () => {
+    setCharts()
+  })
+</script>
+
+<style>
+  .charts {
+  }
+
+  .chart {
+    float: left;
+    height: 20vw;
+    width: 20vw;
+  }
+</style>
