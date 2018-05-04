@@ -1,1 +1,2 @@
 include fractalis/logging.yaml
+include fractalis/data/etls/demo/wine_quality.csv
