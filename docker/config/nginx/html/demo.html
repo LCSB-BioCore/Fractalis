@@ -2,18 +2,23 @@
 <meta charset="UTF-8">
 
 <head>
-  <script src="fractal-0.5.1.min.js"></script>
+  <script src="fractal-0.5.2.min.js"></script>
 </head>
 
 <body>
 <h1>Fractalis Test Page</h1>
 <p>
-  This page is for demonstration purpose only.
-  It showcases the functionality of Fractalis for researchers and
-  serves as an example on how to use the API for developers.
+  This page is for demonstration and educational purpose only!
+  Please go to <a href="https://fractalis.lcsb.uni.lu/">https://fractalis.lcsb.uni.lu/</a> for more information.
 </p>
+<h2>How to use this page:</h2>
 <input type="button" onclick="loadData()" value="Prepare data for analysis"/>
 <input type="button" onclick="deleteData()" value="Clear analysis cache"/>
+<p>
+  1. Click the "Prepare data" button to prepare data here ↑<br/>
+  2. Interact with the control panel and select variables of interest here →<br/>
+  3. Interact with the charts here ↓<br/>
+</p>
 <br/>
 <br/>
 <div class="charts">
@@ -40,7 +45,8 @@
       return {token: ''}
     },
     options: {
-      controlPanelPosition: 'right'
+      controlPanelPosition: 'right',
+      controlPanelExpanded: true
     }
   })
 
