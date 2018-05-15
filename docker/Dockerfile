@@ -8,8 +8,8 @@ WORKDIR /app/
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 		r-bioc-limma \
-    && pip3 install wheel
+    && pip3 install -i https://pypi.lcsb.uni.lu/simple wheel
 
 ARG SDIST
 COPY $SDIST /app/
-RUN pip3 install fractalis-*.tar.gz gunicorn
+RUN pip3 install -i https://pypi.lcsb.uni.lu/simple fractalis-*.tar.gz gunicorn
