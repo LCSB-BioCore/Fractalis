@@ -62,7 +62,6 @@ test:
           > /config.py
           && export FRACTALIS_CONFIG=/config.py
           && celery worker -D -A fractalis:celery -l debug --concurrency=1
-          && pip3 install -r requirements.txt
           && pytest tests
           "
     dependencies:

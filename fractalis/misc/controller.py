@@ -2,7 +2,7 @@
 in any of the other categories."""
 
 import logging
-import pkg_resources
+import re
 from typing import Tuple
 
 from flask import Blueprint, jsonify, Response
@@ -14,5 +14,7 @@ logger = logging.getLogger(__name__)
 
 @misc_blueprint.route('/version', methods=['GET'])
 def get_version() -> Tuple[Response, int]:
-    version = pkg_resources.require('fractalis')[0].version
+    with open('setup.py') as setup_file:
+        text = setup_file.read()
+        version = re.search(r'version=\'(\d+\.\d+\.\d+)\',', text).group(1)
     return jsonify({'version': version}), 201
