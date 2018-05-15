@@ -1,7 +1,6 @@
 FROM python:3.6-stretch
 RUN mkdir /app/
 
-COPY requirements.txt /app/
 COPY tests/ /app/tests/
 
 WORKDIR /app/
