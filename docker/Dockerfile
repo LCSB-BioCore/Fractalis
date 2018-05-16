@@ -1,4 +1,4 @@
-FROM centos:7.4
+FROM centos:7
 RUN mkdir /app/ \
     && rm -f /etc/yum.repos.d/* \
     && printf "[lcsb-epel]\nname=LCSB epel Repo\nbaseurl=http://lcsb-cent-mirr-server.uni.lu/epel/7/x86_64/\nenabled=1" > /etc/yum.repos.d/lcsb-epel.repo \
