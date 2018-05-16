@@ -13,5 +13,5 @@ logger = logging.getLogger(__name__)
 
 @misc_blueprint.route('/version', methods=['GET'])
 def get_version() -> Tuple[Response, int]:
-    version = '0.5.2'
+    version = '0.5.3'
     return jsonify({'version': version}), 201
