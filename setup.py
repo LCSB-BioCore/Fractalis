@@ -31,7 +31,6 @@ setup(
         'PyYAML',
         'pycryptodomex',
         'rpy2',
-        'tzlocal',
         'flake8',
         'pytest',
         'pytest-runner',

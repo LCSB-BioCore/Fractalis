@@ -15,14 +15,16 @@ logger = logging.getLogger(__name__)
 
 # https://stackoverflow.com/questions/9824172/find-out-whether-celery-task-exists
 @after_task_publish.connect
-def update_submitted_state(sender=None, **kwargs):
+def update_submitted_state(sender, headers, **kwargs):
     """Add 'SUBMITTED' state to celery task."""
     # the task may not exist if sent using `send_task` which
     # sends tasks by name, so fall back to the default result backend
     # if that is the case.
     task = current_app.tasks.get(sender)
     backend = task.backend if task else current_app.backend
-    backend.store_result(kwargs['headers']['id'], None, "SUBMITTED")
+    backend.store_result(task_id=headers['id'],
+                         result=None,
+                         state='SUBMITTED')
 
 
 def make_celery(app: Flask) -> Celery:
