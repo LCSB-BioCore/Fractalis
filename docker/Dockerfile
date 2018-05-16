@@ -7,6 +7,7 @@ RUN mkdir /app/ \
     && printf "[lcsb-base]\nname=LCSB Base Repo\nbaseurl=http://lcsb-cent-mirr-server.uni.lu/CentOS/7/os/x86_64/\nenabled=1" > /etc/yum.repos.d/lcsb-base.repo \
     && rm -rf /var/cache/yum \
     && yum clean all \
+    && rpm --import http://lcsb-cent-mirr-server.uni.lu/CentOS/RPM-GPG-KEY-CentOS-7 \
     && yum install -y python34 python34-pip python34-devel readline-devel R \
     && R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma")'
 COPY tests/ /app/tests/
