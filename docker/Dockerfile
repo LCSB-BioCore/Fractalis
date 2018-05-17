@@ -7,8 +7,10 @@ RUN mkdir /app/ \
     && printf "[lcsb-base]\nname=LCSB Base Repo\nbaseurl=http://lcsb-cent-mirr-server.uni.lu/CentOS/7/os/x86_64/\nenabled=1" > /etc/yum.repos.d/lcsb-base.repo \
     && rm -rf /var/cache/yum \
     && yum clean all \
-    && yum install --nogpg -y python34 python34-pip python34-devel readline-devel R \
-    && R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma")'
+    && yum install --nogpg -y python34 python34-pip python34-devel readline-devel R wget \
+    && wget https://bioconductor.org/packages/release/bioc/src/contrib/limma_3.36.1.tar.gz
+    && R CMD INSTALL limma_*.tar.gz \
+    && rm limma_*.tar.gz
 COPY tests/ /app/tests/
 WORKDIR /app/
 ARG SDIST
