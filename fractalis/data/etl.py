@@ -34,7 +34,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def produces(self) -> str:
         """This specifies the fractalis internal format that this ETL
-        produces. Can be one of: ['categorical', 'numerical']
+        produces. Can be one of: ['categorical', 'numerical', 'numerical_array']
         """
         pass
 
