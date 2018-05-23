@@ -126,7 +126,7 @@ class ETL(Task, metaclass=abc.ABCMeta):
         data_state['meta']['features'] = features
         redis.setex(name='data:{}'.format(self.request.id),
                     value=json.dumps(data_state),
-                    time=app.config['FRACTALIS_CACHE_EXP'])
+                    time=app.config['FRACTALIS_DATA_LIFETIME'])
 
     @staticmethod
     def secure_load(data_frame: DataFrame, file_path: str) -> None:

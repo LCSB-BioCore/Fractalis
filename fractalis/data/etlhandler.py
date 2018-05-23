@@ -94,7 +94,7 @@ class ETLHandler(metaclass=abc.ABCMeta):
         }
         redis.setex(name='data:{}'.format(task_id),
                     value=json.dumps(data_state),
-                    time=app.config['FRACTALIS_CACHE_EXP'])
+                    time=app.config['FRACTALIS_DATA_LIFETIME'])
 
     def descriptor_to_hash(self, descriptor: dict) -> int:
         """Compute hash for the given descriptor. Used to identify duplicates.

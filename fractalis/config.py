@@ -13,21 +13,21 @@ REDIS_PORT = '6379'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False
 SESSION_REFRESH_EACH_REQUEST = True
-PERMANENT_SESSION_LIFETIME = timedelta(days=1)
 
 # Celery
 BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERYD_TASK_SOFT_TIME_LIMIT = 60 * 20
 CELERYD_TASK_TIME_LIMIT = 60 * 30
-CELERY_TASK_RESULT_EXPIRES = timedelta(days=10)
 CELERYD_HIJACK_ROOT_LOGGER = False
 
 # Fractalis
 # Location of cache and temporary files
 FRACTALIS_TMP_DIR = os.path.abspath(os.path.join(os.sep, 'tmp', 'fractalis'))
 # How long to store files in the cache
-FRACTALIS_CACHE_EXP = timedelta(days=10)
+FRACTALIS_DATA_LIFETIME = timedelta(days=6)
+# How long to keep analysis results (beware of high RAM usage)
+FRACTALIS_RESULT_LIFETIME = timedelta(seconds=30)
 # Should the Cache be encrypted? This might impact performance for little gain!
 FRACTALIS_ENCRYPT_CACHE = False
 # Location of your the log configuration file.

@@ -212,6 +212,12 @@ class AnalyticTask(Task, metaclass=abc.ABCMeta):
         result = re.sub(r'NaN', 'null', result)
         return result
 
+    def after_return(self, status, retval, task_id, args, kwargs, einfo):
+        """Set lifetime of analysis result to prevent redis from consuming
+        too much memory."""
+        redis.expire(name='celery-task-meta-{}'.format(task_id),
+                     time=app.config['FRACTALIS_RESULT_LIFETIME'])
+
     def run(self, session_data_tasks: List[str],
             args: dict, decrypt: bool) -> str:
         """This is called by the celery worker. This method calls other helper

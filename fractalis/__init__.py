@@ -21,6 +21,10 @@ try:
     default_config = False
 except RuntimeError:
     pass
+app.config['PERMANENT_SESSION_LIFETIME'] =\
+    app.config['FRACTALIS_DATA_LIFETIME']
+app.config['CELERY_TASK_RESULT_EXPIRES'] =\
+    app.config['FRACTALIS_DATA_LIFETIME']
 
 # setup logging
 with open(app.config['FRACTALIS_LOG_CONFIG'], 'rt') as f:
