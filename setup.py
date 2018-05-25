@@ -22,6 +22,7 @@ setup(
         'typing==3.6.2',
         'jsonschema==2.6.0',
         'celery[redis]==4.1.0',
+        'kombu==4.1.0',
         'redis==2.10.6',
         'numpy==1.13.3',
         'scipy==0.19.1',
