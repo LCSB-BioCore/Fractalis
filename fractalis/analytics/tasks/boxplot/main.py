@@ -40,6 +40,7 @@ class BoxplotTask(AnalyticTask):
                              "non empty numerical feature.")
         # merge dfs into single one
         df = reduce(lambda l, r: l.append(r), features)
+        df.dropna(inplace=True)
         if id_filter:
             df = df[df['id'].isin(id_filter)]
         df = apply_subsets(df=df, subsets=subsets)

@@ -43,11 +43,11 @@ class TestBoxplotAnalytics:
 
     def test_marks_outliers(self):
         df_1 = pd.DataFrame([[100, 'foo', -50],
-                           [101, 'foo', 1],
-                           [102, 'foo', 2],
-                           [103, 'foo', 3],
-                           [104, 'foo', 100]],
-                          columns=['id', 'feature', 'value'])
+                             [101, 'foo', 1],
+                             [102, 'foo', 2],
+                             [103, 'foo', 3],
+                             [104, 'foo', 100]],
+                            columns=['id', 'feature', 'value'])
         df_2 = pd.DataFrame([[201, 'bar', 1],
                              [202, 'bar', 2],
                              [203, 'bar', 3],
@@ -58,3 +58,34 @@ class TestBoxplotAnalytics:
         df = pd.DataFrame.from_dict(json.loads(results['data']))
         assert np.all(df['outlier'] == [True, False, False, False, True,
                                         False, False, False, True])
+
+    def test_can_handle_nan(self):
+        df = pd.DataFrame([[100, 'foo', -50],
+                           [101, 'foo', 1],
+                           [102, 'foo', float('nan')],
+                           [103, 'foo', 3],
+                           [104, 'foo', 100]],
+                          columns=['id', 'feature', 'value'])
+        results = self.task.main(features=[df], categories=[],
+                                 id_filter=[], subsets=[])
+        assert results['statistics']['foo////s1']['median'] == 2
+
+    def test_can_handle_groups_with_only_nan(self):
+        df = pd.DataFrame([[100, 'foo', -50],
+                           [101, 'foo', 1],
+                           [102, 'foo', float('nan')],
+                           [103, 'foo', 3],
+                           [104, 'foo', 100],
+                           [105, 'foo', float('nan')]],
+                          columns=['id', 'feature', 'value'])
+        categories = pd.DataFrame([[100, 'gender', 'female'],
+                                   [101, 'gender', 'female'],
+                                   [102, 'gender', 'male'],
+                                   [103, 'gender', 'female'],
+                                   [104, 'gender', 'female'],
+                                   [105, 'gender', 'male']],
+                                  columns=['id', 'feature', 'value'])
+        results = self.task.main(features=[df], categories=[categories],
+                                 id_filter=[], subsets=[])
+        assert 'foo//female//s1' in results['statistics']
+        assert 'foo//male//s1' not in results['statistics']
