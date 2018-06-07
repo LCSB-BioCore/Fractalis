@@ -44,17 +44,13 @@ class VolcanoTask(AnalyticTask):
                     "the subset sample ids do not match the data."
             logger.error(error)
             raise ValueError(error)
-
         # make matrix of input data
         df = df.pivot(index='feature', columns='id', values='value')
-        features = list(df.index)
-
         # compute the stats (p / fC) for the selected ranking method
         stats = array_stats.get_stats(df=df,
                                       subsets=subsets,
                                       params=params,
                                       ranking_method=ranking_method)
         return {
-            'features': features,
             'stats': stats.to_dict(orient='list')
         }

@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 from typing import List, TypeVar
+from collections import OrderedDict
 import logging
 
 import pandas as pd
@@ -115,7 +116,7 @@ def get_limma_stats(df: pd.DataFrame, subsets: List[List[T]]) -> pd.DataFrame:
     r_data = pandas2ri.py2ri(df)
     # py2ri is stupid and makes too many assumptions.
     # These two lines restore the column order
-    r_data.colnames = list(set(ids))
+    r_data.colnames = list(OrderedDict.fromkeys(ids))
     r_data = r_data.rx(robj.StrVector(ids))
 
     r_fit = r['lmFit'](r_data, r_design)
@@ -160,13 +161,13 @@ def get_deseq2_stats(df: pd.DataFrame,
     df = df[flattened_subsets]
     # filter rows with too few reads
     total_row_counts = df.sum(axis=1)
-    keep = total_row_counts[total_row_counts > min_total_row_count].index
+    keep = total_row_counts[total_row_counts >= min_total_row_count].index
     df = df.loc[keep]
     # pandas df -> R df
     r_count_data = pandas2ri.py2ri(df)
     # py2ri is stupid and makes too many assumptions.
     # These two lines restore the column order
-    r_count_data.colnames = list(set(flattened_subsets))
+    r_count_data.colnames = list(OrderedDict.fromkeys(flattened_subsets))
     r_count_data = r_count_data.rx(robj.StrVector(flattened_subsets))
 
     # see package documentation
@@ -183,5 +184,5 @@ def get_deseq2_stats(df: pd.DataFrame,
     # R result table to Python pandas
     r_res = r['as.data.frame'](r_res)
     results = pandas2ri.ri2py(r_res)
-
+    results.insert(0, 'feature', list(r['row.names'](r_res)))
     return results
