@@ -9,8 +9,9 @@ RUN mkdir /app/ \
     && yum clean all \
     && yum install --nogpg -y python34 python34-pip python34-devel readline-devel R wget \
     && wget https://bioconductor.org/packages/release/bioc/src/contrib/limma_3.36.1.tar.gz \
-    && R CMD INSTALL limma_*.tar.gz \
-    && rm limma_*.tar.gz
+    && wget https://bioconductor.org/packages/release/bioc/src/contrib/DESeq2_1.20.0.tar.gz \
+    && R CMD INSTALL limma_*.tar.gz DESeq2_*.tar.gz \
+    && rm limma_*.tar.gz DESeq2_*.tar.gz
 COPY tests/ /app/tests/
 WORKDIR /app/
 ARG SDIST

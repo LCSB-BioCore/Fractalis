@@ -7,8 +7,7 @@ from functools import reduce
 import pandas as pd
 
 from fractalis.analytics.task import AnalyticTask
-from fractalis.analytics.tasks.heatmap.stats import StatisticTask
-from fractalis.analytics.tasks.shared import utils
+from fractalis.analytics.tasks.shared import utils, array_stats
 
 T = TypeVar('T')
 logger = logging.getLogger(__name__)
@@ -19,10 +18,11 @@ class VolcanoTask(AnalyticTask):
     submittable celery task."""
 
     name = 'compute-volcanoplot'
-    stat_task = StatisticTask()
 
     def main(self, numerical_arrays: List[pd.DataFrame],
              id_filter: List[T],
+             ranking_method: str,
+             params: dict,
              subsets: List[List[T]]):
         # merge input data into single df
         df = reduce(lambda a, b: a.append(b), numerical_arrays)
@@ -47,17 +47,14 @@ class VolcanoTask(AnalyticTask):
 
         # make matrix of input data
         df = df.pivot(index='feature', columns='id', values='value')
+        features = list(df.index)
 
-        stats = self.stat_task.main(df=df, subsets=subsets,
-                                    ranking_method='limma')
-
-        # prepare output for front-end
-        df['feature'] = df.index
-        df = pd.melt(df, id_vars='feature', var_name='id')
-        df = utils.apply_subsets(df, subsets)
-
+        # compute the stats (p / fC) for the selected ranking method
+        stats = array_stats.get_stats(df=df,
+                                      subsets=subsets,
+                                      params=params,
+                                      ranking_method=ranking_method)
         return {
-            'data': df.to_dict(orient='list'),
-            'pValue': stats['P.Value'],
-            'logFC': stats['logFC']
+            'features': features,
+            'stats': stats.to_dict(orient='list')
         }

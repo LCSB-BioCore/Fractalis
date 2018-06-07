@@ -7,8 +7,7 @@ import logging
 import pandas as pd
 
 from fractalis.analytics.task import AnalyticTask
-from fractalis.analytics.tasks.heatmap.stats import StatisticTask
-from fractalis.analytics.tasks.shared import utils
+from fractalis.analytics.tasks.shared import utils, array_stats
 
 
 T = TypeVar('T')
@@ -20,7 +19,6 @@ class HeatmapTask(AnalyticTask):
     submittable celery task."""
 
     name = 'compute-heatmap'
-    stat_task = StatisticTask()
 
     def main(self, numerical_arrays: List[pd.DataFrame],
              numericals: List[pd.DataFrame],
@@ -59,8 +57,8 @@ class HeatmapTask(AnalyticTask):
         z_df = pd.DataFrame(z_df, columns=df.columns, index=df.index)
 
         # compute statistic for ranking
-        stats = self.stat_task.main(df=df, subsets=subsets,
-                                    ranking_method=ranking_method)
+        stats = array_stats.get_stats(df=df, subsets=subsets,
+                                      ranking_method=ranking_method)
 
         # sort by ranking_value
         self.sort(df, stats[ranking_method], ranking_method)
