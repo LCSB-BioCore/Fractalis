@@ -11,7 +11,6 @@ from fractalis.analytics.task import AnalyticTask
 from fractalis.analytics.tasks.shared import utils
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -54,7 +53,7 @@ class KaplanMeierSurvivalTask(AnalyticTask):
                 E = None  # default is nothing is censored
                 if event_observed:
                     # find observation boolean value for every duration
-                    E = event_observed[0].merge(sub_df, how='left', on='id')
+                    E = event_observed[0].merge(sub_df, how='right', on='id')
                     E = [bool(x) and not np.isnan(x) for x in E['value']]
                     assert len(E) == len(T)
                 kmf.fit(durations=T, event_observed=E)
