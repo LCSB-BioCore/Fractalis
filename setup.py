@@ -28,6 +28,7 @@ setup(
         'scipy==0.19.1',
         'pandas==0.20.3',
         'sklearn==0.0',
+        'lifelines==0.14.3',
         'requests==2.18.4',
         'PyYAML==3.12',
         'pycryptodomex==3.4.7',

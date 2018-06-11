@@ -22,6 +22,7 @@ Jinja2==2.10
 jsonschema==2.6.0
 kiwisolver==1.0.1
 kombu==4.1.0
+lifelines==0.14.3
 MarkupSafe==1.0
 matplotlib==2.2.2
 mccabe==0.6.1

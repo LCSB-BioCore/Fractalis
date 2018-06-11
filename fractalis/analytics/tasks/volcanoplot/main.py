@@ -1,7 +1,7 @@
 """This module provides statistics for volcano plots."""
 
 import logging
-from typing import List, TypeVar
+from typing import List
 from functools import reduce
 
 import pandas as pd
@@ -9,7 +9,7 @@ import pandas as pd
 from fractalis.analytics.task import AnalyticTask
 from fractalis.analytics.tasks.shared import utils, array_stats
 
-T = TypeVar('T')
+# TODO: Log more
 logger = logging.getLogger(__name__)
 
 
@@ -20,10 +20,11 @@ class VolcanoTask(AnalyticTask):
     name = 'compute-volcanoplot'
 
     def main(self, numerical_arrays: List[pd.DataFrame],
-             id_filter: List[T],
+             id_filter: List[str],
              ranking_method: str,
              params: dict,
-             subsets: List[List[T]]):
+             subsets: List[List[str]]) -> dict:
+        # TODO: docstring
         # merge input data into single df
         df = reduce(lambda a, b: a.append(b), numerical_arrays)
         if not subsets:

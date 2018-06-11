@@ -1,19 +1,17 @@
 """Module containing the Celery Task for the Correlation Analysis."""
 
 import logging
-from typing import List, TypeVar
+from typing import List
 
 import pandas as pd
 import numpy as np
 from scipy import stats
 
 from fractalis.analytics.task import AnalyticTask
-from fractalis.analytics.tasks.shared.utils import \
-    apply_subsets, apply_categories
+from fractalis.analytics.tasks.shared import utils
 
 
 logger = logging.getLogger(__name__)
-T = TypeVar('T')
 
 
 class CorrelationTask(AnalyticTask):
@@ -25,9 +23,9 @@ class CorrelationTask(AnalyticTask):
     def main(self,
              x: pd.DataFrame,
              y: pd.DataFrame,
-             id_filter: List[T],
+             id_filter: List[str],
              method: str,
-             subsets: List[List[T]],
+             subsets: List[List[str]],
              categories: List[pd.DataFrame]) -> dict:
         """Compute correlation statistics for the given parameters.
         :param x: DataFrame containing x axis values.
@@ -51,8 +49,8 @@ class CorrelationTask(AnalyticTask):
         (x_label, y_label) = (df['feature_x'][0], df['feature_y'][0])
         if id_filter:
             df = df[df['id'].isin(id_filter)]
-        df = apply_subsets(df=df, subsets=subsets)
-        df = apply_categories(df=df, categories=categories)
+        df = utils.apply_subsets(df=df, subsets=subsets)
+        df = utils.apply_categories(df=df, categories=categories)
         global_stats = self.compute_stats(df, method)
         output = global_stats
         output['method'] = method

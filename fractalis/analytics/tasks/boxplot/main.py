@@ -61,6 +61,7 @@ class BoxplotTask(AnalyticTask):
                                 (df['feature'] == feature)]['value'].tolist()
                     if len(values) < 2:
                         continue
+                    # FIXME: v This is ugly. Look at kaplan_meier_survival.py
                     label = '{}//{}//s{}'.format(feature, category, subset + 1)
                     group_values.append(values)
                     stats = self.boxplot_statistics(values)
