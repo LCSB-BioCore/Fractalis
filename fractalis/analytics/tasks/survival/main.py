@@ -38,17 +38,20 @@ class SurvivalTask(AnalyticTask):
             raise ValueError(error)
 
         df = durations[0]
+        df.dropna(inplace=True)
         if id_filter:
             df = df[df['id'].isin(id_filter)]
         df = utils.apply_subsets(df=df, subsets=subsets)
         df = utils.apply_categories(df=df, categories=categories)
 
         stats = {}
+        categories = df['category'].unique().tolist()
+        subsets = df['subset'].unique().tolist()
         # for every category and subset combination estimate the survival fun.
-        for category in df['category'].unique().tolist():
+        for category in categories:
             if not stats.get(category):
                 stats[category] = {}
-            for subset in df['subset'].unique().tolist():
+            for subset in subsets:
                 sub_df = df[(df['category'] == category) &
                             (df['subset'] == subset)]
                 T = sub_df['value']
@@ -90,5 +93,7 @@ class SurvivalTask(AnalyticTask):
                 }
 
         return {
+            'categories': categories,
+            'subsets': subsets,
             'stats': stats
         }

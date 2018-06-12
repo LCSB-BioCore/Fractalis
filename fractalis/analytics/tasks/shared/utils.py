@@ -32,9 +32,7 @@ def apply_subsets(df: pd.DataFrame,
         df_subset = df_subset.assign(subset=subset_col)
         _df = _df.append(df_subset)
     if _df.shape[0] == 0:
-        raise ValueError("No data match given subsets. Keep in mind that X "
-                         "and Y are intersected before the subsets are "
-                         "applied.")
+        raise ValueError("No data match given subsets.")
     return _df
 
 
