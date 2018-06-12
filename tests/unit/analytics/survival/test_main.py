@@ -1,14 +1,14 @@
-"""This module contains tests for the kaplan_meier_survival module."""
+"""This module contains tests for the survival module."""
 
 from lifelines.datasets import load_waltons
 
 from fractalis.analytics.tasks.kaplan_meier_survival.main \
-    import KaplanMeierSurvivalTask
+    import SurvivalTask
 
 
-class TestKaplanMeierSurvivalTask:
+class TestSurvivalTask:
 
-    task = KaplanMeierSurvivalTask()
+    task = SurvivalTask()
 
     def test_correct_output_for_simple_input(self):
         df = load_waltons()
@@ -19,12 +19,13 @@ class TestKaplanMeierSurvivalTask:
         results = self.task.main(durations=[duration],
                                  categories=[],
                                  event_observed=[],
+                                 estimator='KaplanMeier',
                                  id_filter=[],
                                  subsets=[])
-        assert 'timeline' in results['stats'][''][0]
-        assert 'median' in results['stats'][''][0]
-        assert 'survival_function' in results['stats'][''][0]
-        assert 'confidence_interval' in results['stats'][''][0]
+        assert results['stats'][''][0]['timeline']
+        assert results['stats'][''][0]['estimate']
+        assert results['stats'][''][0]['ci_lower']
+        assert results['stats'][''][0]['ci_upper']
 
     def test_correct_output_for_complex_input(self):
         df = load_waltons()
@@ -39,7 +40,14 @@ class TestKaplanMeierSurvivalTask:
         results = self.task.main(durations=[duration],
                                  categories=[categories],
                                  event_observed=[event_observed],
+                                 estimator='NelsonAalen',
                                  id_filter=[],
                                  subsets=[])
-        assert results['stats']['control']
-        assert results['stats']['miR-137']
+        assert results['stats']['control'][0]['timeline']
+        assert results['stats']['control'][0]['estimate']
+        assert results['stats']['control'][0]['ci_lower']
+        assert results['stats']['control'][0]['ci_upper']
+        assert results['stats']['miR-137'][0]['timeline']
+        assert results['stats']['miR-137'][0]['estimate']
+        assert results['stats']['miR-137'][0]['ci_lower']
+        assert results['stats']['miR-137'][0]['ci_upper']
