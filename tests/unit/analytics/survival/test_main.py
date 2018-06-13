@@ -22,6 +22,8 @@ class TestSurvivalTask:
                                  id_filter=[],
                                  subsets=[])
         assert results['label'] == 'duration'
+        assert len(results['categories']) == 1
+        assert len(results['subsets']) == 1
         assert results['stats'][''][0]['timeline']
         assert results['stats'][''][0]['estimate']
         assert results['stats'][''][0]['ci_lower']
@@ -43,7 +45,9 @@ class TestSurvivalTask:
                                  estimator='NelsonAalen',
                                  id_filter=[],
                                  subsets=[])
-        assert results == 'duration'
+        assert results['label'] == 'duration'
+        assert len(results['categories']) == 2
+        assert len(results['subsets']) == 1
         assert results['stats']['control'][0]['timeline']
         assert results['stats']['control'][0]['estimate']
         assert results['stats']['control'][0]['ci_lower']
@@ -54,7 +58,6 @@ class TestSurvivalTask:
         assert results['stats']['miR-137'][0]['ci_upper']
 
     def test_can_handle_nans(self):
-        assert False  # FIXME: NA should not be filtered out but be censored
         df = load_waltons()
         df.insert(0, 'id', df.index)
         duration = df[['id', 'T']].copy()
@@ -71,15 +74,19 @@ class TestSurvivalTask:
     def test_can_handle_empty_groups(self):
         df = load_waltons()
         df.insert(0, 'id', df.index)
-        df.loc[df['group'] == 'miR-137', 'T'] = float('nan')
+        subset1 = df[df['group'] == 'control']['id'].tolist()
+        subset2 = df[df['group'] == 'miR-137']['id'].tolist()
         duration = df[['id', 'T']].copy()
+        categories = df[['id', 'group']].copy()
         duration.insert(1, 'feature', 'duration')
+        categories.insert(1, 'feature', 'group')
         duration.columns.values[2] = 'value'
-
+        categories.columns.values[2] = 'value'
         results = self.task.main(durations=[duration],
-                                 categories=[],
+                                 categories=[categories],
                                  event_observed=[],
                                  estimator='KaplanMeier',
                                  id_filter=[],
-                                 subsets=[])
-        assert 'control' not in results['stats']
+                                 subsets=[subset1, subset2])
+        assert not results['stats']['miR-137'].get(0)
+        assert not results['stats']['control'].get(1)

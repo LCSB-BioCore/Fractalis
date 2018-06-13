@@ -49,13 +49,13 @@ class SurvivalTask(AnalyticTask):
         subsets = df['subset'].unique().tolist()
         # for every category and subset combination estimate the survival fun.
         for category in categories:
-            if not stats.get(category):
-                stats[category] = {}
             for subset in subsets:
                 sub_df = df[(df['category'] == category) &
                             (df['subset'] == subset)]
                 T = sub_df['value']
                 E = None  # default is nothing is censored
+                if len(T) <= 3:
+                    continue
                 if event_observed:
                     # find observation boolean value for every duration
                     E = event_observed[0].merge(sub_df, how='right', on='id')
@@ -85,6 +85,8 @@ class SurvivalTask(AnalyticTask):
                     logger.exception(error)
                     raise ValueError(error)
                 timeline = fitter.timeline.tolist()
+                if not stats.get(category):
+                    stats[category] = {}
                 stats[category][subset] = {
                     'timeline': timeline,
                     'estimate': estimate,
