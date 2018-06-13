@@ -21,6 +21,7 @@ class TestSurvivalTask:
                                  estimator='KaplanMeier',
                                  id_filter=[],
                                  subsets=[])
+        assert results['label'] == 'duration'
         assert results['stats'][''][0]['timeline']
         assert results['stats'][''][0]['estimate']
         assert results['stats'][''][0]['ci_lower']
@@ -42,6 +43,7 @@ class TestSurvivalTask:
                                  estimator='NelsonAalen',
                                  id_filter=[],
                                  subsets=[])
+        assert results == 'duration'
         assert results['stats']['control'][0]['timeline']
         assert results['stats']['control'][0]['estimate']
         assert results['stats']['control'][0]['ci_lower']
@@ -52,6 +54,7 @@ class TestSurvivalTask:
         assert results['stats']['miR-137'][0]['ci_upper']
 
     def test_can_handle_nans(self):
+        assert False  # FIXME: NA should not be filtered out but be censored
         df = load_waltons()
         df.insert(0, 'id', df.index)
         duration = df[['id', 'T']].copy()

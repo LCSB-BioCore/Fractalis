@@ -93,6 +93,7 @@ class SurvivalTask(AnalyticTask):
                 }
 
         return {
+            'label': df['feature'].tolist()[0],
             'categories': categories,
             'subsets': subsets,
             'stats': stats
