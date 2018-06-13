@@ -27,7 +27,7 @@ setup(
         'numpy==1.13.3',
         'scipy==0.19.1',
         'pandas==0.20.3',
-        'sklearn==0.0',
+        'scikit-learn==0.19.1',
         'lifelines==0.14.3',
         'requests==2.18.4',
         'PyYAML==3.12',
