@@ -7,7 +7,8 @@ RUN mkdir /app/ \
     && printf "[lcsb-base]\nname=LCSB Base Repo\nbaseurl=http://lcsb-cent-mirr-server.uni.lu/CentOS/7/os/x86_64/\nenabled=1" > /etc/yum.repos.d/lcsb-base.repo \
     && rm -rf /var/cache/yum \
     && yum clean all \
-    && yum install --nogpg -y python34 python34-pip python34-devel readline-devel libcurl-devel libxml2-devel R wget \
+    && yum install --nogpg -y https://centos7.iuscommunity.org/ius-release.rpm \
+    && yum install --nogpg -y python36u python36u-pip python36u-devel readline-devel libcurl-devel libxml2-devel R wget \
     && R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma", "DESeq2")'
 COPY tests/ /app/tests/
 WORKDIR /app/
