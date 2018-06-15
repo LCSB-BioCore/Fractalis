@@ -7,13 +7,11 @@ RUN mkdir /app/ \
     && printf "[lcsb-base]\nname=LCSB Base Repo\nbaseurl=http://lcsb-cent-mirr-server.uni.lu/CentOS/7/os/x86_64/\nenabled=1" > /etc/yum.repos.d/lcsb-base.repo \
     && rm -rf /var/cache/yum \
     && yum clean all \
-    && yum install --nogpg -y python34 python34-pip python34-devel readline-devel R wget \
-    && wget https://bioconductor.org/packages/release/bioc/src/contrib/limma_3.36.1.tar.gz \
-    && wget https://bioconductor.org/packages/release/bioc/src/contrib/DESeq2_1.20.0.tar.gz \
-    && R CMD INSTALL limma_*.tar.gz DESeq2_*.tar.gz \
-    && rm limma_*.tar.gz DESeq2_*.tar.gz
+    && yum install --nogpg -y python34 python34-pip python34-devel readline-devel libcurl-devel libxml2-devel R wget \
+    && R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma", "DESeq2")'
 COPY tests/ /app/tests/
 WORKDIR /app/
 ARG SDIST
 COPY $SDIST /app/
-RUN pip3 install -i https://pypi.lcsb.uni.lu/simple fractalis-*.tar.gz gunicorn
+RUN pip3 install -i https://pypi.lcsb.uni.lu/simple fr
+actalis-*.tar.gz gunicorn
