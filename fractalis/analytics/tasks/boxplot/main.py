@@ -8,8 +8,7 @@ import numpy as np
 import scipy.stats
 
 from fractalis.analytics.task import AnalyticTask
-from fractalis.analytics.tasks.shared.utils import \
-    apply_subsets, apply_categories
+from fractalis.analytics.tasks.shared import utils
 
 
 T = TypeVar('T')
@@ -25,6 +24,7 @@ class BoxplotTask(AnalyticTask):
              features: List[pd.DataFrame],
              categories: List[pd.DataFrame],
              id_filter: List[T],
+             transformation: str,
              subsets: List[List[T]]) -> dict:
         """ Compute boxplot statistics for the given parameters.
         :param features: List of numerical features
@@ -32,6 +32,7 @@ class BoxplotTask(AnalyticTask):
         features.
         :param id_filter: List of ids that will be considered for analysis. If
         empty all ids will be used.
+        :param transformation: Transformation that will be applied to the data.
         :param subsets: List of subsets used as another way to group the
         numerical features.
         """
@@ -40,11 +41,12 @@ class BoxplotTask(AnalyticTask):
                              "non empty numerical feature.")
         # merge dfs into single one
         df = reduce(lambda l, r: l.append(r), features)
+        df = utils.apply_transformation(df=df, transformation=transformation)
         df.dropna(inplace=True)
         if id_filter:
             df = df[df['id'].isin(id_filter)]
-        df = apply_subsets(df=df, subsets=subsets)
-        df = apply_categories(df=df, categories=categories)
+        df = utils.apply_subsets(df=df, subsets=subsets)
+        df = utils.apply_categories(df=df, categories=categories)
         df['outlier'] = None
         results = {
             'statistics': {},

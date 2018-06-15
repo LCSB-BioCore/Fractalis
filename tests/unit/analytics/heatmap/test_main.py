@@ -24,6 +24,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='B',
+                                params={},
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
@@ -43,6 +44,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='B',
+                                params={},
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
@@ -63,6 +65,7 @@ class TestHeatmap:
                            numericals=[],
                            categoricals=[],
                            ranking_method='mean',
+                           params={},
                            id_filter=[],
                            max_rows=100,
                            subsets=subsets)
@@ -79,6 +82,7 @@ class TestHeatmap:
                                   numericals=[],
                                   categoricals=[],
                                   ranking_method='mean',
+                                  params={},
                                   id_filter=[],
                                   max_rows=100,
                                   subsets=[])
@@ -87,6 +91,7 @@ class TestHeatmap:
                                   numericals=[],
                                   categoricals=[],
                                   ranking_method='mean',
+                                  params={},
                                   id_filter=[],
                                   max_rows=100,
                                   subsets=[[101, 102, 103, 104]])
@@ -109,6 +114,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='B',
+                                params={},
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
@@ -132,6 +138,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='B',
+                                params={},
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
@@ -152,6 +159,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='mean',
+                                params={},
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
@@ -174,6 +182,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='mean',
+                                params={},
                                 id_filter=[],
                                 max_rows=2,
                                 subsets=subsets)
@@ -196,6 +205,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='P.Value',
+                                params={},
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
@@ -206,6 +216,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='adj.P.Val',
+                                params={},
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
@@ -216,6 +227,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='B',
+                                params={},
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
@@ -226,6 +238,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='logFC',
+                                params={},
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)
@@ -237,6 +250,7 @@ class TestHeatmap:
                                 numericals=[],
                                 categoricals=[],
                                 ranking_method='t',
+                                params={},
                                 id_filter=[],
                                 max_rows=100,
                                 subsets=subsets)

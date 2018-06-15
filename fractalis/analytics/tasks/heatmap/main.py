@@ -24,6 +24,7 @@ class HeatmapTask(AnalyticTask):
              numericals: List[pd.DataFrame],
              categoricals: List[pd.DataFrame],
              ranking_method: str,
+             params: dict,
              id_filter: List[T],
              max_rows: int,
              subsets: List[List[T]]) -> dict:
@@ -58,6 +59,7 @@ class HeatmapTask(AnalyticTask):
 
         # compute statistic for ranking
         stats = array_stats.get_stats(df=df, subsets=subsets,
+                                      params=params,
                                       ranking_method=ranking_method)
 
         # sort by ranking_value

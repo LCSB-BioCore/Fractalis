@@ -46,7 +46,8 @@ class CorrelationTask(AnalyticTask):
             raise ValueError("Unknown method '{}'".format(method))
 
         df = self.merge_x_y(x, y)
-        (x_label, y_label) = (df['feature_x'][0], df['feature_y'][0])
+        x_label = list(df['feature_x'])[0]
+        y_label = list(df['feature_y'])[0]
         if id_filter:
             df = df[df['id'].isin(id_filter)]
         df = utils.apply_subsets(df=df, subsets=subsets)

@@ -1,8 +1,8 @@
 variables:
-    PYPI_USER: SECURE
-    PYPI_PASS: SECURE
-    DOCKER_USER: SECURE
-    DOCKER_PASS: SECURE
+    PYPI_USER: secure
+    PYPI_PASS: secure
+    DOCKER_USER: secure
+    DOCKER_PASS: secure
     DOCKER_DRIVER: overlay2
 
 before_script:
