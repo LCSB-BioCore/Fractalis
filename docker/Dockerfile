@@ -13,5 +13,4 @@ COPY tests/ /app/tests/
 WORKDIR /app/
 ARG SDIST
 COPY $SDIST /app/
-RUN pip3 install -i https://pypi.lcsb.uni.lu/simple fr
-actalis-*.tar.gz gunicorn
+RUN pip3 install -i https://pypi.lcsb.uni.lu/simple fractalis-*.tar.gz gunicorn
