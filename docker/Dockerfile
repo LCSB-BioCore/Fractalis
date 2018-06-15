@@ -9,7 +9,7 @@ RUN mkdir /app/ \
     && yum clean all \
     && yum install --nogpg -y https://centos7.iuscommunity.org/ius-release.rpm \
     && yum install --nogpg -y python36u python36u-pip python36u-devel readline-devel libcurl-devel libxml2-devel R wget \
-    && R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite("limma", "DESeq2")'
+    && R -e 'source("https://bioconductor.org/biocLite.R"); biocLite(); biocLite(c("limma", "DESeq2"))'
 COPY tests/ /app/tests/
 WORKDIR /app/
 ARG SDIST
