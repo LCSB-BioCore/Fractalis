@@ -21,6 +21,7 @@ class TestBoxplotAnalytics:
                              [104, 'bar', 4]],
                             columns=['id', 'feature', 'value'])
         results = self.task.main(features=[df_1, df_2],
+                                 transformation='identity',
                                  categories=[],
                                  id_filter=[],
                                  subsets=[])
@@ -54,6 +55,7 @@ class TestBoxplotAnalytics:
                              [204, 'bar', 100]],
                             columns=['id', 'feature', 'value'])
         results = self.task.main(features=[df_1, df_2], categories=[],
+                                 transformation='identity',
                                  id_filter=[], subsets=[])
         df = pd.DataFrame.from_dict(json.loads(results['data']))
         assert np.all(df['outlier'] == [True, False, False, False, True,
@@ -67,6 +69,7 @@ class TestBoxplotAnalytics:
                            [104, 'foo', 100]],
                           columns=['id', 'feature', 'value'])
         results = self.task.main(features=[df], categories=[],
+                                 transformation='identity',
                                  id_filter=[], subsets=[])
         assert results['statistics']['foo////s1']['median'] == 2
 
@@ -86,6 +89,7 @@ class TestBoxplotAnalytics:
                                    [105, 'gender', 'male']],
                                   columns=['id', 'feature', 'value'])
         results = self.task.main(features=[df], categories=[categories],
+                                 transformation='identity',
                                  id_filter=[], subsets=[])
         assert 'foo//female//s1' in results['statistics']
         assert 'foo//male//s1' not in results['statistics']

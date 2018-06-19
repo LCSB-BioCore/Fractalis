@@ -57,10 +57,13 @@ class HeatmapTask(AnalyticTask):
                 for i in range(df.shape[0])]
         z_df = pd.DataFrame(z_df, columns=df.columns, index=df.index)
 
+        method = 'limma'
+        if ranking_method in ['mean', 'median', 'variance']:
+            method = ranking_method
         # compute statistic for ranking
         stats = array_stats.get_stats(df=df, subsets=subsets,
                                       params=params,
-                                      ranking_method=ranking_method)
+                                      ranking_method=method)
 
         # sort by ranking_value
         self.sort(df, stats[ranking_method], ranking_method)
