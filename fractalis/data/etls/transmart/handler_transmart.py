@@ -26,7 +26,7 @@ class TransmartHandler(ETLHandler):
 
     @staticmethod
     def make_label(descriptor: dict) -> str:
-        return descriptor['path']
+        return descriptor['label']
 
     def _get_token_for_credentials(self, server: str, auth: dict) -> str:
         try:

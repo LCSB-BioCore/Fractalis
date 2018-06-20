@@ -16,9 +16,9 @@ class TestHighdimlETL:
 
     def test_correct_handler(self):
         assert self.etl.can_handle(handler='transmart',
-                                   descriptor={'data_type': 'highdim'})
+                                   descriptor={'data_type': 'numerical_array'})
         assert not self.etl.can_handle(handler='ada',
-                                       descriptor={'data_type': 'highdim'})
+                                       descriptor={'data_type': 'numerical_array'})
         assert not self.etl.can_handle(handler='ada',
                                        descriptor={'data_type': 'categorical'})
         assert not self.etl.can_handle(handler='ada',
