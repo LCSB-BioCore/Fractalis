@@ -9,7 +9,7 @@ Please have a look at this playlist to see a demo of the visual aspects of Fract
 
 ### Installation (Docker)
 The easiest and most convenient way to deploy Fractalis is using Docker.
-All necessary information can be found in the docker folder.
+All necessary information can be found [here](docker).
 
 ### Installation (Manual)
 If you do not want to use docker or want a higher level of control of the several components, that's fine. In fact it isn't difficult to setup Fractalis manually:
