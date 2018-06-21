@@ -7,7 +7,7 @@ from fractalis import app
 
 def submit_query(query: str, server: str, token: str) -> int:
     r = requests.post(
-        url='{}/rest/v1/queryService/runQuery'.format(server),
+        url='{}/queryService/runQuery'.format(server),
         data=query,
         headers={
             'Content-Type': 'application/json',
@@ -23,7 +23,7 @@ def submit_query(query: str, server: str, token: str) -> int:
 def wait_for_completion(result_id: int, server, token):
     def _check_status():
         return requests.get(
-            url='{}/rest/v1/resultService/resultStatus/{}'.format(
+            url='{}/resultService/resultStatus/{}'.format(
                 server, result_id),
             headers={
                 'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ def wait_for_completion(result_id: int, server, token):
 
 def get_data(result_id, server, token):
     r = requests.get(
-        url='{}/rest/v1/resultService/result/{}/CSV'.format(
+        url='{}/resultService/result/{}/CSV'.format(
             server, result_id),
         headers={
             'Content-Type': 'application/json',
