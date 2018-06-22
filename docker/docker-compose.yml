@@ -9,7 +9,7 @@ services:
     rabbitmq:
         image: rabbitmq:alpine
     app:
-        image: sherzinger/fractalis:0.6.0
+        image: sherzinger/fractalis:0.6.1
         volumes:
             - ./config/fractalis/config.py:/config.py
             - ./config/fractalis/logging.yaml:/logging.yaml
@@ -22,7 +22,7 @@ services:
             - redis
             - rabbitmq
     worker:
-        image: sherzinger/fractalis:0.6.0
+        image: sherzinger/fractalis:0.6.1
         volumes:
             - ./config/fractalis/config.py:/config.py
             - ./config/fractalis/logging.yaml:/logging.yaml

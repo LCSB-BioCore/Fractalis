@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @misc_blueprint.route('/version', methods=['GET'])
 def get_version() -> Tuple[Response, int]:
-    version = '0.6.0'
+    version = '0.6.1'
     # this is a good place to launch the janitor because /version is one of the
     # first requests sent by the front-end on initialization
     janitor.delay()
