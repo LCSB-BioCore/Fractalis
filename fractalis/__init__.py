@@ -30,6 +30,8 @@ app.config['CELERY_TASK_RESULT_EXPIRES'] =\
 with open(app.config['FRACTALIS_LOG_CONFIG'], 'rt') as f:
     log_config = yaml.safe_load(f.read())
 logging.config.dictConfig(log_config)
+log_level = logging._nameToLevel[log_config['handlers']['default']['level']]
+logging.getLogger('werkzeug').setLevel(log_level)
 log = logging.getLogger(__name__)
 
 # we can't log this earlier because the logger depends on the loaded app config

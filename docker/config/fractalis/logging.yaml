@@ -14,7 +14,7 @@ handlers:
     encoding: utf8
   console:
     class: logging.StreamHandler
-    level: WARNING
+    level: DEBUG
     formatter: default
 
 root:
