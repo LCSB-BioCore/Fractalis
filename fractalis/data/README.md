@@ -38,9 +38,8 @@ You don't have to understand the ETL class in order to inherit from it. It is
 designed in a way that you should always get a readable error if you do something
 wrong. It won't hurt to have a look, though.
 
-### Variables
+### ETL Variables
 
-They are all over the ETL code: 
 `descriptor` (dict), `handler` (str), `server` (str), `auth` (dict).
 
 It is up to the front-end to decide what they contain. They are used like this:
