@@ -69,7 +69,7 @@ profit much from the existing analysis scripts or visualisations. Fractalis focu
 is **explorative** analysis in the field of **translational research**, so you should
 consider this, when thinking about adding a new format.
 
-TL;DR: To see which formats are currently used and how they are defined, please
+To see which formats are currently used and how they are defined, please
 look at the [integrity check modules](integrity).
 If you want to add a new data type, this is the only place you have to touch.
 
