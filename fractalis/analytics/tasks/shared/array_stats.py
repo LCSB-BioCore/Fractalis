@@ -6,6 +6,7 @@ from collections import OrderedDict
 import logging
 
 import pandas as pd
+import numpy as np
 from rpy2 import robjects as robj
 from rpy2.robjects import r, pandas2ri
 from rpy2.robjects.packages import importr
@@ -38,22 +39,22 @@ def get_stats(df: pd.DataFrame, subsets: List[List[T]],
 
 
 def get_mean_stats(df: pd.DataFrame) -> pd.DataFrame:
-    means = [row.mean() for row in df.values]
+    means = np.mean(df, axis=1)
     stats = pd.DataFrame(means, columns=['mean'])
     stats['feature'] = df.index
     return stats
 
 
 def get_median_stats(df: pd.DataFrame) -> pd.DataFrame:
-    means = [row.median() for row in df.values]
-    stats = pd.DataFrame(means, columns=['median'])
+    medians = np.median(df, axis=1)
+    stats = pd.DataFrame(medians, columns=['median'])
     stats['feature'] = df.index
     return stats
 
 
 def get_variance_stats(df: pd.DataFrame) -> pd.DataFrame:
-    means = [row.var() for row in df.values]
-    stats = pd.DataFrame(means, columns=['var'])
+    variances = np.var(df, axis=1)
+    stats = pd.DataFrame(variances, columns=['variance'])
     stats['feature'] = df.index
     return stats
 
