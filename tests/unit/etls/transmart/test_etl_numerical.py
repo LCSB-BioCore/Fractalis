@@ -12,6 +12,10 @@ from fractalis.data.etls.transmart.etl_numerical import NumericalETL
 class TestNumericalETL:
 
     etl = NumericalETL()
+    descriptor = dict(
+        constraint='',
+        data_type='numerical'
+    )
 
     def test_correct_handler(self):
         assert self.etl.can_handle(handler='transmart',
@@ -31,7 +35,7 @@ class TestNumericalETL:
                          content_type='application/json')
             with pytest.raises(ValueError) as e:
                 self.etl.extract(server='http://foo.bar',
-                                 token='', descriptor={'path': ''})
+                                 token='', descriptor=self.descriptor)
                 assert '[400]' in e
 
     def test_extract_raises_readable_if_not_json(self):
@@ -42,7 +46,7 @@ class TestNumericalETL:
                          content_type='application/json')
             with pytest.raises(ValueError) as e:
                 self.etl.extract(server='http://foo.bar',
-                                 token='', descriptor={'path': ''})
+                                 token='', descriptor=self.descriptor)
                 assert 'unexpected data' in e
 
     def test_extract_works_for_valid_input(self):
@@ -52,7 +56,7 @@ class TestNumericalETL:
                          status=200,
                          content_type='application/json')
             raw_data = self.etl.extract(server='http://foo.bar',
-                                        token='', descriptor={'path': ''})
+                                        token='', descriptor=self.descriptor)
             assert isinstance(raw_data, dict)
 
     def test_transform_valid_input_correct_output(self):
@@ -65,9 +69,10 @@ class TestNumericalETL:
                          body=json.dumps(body),
                          status=200,
                          content_type='application/json')
+
             raw_data = self.etl.extract(server='http://foo.bar',
-                                        token='', descriptor={'path': ''})
-            df = self.etl.transform(raw_data=raw_data, descriptor={'path': ''})
-            assert df.shape == (1, 2)
-            assert df.values.tolist() == [['3052', 52.0]]
-            assert list(df) == ['id', 'value']
+                                        token='', descriptor=self.descriptor)
+            df = self.etl.transform(raw_data=raw_data, descriptor=self.descriptor)
+            assert df.shape == (1, 3)
+            assert df.values.tolist() == [['3052', 'value', 52.0]]
+            assert list(df) == ['id', 'feature', 'value']

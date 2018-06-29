@@ -12,6 +12,10 @@ from fractalis.data.etls.transmart.etl_categorical import CategoricalETL
 class TestCategoricalETL:
 
     etl = CategoricalETL()
+    descriptor = dict(
+        constraint='',
+        data_type='categorical'
+    )
 
     def test_correct_handler(self):
         assert self.etl.can_handle(handler='transmart',
@@ -31,7 +35,7 @@ class TestCategoricalETL:
                          content_type='application/json')
             with pytest.raises(ValueError) as e:
                 self.etl.extract(server='http://foo.bar',
-                                 token='', descriptor={'path': ''})
+                                 token='', descriptor=self.descriptor)
                 assert '[400]' in e
 
     def test_extract_raises_readable_if_not_json(self):
@@ -42,7 +46,7 @@ class TestCategoricalETL:
                          content_type='application/json')
             with pytest.raises(ValueError) as e:
                 self.etl.extract(server='http://foo.bar',
-                                 token='', descriptor={'path': ''})
+                                 token='', descriptor=self.descriptor)
                 assert 'unexpected data' in e
 
     def test_extract_works_for_valid_input(self):
@@ -52,12 +56,12 @@ class TestCategoricalETL:
                          status=200,
                          content_type='application/json')
             raw_data = self.etl.extract(server='http://foo.bar',
-                                        token='', descriptor={'path': ''})
+                                        token='', descriptor=self.descriptor)
             assert isinstance(raw_data, dict)
 
     def test_transform_valid_input_correct_output(self):
         body = {
-            "cells": [{"inlineDimensions": ["292278994-08-16T23:00:00Z", None, "@"], "dimensionIndexes": [0, 0, 0, None, 0, None, None], "numericValue": 52.0}],  # noqa: 501
+            "cells": [{"inlineDimensions": ["292278994-08-16T23:00:00Z", None, "@"], "dimensionIndexes": [0, 0, 0, None, 0, None, None], "stringValue": 'FOO'}],  # noqa: 501
             "dimensionElements": {"patient": [{"id": 1000421548, "deathDate": None, "birthDate": None, "race": None, "maritalStatus": None, "inTrialId": "3052", "age": 52, "trial": "GSE4382", "sexCd": None, "sex": "unknown", "religion": None}]}  # noqa: E501
         }
         with responses.RequestsMock() as response:
@@ -66,8 +70,8 @@ class TestCategoricalETL:
                          status=200,
                          content_type='application/json')
             raw_data = self.etl.extract(server='http://foo.bar',
-                                        token='', descriptor={'path': ''})
-            df = self.etl.transform(raw_data=raw_data, descriptor={'path': ''})
-            assert df.shape == (1, 2)
-            assert df.values.tolist() == [['3052', 52.0]]
-            assert list(df) == ['id', 'value']
+                                        token='', descriptor=self.descriptor)
+            df = self.etl.transform(raw_data=raw_data, descriptor=self.descriptor)
+            assert df.shape == (1, 3)
+            assert df.values.tolist() == [['3052', 'value', 'FOO']]
+            assert list(df) == ['id', 'feature', 'value']

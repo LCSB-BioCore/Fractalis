@@ -1,5 +1,6 @@
 """This module contains tests for the common module in the shared package."""
 
+import pytest
 import pandas as pd
 import numpy as np
 
@@ -37,3 +38,17 @@ class TestCommonTasks:
         subsets = [[], [101], [103, 104], [105]]
         subsets = utils.drop_unused_subset_ids(df=df, subsets=subsets)
         assert subsets == [[], [101], [103], []]
+
+    def test_apply_transformation_raises_if_pos_inf(self):
+        df = pd.DataFrame([[101, 'foo', 1000]],
+                          columns=['id', 'feature', 'value'])
+        with pytest.raises(ValueError) as e:
+            utils.apply_transformation(df=df, transformation='10^x')
+            assert 'only be used on log scaled data' in e
+
+    def test_apply_transformation_drops_zeros(self):
+        df = pd.DataFrame([[101, 'foo', 1000], [102, 'foo', 0]],
+                          columns=['id', 'feature', 'value'])
+        assert df.shape[0] == 2
+        df = utils.apply_transformation(df=df, transformation='log2(x)')
+        assert df.shape[0] == 1

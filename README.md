@@ -9,7 +9,7 @@ Please have a look at this playlist to see a demo of the visual aspects of Fract
 
 ### Installation (Docker)
 The easiest and most convenient way to deploy Fractalis is using Docker.
-All necessary information can be found in the docker folder.
+All necessary information can be found [here](docker).
 
 ### Installation (Manual)
 If you do not want to use docker or want a higher level of control of the several components, that's fine. In fact it isn't difficult to setup Fractalis manually:
@@ -21,18 +21,18 @@ If you do not want to use docker or want a higher level of control of the severa
 - Run and expose the Fractalis web service with whatever tools you want. We recommend **gunicorn** and **nginx**, but others should work, too.
 - Run the celery workers on any machine that you want within the same network. (For a simple setup this can be the very same machine that the web service runs on).
 
-Note: The [docker-compose.yml](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/docker/docker-compose.yml) describes how the different services are started and how they connect with each other.
+Note: The [docker-compose.yml](docker/docker-compose.yml) describes how the different services are started and how they connect with each other.
 
 ### Configuration
 Use the environment variable `FRACTALIS_CONFIG` to define the configuration file path.
 This variable must be a) a valid python file (.py) and b) be available on all instances that host a Fractalis web service or a Fractalis worker.
 
-Tip: Use the [default settings](https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/fractalis/config.py) as an example for your own configuration file.
+Tip: Use the [default settings](fractalis/config.py) as an example for your own configuration file.
 Please note, that all this files combines [Flask settings](http://flask.pocoo.org/docs/0.12/config/), [Celery settings](http://docs.celeryproject.org/en/latest/userguide/configuration.html), and Fractalis settings, which are all listed and documented within this file. 
 Please don't overwrite default settings if you don't know what you are doing. This might have severe implications for security or might cause Fractalis to not work correctly.
 
 ### Add support for new services
-Support for other services is exclusively implemented within [this folder](https://git-r3lab.uni.lu/Fractalis/fractalis/tree/master/fractalis/data/etls). We recommend looking at the *ada* example implementation. Just make sure you use the class inheritance (ETL, ETLHandler) correctly, and you will get readable error messages if something goes wrong.
+Please refer to [this document](fractalis/data).
 
 ### Citation
 Manuscript is in preparation.

@@ -3,7 +3,7 @@ import inspect
 import importlib
 from pathlib import Path
 from typing import List
-from importlib.machinery import SourceFileLoader
+import importlib.util
 
 
 def import_module_by_abs_path(module_path: str) -> object:
@@ -12,7 +12,10 @@ def import_module_by_abs_path(module_path: str) -> object:
     :return: A reference to the imported module.
     """
     module_name = os.path.splitext(os.path.basename(module_path))[0]
-    return SourceFileLoader(module_name, module_path).load_module()
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def list_classes_with_base_class(

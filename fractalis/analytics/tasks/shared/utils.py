@@ -6,6 +6,7 @@ from functools import reduce
 from copy import deepcopy
 
 import pandas as pd
+import numpy as np
 
 
 logger = logging.getLogger(__name__)
@@ -32,9 +33,7 @@ def apply_subsets(df: pd.DataFrame,
         df_subset = df_subset.assign(subset=subset_col)
         _df = _df.append(df_subset)
     if _df.shape[0] == 0:
-        raise ValueError("No data match given subsets. Keep in mind that X "
-                         "and Y are intersected before the subsets are "
-                         "applied.")
+        raise ValueError("No data match given subsets.")
     return _df
 
 
@@ -91,3 +90,29 @@ def drop_unused_subset_ids(df: pd.DataFrame,
             if id not in ids:
                 subset.remove(id)
     return _subsets
+
+
+def apply_transformation(df: pd.DataFrame, transformation: str) -> pd.DataFrame:
+    """Apply transformation to the value column of the data frame.
+    E.g. log2 or 10^x scales.
+    NaN and Inf are dropped!
+    :param df: Dataframe containing array data in the Fractalis format.
+    :param transformation: The transformation to apply.
+    :return: The dataframe with an transformed value column excl. NaN and Inf
+    """
+    transformations = {
+        'identity': lambda x: x,
+        'log2(x)': np.log2,
+        'log10(x)': np.log10,
+        '2^x': lambda x: np.power(2.0, x),
+        '10^x': lambda x: np.power(10.0, x)
+    }
+    # drop zeros because
+    df = df[df['value'] != 0]
+    df['value'] = transformations[transformation](df['value'])
+    if np.any(np.isinf(df['value'])):
+        error = 'Found inf after transformation. Transformation "{}" should ' \
+                'only be used on log scaled data.'.format(transformation)
+        logger.exception(error)
+        raise ValueError(error)
+    return df

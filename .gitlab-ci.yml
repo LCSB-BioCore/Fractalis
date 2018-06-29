@@ -1,8 +1,8 @@
 variables:
-    PYPI_USER: SECURE
-    PYPI_PASS: SECURE
-    DOCKER_USER: SECURE
-    DOCKER_PASS: SECURE
+    PYPI_USER: secure
+    PYPI_PASS: secure
+    DOCKER_USER: secure
+    DOCKER_PASS: secure
     DOCKER_DRIVER: overlay2
 
 before_script:
@@ -62,7 +62,7 @@ test:
           > /config.py
           && export FRACTALIS_CONFIG=/config.py
           && celery worker -D -A fractalis:celery -l debug --concurrency=1
-          && pytest --color=yes --verbose --capture=no --cov=/usr/lib/python3.4/site-packages/fractalis tests/
+          && pytest --color=yes --verbose --capture=no --cov=/usr/lib/python3.6/site-packages/fractalis tests/
           "
     dependencies:
         - build:image
