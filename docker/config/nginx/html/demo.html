@@ -2,34 +2,73 @@
 <meta charset="UTF-8">
 
 <head>
-  <script src="fractal-0.6.0.min.js"></script>
+  <script src="http://localhost:8080/fractal.js"></script>
 </head>
 
 <body>
-<h1>Fractalis Test Page</h1>
-<p>
+<div class="introduction">
+  <h1>Fractalis Demo Page</h1>
+
   This page is for demonstration and educational purpose only!
-  Please go to <a href="https://fractalis.lcsb.uni.lu/">https://fractalis.lcsb.uni.lu/</a> for more information.
-</p>
-<h2>How to use this page:</h2>
-<input type="button" onclick="loadData()" value="Prepare data for analysis"/>
-<input type="button" onclick="deleteData()" value="Clear analysis cache"/>
-<p>
-  1. Click the "Prepare data" button to prepare data here ↑<br/>
-  2. Interact with the control panel and select variables of interest here →<br/>
-  3. Interact with the charts here ↓<br/>
-</p>
-<br/>
-<br/>
+  <br/>
+  <br/>
+  <table class="do-table">
+    <tr>
+      <td><b>Do</b></td>
+      <td><b>Don't</b></td>
+    </tr>
+    <tr>
+      <td>Get an idea about what functionality Fractalis offers</td>
+      <td>Attempt to use this page for analysing your own data</td>
+    </tr>
+    <tr>
+      <td>Learn about the API of the front-end library</td>
+      <td>Copy the code 1:1 into your own application</td>
+    </tr>
+    <tr>
+      <td>Go <a href="https://git-r3lab.uni.lu/Fractalis/fractalis/blob/master/README.md#add-support-for-new-services">here</a> to learn how to add support for your own service</td>
+      <td>Wait for someone else to do it. It's really simple!</td>
+    </tr>
+    <tr>
+      <td>Ask questions: <a href="mailto:sascha.herzinger@uni.lu">Contact</a></td>
+      <td>Be shy!</td>
+    </tr>
+  </table>
+  <h2>What you can do on this page</h2>
+  <p>
+    You have come here to see what Fractalis can do, so we prepared the
+    <a href="https://portal.gdc.cancer.gov/repository">TCGA - COAD</a> study for you to experiment with the available analytics.
+    The two groups that have been pre-selected are: early stage cancer vs. late stage cancer.
+    We recommend you have a look at the videos <a href="https://www.youtube.com/playlist?list=PLNvp9GB9uBmH1NNAf-qTyj_jN2aCPISFU">here</a>
+    to learn how these tools are used.
+  </p>
+  <h2>To get started</h2>
+  <p>
+    1. Add one or more charts you want to see from the --Select Chart-- field below.<br/>
+    2. You will see a control panel on the right without variables, because no data have been loaded yet.<br/>
+    3. Click the "Prepare analysis cache" button and wait for the variables become available.<br/>
+    4. Select parameters and variables to run an analysis.<br/>
+  </p>
+  <div class="controls">
+  <select id="chart-select">
+    <option selected disabled>-- Select Chart --</option>
+    <option value="scatterplot">Scatterplot</option>
+    <option value="boxplot">Boxplot</option>
+    <option value="heatmap">Heatmap</option>
+    <option value="pca">PCA</option>
+    <option value="survivalplot">Survivalplot</option>
+    <option value="volcanoplot">Volcanoplot</option>
+  </select>
+  <input type="button" value="Add Chart" onclick="addChart()"/>
+  <label>
+    Zoom:
+    <input id="chart-size-range" type="range" min="10" max="100" value="30" oninput="setChartSize(this.value)"/>
+  </label>
+  <input type="button" onclick="loadData()" value="Prepare analysis cache"/>
+  <input type="button" onclick="deleteData()" value="Clear analysis cache"/>
+  </div>
+</div>
 <div class="charts">
-  <div class="chart chart-1"></div>
-  <div class="chart chart-2"></div>
-  <div class="chart chart-3"></div>
-  <div class="chart chart-4"></div>
-  <div class="chart chart-5"></div>
-  <div class="chart chart-6"></div>
-  <div class="chart chart-7"></div>
-  <div class="chart chart-8"></div>
 </div>
 
 </body>
@@ -38,7 +77,7 @@
   /* eslint-disable */
 
   const fjs = fractal.init({
-    handler: 'demo',
+    handler: 'demo_tcga_coad',
     dataSource: location.protocol + '//' + window.location.host,
     fractalisNode: location.protocol + '//' + window.location.host,
     getAuth () {
@@ -50,94 +89,94 @@
     }
   })
 
-  fjs.setSubsets([])
-
-  function loadData () {
-    fjs.loadData([
-      {
-        dataType: 'numerical',
-        field: 'alcohol'
-      },
-      {
-        dataType: 'numerical',
-        field: 'chlorides'
-      },
-      {
-        dataType: 'numerical',
-        field: 'citric acid'
-      },
-      {
-        dataType: 'numerical',
-        field: 'density'
-      },
-      {
-        dataType: 'numerical',
-        field: 'fixed acidity'
-      },
-      {
-        dataType: 'numerical',
-        field: 'free sulfur dioxide'
-      },
-      {
-        dataType: 'numerical',
-        field: 'pH'
-      },
-      {
-        dataType: 'numerical',
-        field: 'quality'
-      },
-      {
-        dataType: 'numerical',
-        field: 'residual sugar'
-      },
-      {
-        dataType: 'numerical',
-        field: 'sulphates'
-      },
-      {
-        dataType: 'numerical',
-        field: 'total sulfur dioxide'
-      },
-      {
-        dataType: 'categorical',
-        field: 'type'
-      },
-      {
-        dataType: 'numerical',
-        field: 'volatile acidity'
-      }
-    ])
-  }
-
   function deleteData () {
     fjs.clearCache()
   }
 
-  function setCharts () {
-    const vms = [
-      fjs.setChart('correlation-analysis', '.chart-1'),
-      fjs.setChart('correlation-analysis', '.chart-2'),
-      fjs.setChart('correlation-analysis', '.chart-3'),
-      fjs.setChart('correlation-analysis', '.chart-4'),
-      fjs.setChart('boxplot', '.chart-5'),
-      fjs.setChart('boxplot', '.chart-6'),
-      fjs.setChart('pca-analysis', '.chart-7'),
-      fjs.setChart('pca-analysis', '.chart-8')
-    ]
+  let chartSize = '30vw'
+  function setChartSize (value) {
+    chartSize = value + 'vw'
+    Array.prototype.forEach.call(document.querySelectorAll('.charts > div'), chart => {
+      chart.style.height = chartSize
+      chart.style.width = chartSize
+    })
   }
 
-  window.addEventListener('load', () => {
-    setCharts()
-  })
+  function addChart () {
+    const chart = document.querySelector('#chart-select').value
+    const container = document.querySelector('.charts')
+    const chartDiv = document.createElement('div')
+    chartDiv.style.width = chartSize
+    chartDiv.style.height = chartSize
+    container.appendChild(chartDiv)
+    chartDiv.id = `chart-${container.childNodes.length}`
+    fjs.setChart(chart, '#' + chartDiv.id)
+  }
+
+  fjs.setSubsets([
+    ['8bb6511d-1284-46df-b60f-7d49e53afc4b', '368ed7de-aa2c-4bc8-9170-04811ccaf8d1', 'f671a8e7-3b8e-40c0-89bc-bb90f517cf57', '90a63500-f4f8-4cd0-b8ef-575a2b48be2e', '96522b7a-66d2-45fa-ac5f-1b9e8d49bba9', '6b194f70-b146-4076-92fb-b259c13d3cc5', '8bdc98d8-9ee6-442e-9525-c65b132cd354', 'f1f8995a-5c58-480d-941a-db6996dd44a1', '83068e3f-5f79-430e-a95e-2d95acc6b370', '59a54945-cc0a-4b56-bd1d-f01238f790ad', '41d5f105-c98e-4c95-8d1d-989f90d40333', '3fb22447-3042-495c-a448-556520196f76', '4c3ed306-4013-4fb1-b22e-f580cfa1edad', 'c4a220c7-d9f6-4005-8030-a61c9ab3399d', 'b3c2f3b3-c0e0-4c30-9193-1109d38e04f3', '1e8544c8-4e89-4347-b105-fdd3c3e8f7c5', 'c1b621c7-66b1-4314-b90a-a47088da5778', 'b4abe84f-ea5f-475e-968a-892822d6b349', '5c8edc61-088d-4a8d-b762-bc5c81bc2e48', 'df699b1c-871b-414b-b02a-d4027e828ee7', 'b5998685-3a92-49ea-aada-3d24adb47fec', 'c9f29f45-c98c-4f51-bde8-14f0413fe7c1', 'c75b5564-102d-45f2-808f-d7c4313a0752', '393d591b-8065-42b6-9986-d5c74782071c', '0f3171b5-122b-4118-8668-9e90eaaeead7', '5bd03307-b5f0-4aef-af7b-74a70548e5d6', '1f3a4b48-25ef-45c1-94a8-9743b6e43b90', '8b800e21-6edc-4740-9c3b-5dd6ac88f127', '6d587f23-6f52-4f49-9257-587ba59ef9bc', '92e149db-96f1-41e2-bcd3-517d74e9eb75', 'a7f33ddd-f58d-4478-80c4-5f163c9a8bb6', 'cd8b57df-2d6e-45dd-a57f-b9591e1267ba', '309c0f80-a792-4e42-b779-90c2ab203f3c', '9ceb7d87-0c87-41c2-9655-5ba540c4faa6', '1d3d60d7-18db-4b2c-a3d0-1f5b0074e2a2', 'b6cfff9b-e9d8-47ae-a68a-4432ed31c5e0', '145d70a3-6d3e-4fa1-b261-bac9dcf0c0fd', 'cd1ab234-ff5c-4435-bb75-f0ac184970cc', '4079480f-869e-4ff9-a291-41817620c797', 'ed0032e8-a000-4c47-95d9-e81ee3f14688', '5c5b5d6a-f8e5-42fa-8f28-7898e5923713', '25d5f143-a8f8-4a86-873e-e40afc79904f', '023be775-7468-416a-b4e9-c8957ff4be48', 'd848cc33-6777-48a9-ae2b-448351cbbfc7', 'd1a669e6-d127-4459-b9f6-2cfc5e61a4bb', 'a72fa04d-30ab-4070-9ad0-40a00cf6f44a', '65eb0733-fd5a-43c9-b9dd-2be12ea7e809', 'fb237029-cf48-419b-97e5-d23c07901083', '25499936-2ffd-4f22-ae3d-d94055fc0d79', 'd070d6e6-e718-4472-8705-adb741aa9a80', '6499a3b6-c857-4163-b93e-fd569c109ec1', 'd95ab5d3-7ddb-43d5-abb7-4f1c6ee67795', '74670a9a-4eba-4ed5-8883-4c7739f7c105', '422ba8a2-b67f-4a4a-a674-51066c2b1e99', 'aa0262b6-e59c-4dd5-940e-b83befa9d55c', '76e2f33e-3282-45e4-9b4e-187a6f68d6a8', 'de626800-3e4b-4227-a0dd-1ca9d4c66cb9', '7ce28ed4-cc41-4684-bc35-0008ceaed2c7', '0d63d3f8-0566-4fb8-ae90-91895a737419', '3245684b-5dc1-46fe-be9d-4d174fe20c07', 'd37ce011-8df5-4c15-9a26-227e37fbfe6a', '808e07ef-4e79-45b3-86a0-73c24876ed9a', '23dfaacf-1285-483f-ad59-72b3b83e964a', '36d71789-ba62-472b-aa04-121d6aefe4f4', 'a4ed71a4-b455-4629-a25e-8b9fcce3766c', 'a68a1d50-4fe7-4446-8733-607bf54cd5ee', '5603ff49-6c67-4e10-ae3d-3b5bf782f072', '96e46a0a-f31f-4cea-a517-1100b085e2e1', '2278d647-17fa-49c6-99f2-ca42a0648ee3', '94fe1daf-5134-4a75-af90-8e99596d9517', '7c614051-ec6d-4e8f-b298-15119bdad05c', 'd8f6abd3-8879-4dab-8551-d248ed640121', '5f9b0f7b-df50-4dbc-a337-5a1423d04215', 'c20d9915-83dd-4e8f-b78f-74b710a786bd', '3c6e8ead-7f7b-4e14-9e1d-1a9b574d88b8', 'dea24740-15ac-4676-9a02-913775566fbc', '611609bd-de86-471f-8fd1-2aaf59a0b70c', '99cc0b63-a90b-4e42-b540-f03e255dbea0', '4e57fe71-7f05-42e1-9801-ebc1e656040e', '67c0e416-d8e2-4410-b9da-a5260df7ca3e', 'fce6b685-c252-4c73-bc0d-e55ee9079e75', '8f7493ec-2291-4fb6-a391-89a7c442d748', '94501797-7328-4942-aafd-6215a491d44c', '420ade47-cf9a-4e82-b530-f6fb787e50c1', '48c89246-e93e-48d4-beb5-14691dd91ddf', '89c36ecf-1ee0-4de9-905a-0a67b05403b9', '31795a67-5aee-4535-8ae6-169b2f3e248e', '7781895f-2c0e-444c-8dbe-29a1dfcdcf17', '30f0fb32-d567-4dea-bc58-f073a708ccbe', '77f9dee0-3e61-4ab5-96a1-9d4648a1446d', '13fd721a-b844-4e6a-90d2-1ae8bd565f67', 'db8ae8cd-f265-4415-af94-bc7083f4b9e1', 'f8c7273d-39a5-46fc-bf44-089bc432ce09', '82df0a96-4147-47e9-ac4e-b89479f58c9c', '5e2c96b7-b29a-4a21-bc47-273a6d0c33b9', '67927d08-723f-4cfe-bb26-497252e81d32', 'fd53c449-c724-4de4-89a6-37d60f385dc7', 'de9943ac-71b4-4443-87db-67596ee95ad1', '67c22a2c-3bc4-476b-b0b0-362db4d83dd1', 'b73eb713-0847-49b1-9d53-f947cff6a761', 'e89973ad-9afe-48fc-995c-576bca5a309f', 'a0d8aa63-ad28-4a79-b9e3-7b914e6a7c90', 'a17bfa30-48fc-412b-9bb5-f67af959721c', '155a10e4-fbd4-4ccb-bcd3-525075ca354e', '3b4351c2-758f-4410-8026-1b6932a91111', '86b69daf-27e6-4769-bd71-b02461e19afa', 'f1fe9993-54ed-4291-8036-aac8dbb104b7', 'd713cdac-cde2-422c-b3e1-7d5a489e272f', 'c466459a-8461-4616-8e72-04de1618bb81', '95d3a5b3-1134-438d-8c17-9e9d66fcd7d8', '95240cc5-9410-459d-ac7a-2775084224b3', '1bbb207c-9427-461b-bfd5-ee01674fabc4', 'c09a3dd0-67fe-41f4-9da9-82ed86c75b98', '3658cea4-3949-4221-ac56-2486e4cb8201', 'ea301fe9-779d-4914-8e60-43a00a687d1f', '3ddfc283-25cf-4148-bfab-8e3c5035a536', '9b305193-be6c-4412-8748-323f57d144f3', '155b233d-b305-4f7c-9953-5adf6aa416f5', 'ea7b039f-db67-429e-ad6d-0950cf1edb27', '5be6d8ca-c38c-4732-97a5-840465fdf26c', '4d3f5f9e-f1db-4d06-8917-60984a36d710', '873d4457-a2ef-4fdc-b7cf-9e7af4a54de4', '89ecbe67-89e9-4b33-9523-8e410771d026', 'a82ea9d3-72c8-4f07-b89d-1074b89c2373', 'a2cbe3ea-d31e-472b-af2d-3594cedbbeb5', '4685ee8a-d6f2-4cd2-b18c-0db4291811f8', '58238ff4-fe81-4350-b711-c59e80a0e2ab', 'bda8aa4f-72bb-4899-8e44-bc51f1e59a2d', '4c648406-e1f3-4dfc-92a2-694b1136fdc7', '9afbdf89-10f9-48b2-8c1e-b590dc3df31d', 'ecedd3ab-8fe7-4140-bd94-8c9fecb1909e', '390fdcac-a79c-429d-a0f8-5d2cb8e299fe', 'ddcbca1d-ecd6-42ce-ada2-64bfeb12eb3f', 'c15f0cea-801a-4d34-8a09-c5c2dac72eb5', '0f5bddc4-4222-4964-8593-75ab9e6a5756', '7cf3e93e-4bba-4d87-a426-79dd6deae61f', 'cbb2ddcd-6578-47ec-9799-da98176cf4e7', '8010e2c4-1d62-4699-b7fe-699d80485447', 'cbac936f-52d5-47e3-a6e2-e76eade50c91', 'ee1a3e53-c58a-42a0-ab54-63d9e2c4cb7d', '9516263e-5294-4bca-81ae-67b62722079b', '71dbf3a2-3142-49bd-a9a9-8bda8f2cace8', 'd46a4381-b124-4df1-b132-18ddb591d8c3', 'a161bcef-7f63-472a-a706-746f11cd4e5f', '3da2c6d2-f827-465f-8165-382d97d86d37', '9f976f94-5b69-4393-8e74-1ba1a2a9e06d', '6286ccf8-e5ba-4bf0-a162-f6ccbec79a9a', '5d83e6fd-a7df-47ba-a6dd-83ccdcd60a92', 'f16e62cf-f6f8-421b-8343-7fa7b243f9cf', '2fcbc0e8-cf92-436d-9bb9-4f6ae0ededd7', 'f9b15a4e-028b-4fb1-8871-002c98c295de', '9e41dd3e-4d81-4208-b7bb-b82aeff75746', '06a960f5-5c56-45ba-a734-147c08e26f81', '67a1540c-e3e6-4677-91bc-517d92c7d890', '78856c3d-4c47-4ef7-ad99-14b2106ef090', '5687e2f8-40b6-4aff-bb7c-7dae1a73292f', '9518cffd-be34-43ec-8832-a3158659bcd0', '813869a3-a71e-4a19-a735-61eab2d775d0', '0e03247f-32d7-4848-9067-bc462158a284', 'b08513fc-b634-43ce-b478-dbc0e4d27a0f', '5a7429cf-ad08-4e2d-9b05-3f3187040eb0', '6fc0108f-7a2d-45ed-91be-55456d7034b9', '89a38f1b-31b0-42c4-bf74-62d6d25d2000', '83ed3ebf-3caf-41af-bd86-f08a30e8b502', '2dbaaa08-3373-4b49-ab84-b5cd7f790618', '23d83c2c-74b8-49f4-993f-60e3bff946aa', 'c3fd3382-e71c-4b33-9b98-aa7fcc5dc572', 'e9004103-5444-42db-a21b-1025b4faff6c', '9fc4f41d-bb43-4eaa-a82f-7f38d33bcbcc', 'b8ee4e75-0b6b-4353-a91c-cbd371811cc2', 'c8955a3f-8601-43aa-b3a1-1fbceeaa5e20', '2414f8c7-b306-4039-bcd8-19e25f4f3423', '83a2c1f5-ee63-4cb3-8995-d5f1ecd3b06a', '9318b97b-2865-4866-bada-a0c25747ec9f', 'da78ba6b-d67d-4d30-b13c-58ecfe3172c4', 'edfec4c3-01d2-442c-937a-b6ac34b55837', 'dd890e1c-000c-437c-a08d-8fd31fb6cbbf', 'c0f66543-5b88-476c-a730-8041bfb0708f', '788aa07d-ef1e-4976-88e2-f27db45949dc', '090a4897-81ba-4ac5-985a-108a3b76e915', '90d1c54f-dd59-401d-8218-3a1c149e26e3', '2d27de7d-1d16-4ff7-8185-257c254566ae', '4add80bb-ce9e-4b0d-a9da-26fb67c57260', 'fffadef2-bcd5-4bc6-9135-8ff2fecaea0b', 'b5e1d45c-0ce6-419c-a73c-8ac525a74f06', '4a4ffd57-2101-4d61-befc-9393a9dcc544', 'b4016e3b-69da-4ec6-81e1-6d372a09de7d', '2e1119b2-0b52-41e5-ae50-84fe01ec069a', 'd36d8522-a3d8-48ff-8a87-d0ee074253eb', '57843b7c-f7ed-4f79-8d1e-3954cb93ecb1', '6b068035-c0b2-41d6-9604-e83824a69d22', '3b39265f-b973-4875-97f9-4bc753f27df4', 'd8a3b3da-a133-4f77-a7d4-9915515d25ef', '3a7bce82-079b-4719-987e-89f9682bb03a', '5e8206b6-ed80-47da-a6b6-b51d1dd16b11', '99f343a9-405b-43b0-bdd5-cd2ee85233ea', '22f3165c-8d47-4e1a-865a-da083fc10a8c', '926f14b9-c3dd-4409-8808-113366475bbd', '8fcd7f9d-c81b-43a9-b0a3-542788312c65', 'fcdf32e8-a5d7-44ac-a5ff-2acd9efdf85a', '3d4236ef-84f1-4bbd-8a75-191b5f81c55a', '9bdfa469-316d-4532-9058-94d5f7d7b07a', 'c163b696-2d21-416c-83b7-7e7e5dbdec6f', 'fd732d36-fe56-44cc-876d-1364b7512002', '6c6bef5a-4b41-4815-9b56-1443a58bf67c', '2897d2b0-0d34-4679-9b36-fc1385bfb5ee', 'e9323745-c3f1-4301-a3b2-0a3ceb3dc702', '83d27178-f024-4ee9-91b3-ebd33a5fb90b', '2b758b58-4970-4e59-a088-b14bbedeaae0', '1d4f03f1-ae9f-460e-b592-fe96b832a855', '0fc196b4-d4ad-4367-816f-baaa445955c7', '3471a387-2c9d-4d5e-9913-e398bf381fa2', '8cf221f8-4cb8-4aa5-837f-f943956e17bb', 'bb07cee1-4e05-4dca-8a6c-1491195576a1', '05be0bc8-b645-401b-9639-cde6c2086d15', 'bfc3109c-799d-4e84-a712-1562c3207ffe', '2623eb67-f114-47f6-bd88-49eb07f2bec9', '8c2a9322-2b61-48e3-b073-f63ff99cd371', '993ead15-48c0-41e2-86ab-8ac291c6b8ef', '97fdfaf0-3e8f-437d-aa42-a9dfbdfdde84', '6c4d046d-2258-418a-b46f-ec5175dcc442', 'a6fdb572-5372-4e62-b393-05d9cc90b30a', 'edc4e45b-4412-40d0-8240-f44f21315eed', '7fe29789-2e81-4b45-b24b-e5faba0a40e4', 'aaf7c888-0312-46f1-9283-38b88d1cd8f0', 'd46528da-c5d7-412d-97bb-c8e5866d3dc1', '335067b6-105f-42fd-b4bb-f37425b0f22e', '9f673d18-0fb5-46ca-b6ae-21704d6ba84d', '55cf7bc6-7e99-4bc7-bda3-8f80de9ce131', 'b9f4c131-08f8-488a-97f7-514e8c6eb5b0', '25b22519-5290-4402-8824-12294a9d1c6c', 'ca3ac69f-cafb-429c-8a0a-75e54a63cea6', 'b280bdce-78f9-4ebb-ad9c-b9f613a555e3', 'd4035c0e-4584-4b8e-80f7-8f87ac13984e', 'fc308086-eba5-4bcb-a73d-76f85fc1ce61', '17746b70-fc4d-48ac-a011-24d583d3fd30', 'aa7301a2-ba72-4345-a7fd-15267ac6c67d', '51b494a6-f348-4213-83c8-542c43b97cb1', '37f40380-252d-4cd5-93be-8eb43c1d59bb', '6d2bb8fc-cd09-4695-b060-6abb7f082d3a', 'd165de0a-6243-4d85-88ce-74575b26b00a', '603cb075-fed6-489e-9959-b944e29cdb93', '76976bb5-7ed3-4cf5-8186-47028f342b17', 'd30353fc-2fa6-410d-a474-ed08cf3149a9', 'e379c1f5-e513-4789-80c9-92c689fff0f7', 'a103670c-3607-4a4f-8951-f59903f25b5d', '11460351-794d-449b-ba7b-9d2b4de1cc5b', 'a35d9852-aeaf-413f-98ad-45f4fba368b4', '21ed5cd4-1026-4464-a241-ad2c98f8a061', '130f1210-db85-412f-912d-2cd2a748d3cf', 'c5e6d1fe-9086-4d52-b414-cc7d9da4711f', '1216baa2-5447-4462-9243-cca325e54668', '1df6b60c-7f94-4393-9782-3f720a93bc04', 'd48fd8cc-f8cb-40ce-8fec-ba57568ebeb2', 'b3b6073c-83d7-4985-88ca-77a0c5286884'],
+    ['7a7bdbcd-effa-4af2-b059-7791aee46fe0', '547921ff-6eee-4013-a119-badf2c4b80b5', '3844401b-65d6-4f2f-acd9-1845345cc769', '0f07abc5-1147-47d0-adf4-b8a3a435819e', 'fa5f7d79-076a-4e17-8a35-30c81a1feace', '3aa5c179-5ff2-4883-80f7-84c592bc4916', '0d2bd58f-1cf6-4bbd-b533-be72be494e6c', '700ab3ae-e8db-4d9f-8399-fb889bc6e50e', '073d5629-19b9-4021-b643-c8ec1c71bce6', '19e23efd-6c74-416a-9868-1f89c5f66842', 'bfd66546-66a7-4eb0-92a8-ebeabd3bc8ff', 'ee88016b-52c3-455d-8768-4b09b6f55c20', 'c1c1b6d2-8d6f-425c-90d3-b6d08fc18168', 'dc80e66d-de6a-4f86-b073-65b2f034aa99', '355ab084-667d-4591-ba95-dcbe62752970', '926cc221-91dd-4603-9957-20578cba1123', '2ddd4709-fdc8-4c83-a0e4-0990771a7e4e', '12c0b2cc-03db-4d45-8f9d-11e95589e7c8', '7c4d588f-7cc3-4fbe-86c6-51ce9ad8ff22', 'f408bb19-70c1-4d21-a1b7-26ae78a2a012', '495641af-ff90-4e61-9fc9-c7eb615480e1', 'e8691553-8e7f-4fa1-91d7-de031d6c4c15', '4fdaae9d-8a5a-4876-83c0-5fafbe69ab39', 'b69d0815-601e-4a6c-9aad-afe800f0c795', '9970426e-551e-4061-8f22-9e60f356da38', '7945a7ff-d018-4a5d-a666-c2a3f038edb8', 'ee6cbed5-4549-437b-a90f-4d4247f09c31', '67d6fb06-e276-49c5-a2ee-b823c6291e6d', '4fb284c0-f1fe-4627-9d70-8264d02d2457', '618937b4-c033-43b6-b86e-148ce1546dcb', '9ab77ff6-bdcb-4bad-ae0b-f5f4d7235a10', 'c4037927-26d9-4f91-98f6-2ec1fe89e972', '07706c1a-ac9a-4698-9042-db79bbbeeb5d', '3b3955d7-8f93-4417-b426-f085fadcb90a', '72bd36f4-d55f-4bf2-ab0f-fe687bbebb05', 'c68aef4d-981c-45d6-981e-b9b7496cfecd', 'b8551407-8a71-4c88-8673-a52be926c780', 'e1557aa0-de1b-4e3d-9033-8a8f0aaa3b8c', '08664d19-cabd-4f29-b2a0-68b9dc6795e9', '69d98a8f-a769-4255-804c-a9bbc601103c', '0a16a824-6812-4d50-8458-770d7df3791f', '8783a778-2bf2-4e4a-b973-d5bca43f8d5f', '33ad4f7b-c280-47c6-ae80-73ff4c855225', '8786f926-433d-463a-b835-31c6b240fdd4', 'efef9ff3-6a4c-4df0-b716-d5f990d03f58', 'a8d37573-160d-4490-a6c6-fd86ddded8ac', '5e705c84-4db3-40a2-b1da-16eb8a62ee0d', '17586636-5f06-4bb9-8d09-c2a826e5d3fc', '74ade0c5-affd-4b7a-b620-e3ec1301b541', 'a877f00b-2954-4637-8fe7-3c04138b03b7', '4bb0c0d5-53dd-4030-afe2-c46ec4abd446', '984ac8d7-bcbd-4926-a289-f09ea19d58f7', '6f342589-12dc-4e69-aa00-c52608c65b11', '08d3f52f-fada-481b-b671-11400afbdd53', '7350d90b-a1bc-4c12-8e51-97921ff50fd3', '9fb0e6db-f4ac-4775-95e5-06952fb57c42', '20d2f0f7-8189-42da-adec-c8fb9e798cc6', 'ab7dd3c0-169f-4cfa-aab3-380438ae2792', '7f159871-bf8e-4942-9579-651bb73815d1', '5b2e643a-ed44-4be7-b872-ff5a919cf7bc', 'c8de0517-15f3-41a1-985f-46267a06e196', '67a0e7d7-fede-4d4a-83cc-4f50cb233ef8', '54daf120-10e1-48af-94d6-27c300202415', '2ab8c5dd-5ac7-435d-9dc4-9691c17673eb', '8be5bc32-7f23-4f10-9cf5-959d6f050ee4', '5c0520b0-a19e-418f-9cf7-192ac6943e49', 'b1b816b3-44b5-4e47-8b69-fc6456fa69a5']
+  ])
+
+  function loadData () {
+    deleteData()
+    fjs.loadData([
+      {
+        dataType: 'categorical',
+        field: 'gender'
+      },
+      {
+        dataType: 'categorical',
+        field: 'race'
+      },
+      {
+        dataType: 'categorical',
+        field: 'tumor_stage'
+      },
+
+      {
+        dataType: 'categorical',
+        field: 'miR1269a_expression'
+      },
+      {
+        dataType: 'numerical',
+        field: 'year_of_birth'
+      },
+      {
+        dataType: 'numerical',
+        field: 'days_to_death'
+      },
+      {
+        dataType: 'numerical_array',
+        field: 'miRNA'
+      }
+    ])
+  }
 </script>
 
 <style>
-  .charts {
+  .charts > div {
+    float: left;
   }
 
-  .chart {
-    float: left;
-    height: 20vw;
-    width: 20vw;
+  .do-table {
+    border-collapse: collapse;
+  }
+
+  .do-table table, .do-table th, .do-table td {
+    border: 1px solid black;
+  }
+
+  .introduction {
+    width: 500px;
+  }
+
+  .controls {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+  }
+  .controls > * {
+    margin-bottom: 5px;
   }
 </style>
