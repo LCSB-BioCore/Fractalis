@@ -6,8 +6,10 @@ services:
             sh -c "redis-server
             && redis-cli CONFIG SET maxmemory 4gb
             && redis-cli CONFIG SET maxmemory-policy allkeys-lru"
+        restart: always
     rabbitmq:
         image: rabbitmq:alpine
+        restart: always
     app:
         image: sherzinger/fractalis:1.0.1
         volumes:
@@ -15,9 +17,10 @@ services:
             - ./config/fractalis/logging.yaml:/logging.yaml
         environment:
             - FRACTALIS_CONFIG=/config.py
-        command: gunicorn -w 3 -b :5000 --log-file - --access-logfile - fractalis:app
+        command: gunicorn -w 3 -b :5000 --error-logfile - fractalis:app
         expose:
             - 5000
+        restart: always
         depends_on:
             - redis
             - rabbitmq
@@ -29,6 +32,7 @@ services:
         environment:
             - FRACTALIS_CONFIG=/config.py
         command: celery worker -A fractalis:celery -l warning --autoscale 16,4
+        restart: always
         depends_on:
             - redis
             - rabbitmq
@@ -42,5 +46,6 @@ services:
         ports:
             - ${FRACTALIS_HTTP_PORT:-80}:80
             - ${FRACTALIS_HTTPS_PORT:-443}:443
+        restart: always
         depends_on:
             - app
