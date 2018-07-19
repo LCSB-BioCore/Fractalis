@@ -10,6 +10,8 @@ def janitor():
     """
     data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
     if not os.path.exists(data_dir):
+        for key in redis.scan_iter('data:*'):
+            redis.delete(key)
         return
     cached_files = [f for f in os.listdir(data_dir)
                     if os.path.isfile(os.path.join(data_dir, f))]
