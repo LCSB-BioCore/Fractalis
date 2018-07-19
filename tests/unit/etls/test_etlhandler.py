@@ -1,8 +1,11 @@
 """This module provides tests for the etlhandler module."""
 
+import os
+from pathlib import Path
+
 import pytest
 
-from fractalis import celery
+from fractalis import celery, app
 from fractalis.data.etlhandler import ETLHandler
 
 
@@ -85,6 +88,9 @@ class TestETLHandler:
                                            file_path='',
                                            descriptor=descriptor,
                                            data_type='')
+        data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        Path(os.path.join(data_dir, '456')).touch()
         assert redis.exists('data:456')
         self.etlhandler.remove_duplicates(data_tasks=['456'],
                                           descriptor=descriptor)
@@ -104,6 +110,11 @@ class TestETLHandler:
                                            file_path='',
                                            descriptor={'a': 1},
                                            data_type='')
+        data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        Path(os.path.join(data_dir, '123')).touch()
+        Path(os.path.join(data_dir, '456')).touch()
+        Path(os.path.join(data_dir, '789')).touch()
         assert redis.exists('data:123')
         assert redis.exists('data:456')
         assert redis.exists('data:789')
@@ -127,6 +138,11 @@ class TestETLHandler:
                                            file_path='',
                                            descriptor={'a': 1},
                                            data_type='')
+        data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        Path(os.path.join(data_dir, '123')).touch()
+        Path(os.path.join(data_dir, '456')).touch()
+        Path(os.path.join(data_dir, '789')).touch()
         assert redis.exists('data:123')
         assert redis.exists('data:456')
         assert redis.exists('data:789')

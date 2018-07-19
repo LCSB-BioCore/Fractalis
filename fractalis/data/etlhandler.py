@@ -136,7 +136,8 @@ class ETLHandler(metaclass=abc.ABCMeta):
         task_ids = self.find_duplicates(data_tasks, descriptor)
         for task_id in task_ids:
             redis.delete('data:{}'.format(task_id))
-        janitor.delay()
+        if task_ids:
+            janitor.delay()
 
     def find_duplicate_task_id(self, data_tasks: List[str],
                                descriptor: dict) -> Union[str, None]:
