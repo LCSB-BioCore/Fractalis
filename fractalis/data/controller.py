@@ -3,6 +3,7 @@
 import json
 import logging
 from typing import Tuple, Union
+from uuid import UUID
 
 from flask import Blueprint, session, request, jsonify, Response
 
@@ -93,8 +94,8 @@ def get_all_data() -> Tuple[Response, int]:
     return jsonify({'data_states': data_states}), 200
 
 
-@data_blueprint.route('/<string:task_id>', methods=['DELETE'])
-def delete_data(task_id: str) -> Tuple[Response, int]:
+@data_blueprint.route('/<uuid:task_id>', methods=['DELETE'])
+def delete_data(task_id: UUID) -> Tuple[Response, int]:
     """Remove all traces of the data associated with the given task id.
     :param task_id: The id associated with the data
     See doc/api/ for more information.
@@ -102,6 +103,7 @@ def delete_data(task_id: str) -> Tuple[Response, int]:
     """
     logger.debug("Received DELETE request on /data/task_id.")
     wait = request.args.get('wait') == '1'
+    task_id = str(task_id)
     if task_id not in session['data_tasks']:
         error = "Task ID '{}' not found in session. " \
                 "Refusing access.".format(task_id)
@@ -133,13 +135,14 @@ def delete_all_data() -> Tuple[Response, int]:
     return jsonify(''), 200
 
 
-@data_blueprint.route('/meta/<string:task_id>', methods=['GET'])
-def get_meta_information(task_id: str) -> Tuple[Response, int]:
+@data_blueprint.route('/meta/<uuid:task_id>', methods=['GET'])
+def get_meta_information(task_id: UUID) -> Tuple[Response, int]:
     """Get meta information for given task id.
     :return: meta information object stored in redis.
     """
     logger.debug("Received GET request on /data/meta/task_id.")
     wait = request.args.get('wait') == '1'
+    task_id = str(task_id)
     if task_id not in session['data_tasks']:
         error = "Task ID '{}' not found in session. " \
                 "Refusing access.".format(task_id)
