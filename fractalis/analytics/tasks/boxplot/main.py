@@ -43,8 +43,7 @@ class BoxplotTask(AnalyticTask):
         df = reduce(lambda l, r: l.append(r), features)
         df = utils.apply_transformation(df=df, transformation=transformation)
         df.dropna(inplace=True)
-        if id_filter:
-            df = df[df['id'].isin(id_filter)]
+        df = utils.apply_id_filter(df=df, id_filter=id_filter)
         df = utils.apply_subsets(df=df, subsets=subsets)
         df = utils.apply_categories(df=df, categories=categories)
         df['outlier'] = None

@@ -10,11 +10,10 @@ import numpy as np
 
 
 logger = logging.getLogger(__name__)
-T = TypeVar('T')
 
 
 def apply_subsets(df: pd.DataFrame,
-                  subsets: List[List[T]]) -> pd.DataFrame:
+                  subsets: List[List[str]]) -> pd.DataFrame:
     """Build a new DataFrame that contains a new column 'subset' defining
     the subset the data point belongs to. If a data point belongs to
     multiple subsets then the row is duplicated.
@@ -75,8 +74,18 @@ def apply_categories(df: pd.DataFrame,
     return df
 
 
+def apply_id_filter(df: pd.DataFrame, id_filter: List[str]) -> pd.DataFrame:
+    """Keep only rows where id is in id_filter. If id_filter is empty keep all.
+    :param df: Dataframe containing array data in the Fractalis format.
+    :param id_filter: List of ids to keep.
+    """
+    if id_filter:
+        df = df[df['id'].isin(id_filter)]
+    return df
+
+
 def drop_unused_subset_ids(df: pd.DataFrame,
-                           subsets: List[List[T]]) -> List[List[T]]:
+                           subsets: List[List[str]]) -> List[List[str]]:
     """Drop subset ids that are not present in the given data
     :param df: Dataframe containing array data in the Fractalis format.
     :param subsets: Subset groups specified by the user.

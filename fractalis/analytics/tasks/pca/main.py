@@ -41,8 +41,7 @@ class PCATask(AnalyticTask):
         feature_labels = list(df)
 
         # apply id filter
-        if id_filter:
-            df = df[df.index.isin(id_filter)]
+        df = utils.apply_id_filter(df=df, id_filter=id_filter)
 
         # save ids so we can re-assign them after pca
         ids = df.index.tolist()

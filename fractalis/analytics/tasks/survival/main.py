@@ -39,8 +39,7 @@ class SurvivalTask(AnalyticTask):
 
         df = durations[0]
         df.dropna(inplace=True)
-        if id_filter:
-            df = df[df['id'].isin(id_filter)]
+        df = utils.apply_id_filter(df=df, id_filter=id_filter)
         df = utils.apply_subsets(df=df, subsets=subsets)
         df = utils.apply_categories(df=df, categories=categories)
 

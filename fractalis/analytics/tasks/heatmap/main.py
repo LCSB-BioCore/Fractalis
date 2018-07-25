@@ -38,8 +38,7 @@ class HeatmapTask(AnalyticTask):
             flattened_subsets = [x for subset in subsets for x in subset]
             df = df[df['id'].isin(flattened_subsets)]
         # apply id filter
-        if id_filter:
-            df = df[df['id'].isin(id_filter)]
+        df = utils.apply_id_filter(df=df, id_filter=id_filter)
         # drop subset ids that are not in the df
         subsets = utils.drop_unused_subset_ids(df=df, subsets=subsets)
         # make sure the input data are still valid after the pre-processing

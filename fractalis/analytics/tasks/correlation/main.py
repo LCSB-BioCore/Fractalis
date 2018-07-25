@@ -48,8 +48,7 @@ class CorrelationTask(AnalyticTask):
         df = self.merge_x_y(x, y)
         x_label = list(df['feature_x'])[0]
         y_label = list(df['feature_y'])[0]
-        if id_filter:
-            df = df[df['id'].isin(id_filter)]
+        df = utils.apply_id_filter(df=df, id_filter=id_filter)
         df = utils.apply_subsets(df=df, subsets=subsets)
         df = utils.apply_categories(df=df, categories=categories)
         global_stats = self.compute_stats(df, method)
