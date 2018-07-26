@@ -31,6 +31,10 @@ class PCATask(AnalyticTask):
              subsets: List[List[T]]) -> dict:
         # merge input data into single df
         df = reduce(lambda a, b: a.append(b), features)
+
+        # apply id filter
+        df = utils.apply_id_filter(df=df, id_filter=id_filter)
+
         if not subsets:
             # empty subsets equals all samples in one subset
             subsets = [df['id'].unique().tolist()]
@@ -39,9 +43,6 @@ class PCATask(AnalyticTask):
         df = df.pivot(index='feature', columns='id', values='value')
         df = df.T
         feature_labels = list(df)
-
-        # apply id filter
-        df = utils.apply_id_filter(df=df, id_filter=id_filter)
 
         # save ids so we can re-assign them after pca
         ids = df.index.tolist()
