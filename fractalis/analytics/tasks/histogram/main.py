@@ -50,8 +50,8 @@ class HistogramTask(AnalyticTask):
                             (df['subset'] == subset)]
                 values = sub_df['value']
                 hist, bin_edges = np.histogram(values)
-                hist = list(hist)
-                bin_edges = list(bin_edges)
+                hist = hist.tolist()
+                bin_edges = bin_edges.tolist()
                 mean = np.mean(values)
                 median = np.median(values)
                 variance = np.var(values)

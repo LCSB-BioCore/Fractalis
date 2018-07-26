@@ -1,3 +1,5 @@
+import json
+
 import pytest
 import pandas as pd
 
@@ -172,3 +174,32 @@ class TestHistogramTask:
                            data=df,
                            categories=[cat_df])
             assert 'selected numerical variable must be non-empty' in e
+
+    def test_output_is_json_serializable(self):
+        df = pd.DataFrame([[100, 'foo', 1],
+                           [101, 'foo', 2],
+                           [102, 'foo', 3],
+                           [103, 'foo', 4],
+                           [104, 'foo', 5],
+                           [105, 'foo', 6],
+                           [106, 'foo', 7],
+                           [107, 'foo', 8],
+                           [108, 'foo', 9],
+                           [109, 'foo', 10]],
+                          columns=['id', 'feature', 'value'])
+        cat_df = pd.DataFrame([[100, 'cat', 'A'],
+                               [101, 'cat', 'B'],
+                               [102, 'cat', 'A'],
+                               [103, 'cat', 'B'],
+                               [104, 'cat', 'A'],
+                               [105, 'cat', 'B'],
+                               [106, 'cat', 'A'],
+                               [107, 'cat', 'B'],
+                               [108, 'cat', 'A'],
+                               [109, 'cat', 'B']],
+                              columns=['id', 'feature', 'value'])
+        result = self.task.main(id_filter=[],
+                                subsets=[],
+                                data=df,
+                                categories=[cat_df])
+        json.dumps(result)
