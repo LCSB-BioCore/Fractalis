@@ -35,7 +35,8 @@ class TestHistogramTask:
                                 subsets=[],
                                 data=df,
                                 categories=[cat_df])
-        assert 'stats' in result
+        assert all([key in result for key in
+                    ['stats', 'subsets', 'categories', 'label']])
         assert 'A' in result['stats']
         assert 'B' in result['stats']
         assert 0 in result['stats']['A']

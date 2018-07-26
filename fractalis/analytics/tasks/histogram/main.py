@@ -65,5 +65,8 @@ class HistogramTask(AnalyticTask):
                     'variance': variance
                 }
         return {
-            'stats': stats
+            'stats': stats,
+            'subsets': subsets,
+            'categories': categories,
+            'label': df['feature'].tolist()[0]
         }
