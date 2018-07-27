@@ -25,7 +25,7 @@ class HistogramTask(AnalyticTask):
              subsets: List[List[str]],
              data: pd.DataFrame,
              categories: List[pd.DataFrame]) -> dict:
-        """Compute several basic statistics such as bin size and variance.
+        """Compute several basic statistics such as bin size and kde.
         :param id_filter: If specified use only given ids during the analysis.
         :param subsets: List of lists of subset ids.
         :param data: Numerical values to create histogram of.
@@ -54,7 +54,7 @@ class HistogramTask(AnalyticTask):
                 bin_edges = bin_edges.tolist()
                 mean = np.mean(values)
                 median = np.median(values)
-                variance = np.var(values)
+                std = np.std(values)
                 if not stats.get(category):
                     stats[category] = {}
                 stats[category][subset] = {
@@ -62,7 +62,7 @@ class HistogramTask(AnalyticTask):
                     'bin_edges': bin_edges,
                     'mean': mean,
                     'median': median,
-                    'variance': variance
+                    'std': std
                 }
         return {
             'stats': stats,

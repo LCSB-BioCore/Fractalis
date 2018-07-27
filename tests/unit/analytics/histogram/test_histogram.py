@@ -43,7 +43,7 @@ class TestHistogramTask:
         assert 'B' in result['stats']
         assert 0 in result['stats']['A']
         assert all([stat in result['stats']['A'][0] for stat in
-                    ['hist', 'bin_edges', 'mean', 'median', 'variance']])
+                    ['hist', 'bin_edges', 'mean', 'median', 'std']])
 
     def test_can_handle_nas(self):
         df = pd.DataFrame([[100, 'foo', float('nan')],
@@ -63,7 +63,6 @@ class TestHistogramTask:
                                 categories=[])
         assert result['stats'][''][0]['median'] == 6
         assert result['stats'][''][0]['mean'] == 6
-        assert result['stats'][''][0]['variance'] == 8
 
     def test_can_handle_negatives(self):
         df = pd.DataFrame([[100, 'foo', -2],
@@ -113,7 +112,7 @@ class TestHistogramTask:
                                 categories=[cat_df])
         assert result['stats']['A'][0]['median'] == 1
         assert result['stats']['A'][0]['mean'] == 1
-        assert result['stats']['A'][0]['variance'] == 0
+        assert result['stats']['A'][0]['std'] == 0
 
     def test_skips_empty_groups(self):
         df = pd.DataFrame([[100, 'foo', float('nan')],
