@@ -11,7 +11,7 @@ services:
         image: rabbitmq:alpine
         restart: always
     app:
-        image: sherzinger/fractalis:1.1.0
+        image: sherzinger/fractalis:1.2.0
         volumes:
             - ./config/fractalis/config.py:/config.py
             - ./config/fractalis/logging.yaml:/logging.yaml
@@ -25,7 +25,7 @@ services:
             - redis
             - rabbitmq
     worker:
-        image: sherzinger/fractalis:1.1.0
+        image: sherzinger/fractalis:1.2.0
         volumes:
             - ./config/fractalis/config.py:/config.py
             - ./config/fractalis/logging.yaml:/logging.yaml
