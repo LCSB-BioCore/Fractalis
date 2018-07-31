@@ -83,6 +83,7 @@ class HistogramTask(AnalyticTask):
                     'dist': dist
                 }
         return {
+            'data': df.to_json(orient='records'),
             'stats': stats,
             'subsets': subsets,
             'categories': categories,

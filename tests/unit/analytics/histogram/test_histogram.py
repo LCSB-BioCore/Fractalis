@@ -35,6 +35,7 @@ class TestHistogramTask:
                               columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
                                 bw_factor=0.5,
+                                num_bins=10,
                                 subsets=[],
                                 data=df,
                                 categories=[cat_df])
@@ -60,6 +61,7 @@ class TestHistogramTask:
                           columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
                                 bw_factor=0.5,
+                                num_bins=10,
                                 subsets=[],
                                 data=df,
                                 categories=[])
@@ -80,6 +82,7 @@ class TestHistogramTask:
                           columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
                                 bw_factor=0.5,
+                                num_bins=10,
                                 subsets=[],
                                 data=df,
                                 categories=[])
@@ -111,6 +114,7 @@ class TestHistogramTask:
                               columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
                                 bw_factor=0.5,
+                                num_bins=10,
                                 subsets=[],
                                 data=df,
                                 categories=[cat_df])
@@ -141,6 +145,7 @@ class TestHistogramTask:
                               columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
                                 bw_factor=0.5,
+                                num_bins=10,
                                 subsets=[],
                                 data=df,
                                 categories=[cat_df])
@@ -173,6 +178,7 @@ class TestHistogramTask:
         with pytest.raises(ValueError) as e:
             self.task.main(id_filter=[],
                            bw_factor=0.5,
+                           num_bins=10,
                            subsets=[],
                            data=df,
                            categories=[cat_df])
@@ -203,6 +209,7 @@ class TestHistogramTask:
                               columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
                                 bw_factor=0.5,
+                                num_bins=10,
                                 subsets=[],
                                 data=df,
                                 categories=[cat_df])
