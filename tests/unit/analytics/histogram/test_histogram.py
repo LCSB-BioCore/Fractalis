@@ -34,6 +34,7 @@ class TestHistogramTask:
                                [109, 'cat', 'B']],
                               columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
+                                bw_factor=0.5,
                                 subsets=[],
                                 data=df,
                                 categories=[cat_df])
@@ -43,7 +44,7 @@ class TestHistogramTask:
         assert 'B' in result['stats']
         assert 0 in result['stats']['A']
         assert all([stat in result['stats']['A'][0] for stat in
-                    ['hist', 'bin_edges', 'mean', 'median', 'std']])
+                    ['hist', 'bin_edges', 'mean', 'median', 'std', 'dist']])
 
     def test_can_handle_nas(self):
         df = pd.DataFrame([[100, 'foo', float('nan')],
@@ -58,6 +59,7 @@ class TestHistogramTask:
                            [109, 'foo', 10]],
                           columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
+                                bw_factor=0.5,
                                 subsets=[],
                                 data=df,
                                 categories=[])
@@ -77,13 +79,14 @@ class TestHistogramTask:
                            [109, 'foo', 10]],
                           columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
+                                bw_factor=0.5,
                                 subsets=[],
                                 data=df,
                                 categories=[])
         assert result['stats'][''][0]['median'] == 0
         assert result['stats'][''][0]['mean'] == 0
 
-    def test_can_handle_small_groups(self):
+    def test_skips_small_groups(self):
         df = pd.DataFrame([[100, 'foo', 1],
                            [101, 'foo', 2],
                            [102, 'foo', float('nan')],
@@ -107,12 +110,11 @@ class TestHistogramTask:
                                [109, 'cat', 'B']],
                               columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
+                                bw_factor=0.5,
                                 subsets=[],
                                 data=df,
                                 categories=[cat_df])
-        assert result['stats']['A'][0]['median'] == 1
-        assert result['stats']['A'][0]['mean'] == 1
-        assert result['stats']['A'][0]['std'] == 0
+        assert 'A' not in result['stats']
 
     def test_skips_empty_groups(self):
         df = pd.DataFrame([[100, 'foo', float('nan')],
@@ -138,6 +140,7 @@ class TestHistogramTask:
                                [109, 'cat', 'B']],
                               columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
+                                bw_factor=0.5,
                                 subsets=[],
                                 data=df,
                                 categories=[cat_df])
@@ -169,6 +172,7 @@ class TestHistogramTask:
                               columns=['id', 'feature', 'value'])
         with pytest.raises(ValueError) as e:
             self.task.main(id_filter=[],
+                           bw_factor=0.5,
                            subsets=[],
                            data=df,
                            categories=[cat_df])
@@ -198,6 +202,7 @@ class TestHistogramTask:
                                [109, 'cat', 'B']],
                               columns=['id', 'feature', 'value'])
         result = self.task.main(id_filter=[],
+                                bw_factor=0.5,
                                 subsets=[],
                                 data=df,
                                 categories=[cat_df])
