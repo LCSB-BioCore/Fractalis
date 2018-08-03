@@ -5,7 +5,9 @@ services:
         command: >
             sh -c "redis-server
             && redis-cli CONFIG SET maxmemory 4gb
-            && redis-cli CONFIG SET maxmemory-policy allkeys-lru"
+            && redis-cli CONFIG SET maxmemory-policy allkeys-lru
+            && redis-cli CONFIG SET save ''
+            && redis-cli CONFIG SET appendonly no"
         restart: always
     rabbitmq:
         image: rabbitmq:alpine
@@ -17,7 +19,7 @@ services:
             - ./config/fractalis/logging.yaml:/logging.yaml
         environment:
             - FRACTALIS_CONFIG=/config.py
-        command: gunicorn -w 3 -b :5000 --error-logfile - fractalis:app
+        command: gunicorn -w 3 -b :5000 --timeout 30 --error-logfile - fractalis:app
         expose:
             - 5000
         restart: always
