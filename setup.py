@@ -9,7 +9,7 @@ setup(
     author='Sascha Herzinger',
     author_email='sascha.herzinger@uni.lu',
     url='https://git-r3lab.uni.lu/Fractalis/fractalis',
-    version='1.2.0',
+    version='1.2.1',
     license='Apache2.0',
     include_package_data=True,
     python_requires='>=3.4.0',
