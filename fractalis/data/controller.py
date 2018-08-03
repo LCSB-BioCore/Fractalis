@@ -79,8 +79,7 @@ def get_all_data() -> Tuple[Response, int]:
     for task_id in session['data_tasks']:
         data_state = get_data_state_for_task_id(task_id, wait)
         if data_state is None:
-            warning = "Data state with task_id '{}' expired. " \
-                      "Discarding...".format(task_id)
+            warning = "Data state with task_id '{}' expired.".format(task_id)
             logger.warning(warning)
             continue
         # remove internal information from response
