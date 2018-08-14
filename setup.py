@@ -12,7 +12,7 @@ setup(
     version='1.2.1',
     license='Apache2.0',
     include_package_data=True,
-    python_requires='>=3.4.0',
+    python_requires='>=3.6.0',
     install_requires=[
         'Flask==0.12.2',
         'flask-cors==3.0.3',
