@@ -3,7 +3,7 @@
 
 <head>
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-  <script src="http://unpkg.com/fractalis"></script>
+  <script src="https://unpkg.com/fractalis"></script>
 </head>
 
 <body>
@@ -80,6 +80,8 @@
     <span class="headline">4. Select variables in the control panel on the right -></span>
   </div>
 </div>
+<br/>
+<br/>
 <div class="charts">
 </div>
 
@@ -91,7 +93,7 @@
   const fjs = fractal.init({
     handler: 'demo_tcga_coad',
     dataSource: location.protocol + '//' + window.location.host,
-    fractalisNode: 'http://localhost:5000',
+    fractalisNode: location.protocol + '//' + window.location.host,
     getAuth () {
       return {token: ''}
     },
