@@ -3,7 +3,7 @@
 
 <head>
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-  <script src="https://unpkg.com/fractalis"></script>
+  <script src="https://unpkg.com/fractalis@1.2.11/lib/fractal.js"></script>
 </head>
 
 <body>
@@ -49,10 +49,10 @@
     <div class="chart-button-container">
       <button class="custom-button" onclick="addChart(this.value)" value="scatterplot">Scatter Plot</button>
       <button class="custom-button" onclick="addChart(this.value)" value="boxplot">Box Plot</button>
-      <button class="custom-button" onclick="addChart(this.value)" value="Survival Plot">Survival Plot</button>
+      <button class="custom-button" onclick="addChart(this.value)" value="survivalplot">Survival Plot</button>
       <button class="custom-button" onclick="addChart(this.value)" value="pca">PCA</button>
-      <button class="custom-button" onclick="addChart(this.value)" value="Histogram">Histogram</button>
-      <button class="custom-button" onclick="addChart(this.value)" value="Heatmap">Heat Map</button>
+      <button class="custom-button" onclick="addChart(this.value)" value="histogram">Histogram</button>
+      <button class="custom-button" onclick="addChart(this.value)" value="heatmap">Heat Map</button>
       <button class="custom-button" onclick="addChart(this.value)" value="volcanoplot">Volcano PLot</button>
       <button class="delete-button" onclick="clearView()">Clear View</button>
     </div>
@@ -90,7 +90,7 @@
 <script>
   /* eslint-disable */
 
-  const fjs = fractal.init({
+  const fjs = fractalis.init({
     handler: 'demo_tcga_coad',
     dataSource: location.protocol + '//' + window.location.host,
     fractalisNode: location.protocol + '//' + window.location.host,
