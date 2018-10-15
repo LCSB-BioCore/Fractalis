@@ -31,8 +31,8 @@ def extract_data(server: str, descriptor: dict, token: str) -> dict:
         if 'biomarker_constraint' in descriptor:
             params['biomarker_constraint'] = descriptor['biomarker_constraint']
 
-    r = requests.get(url='{}/v2/observations'.format(server),
-                     params=params,
+    r = requests.post(url='{}/v2/observations'.format(server),
+                     json=params,
                      headers={
                          'Accept': 'application/json',
                          'Authorization': 'Bearer {}'.format(token)
