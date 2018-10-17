@@ -37,8 +37,11 @@ class TestSurvivalTask:
         duration.columns.values[2] = 'value'
         event_observed = df[['id', 'E']].copy()
         event_observed.insert(1, 'feature', 'was_observed')
+        event_observed.columns.values[2] = 'value'
+        event_observed = event_observed[event_observed['value'] == 1]
         categories = df[['id', 'group']].copy()
         categories.insert(1, 'feature', 'group')
+        categories.columns.values[2] = 'value'
         results = self.task.main(durations=[duration],
                                  categories=[categories],
                                  event_observed=[event_observed],

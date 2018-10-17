@@ -58,7 +58,7 @@ class SurvivalTask(AnalyticTask):
                 if event_observed:
                     # find observation boolean value for every duration
                     E = event_observed[0].merge(sub_df, how='right', on='id')
-                    E = [bool(x) and not np.isnan(x) for x in E['value']]
+                    E = [not x for x in pd.isnull(E['value_x'])]
                     assert len(E) == len(T)
                 if estimator == 'NelsonAalen':
                     fitter = NelsonAalenFitter()
