@@ -30,19 +30,26 @@ class TransmartHandler(ETLHandler):
 
     def _get_token_for_credentials(self, server: str, auth: dict) -> str:
         try:
-            user = auth['user']
-            passwd = auth['passwd']
-            if len(user) == 0 or len(passwd) == 0:
-                raise KeyError
-        except KeyError:
-            error = "The authentication object must contain the non-empty " \
-                    "fields 'user' and 'passwd'."
-            logger.error(error)
-            raise ValueError(error)
-        r = requests.post(url=server + '/oauth/token',
+            user = self.get_auth_value(auth, 'user')
+            passwd = self.get_auth_value(auth, 'passwd')
+            auth_service_type = self.get_auth_value(auth, 'authServiceType')
+            if auth_service_type.upper() == 'OIDC':
+                client_id = self.get_auth_value(auth, 'oidcClientId')
+                url = self.get_auth_value(auth, 'oidcServerUrl')
+            elif auth_service_type.upper() == 'TRANSMART':
+                client_id = 'glowingbear-js'
+                url = server + '/oauth/token'
+            else:
+                raise KeyError("The authentication service type in authentication object has to be one of "
+                               "'oidc', 'transmart'")
+        except KeyError as e:
+            logger.error(e)
+            raise ValueError(e)
+
+        r = requests.post(url=url,
                           params={
                               'grant_type': 'password',
-                              'client_id': 'glowingbear-js',
+                              'client_id': client_id,
                               'client_secret': '',
                               'username': user,
                               'password': passwd
@@ -62,3 +69,10 @@ class TransmartHandler(ETLHandler):
                     "Got unexpected response: '{}'".format(r.text)
             logger.error(error)
             raise ValueError(error)
+
+    @staticmethod
+    def get_auth_value(auth: dict, property_name: str) -> str:
+        value = auth[property_name]
+        if len(value) == 0:
+            raise KeyError(f'The authentication object must contain the non-empty field: "{property_name}"')
+        return value
