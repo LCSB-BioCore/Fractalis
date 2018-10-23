@@ -7,6 +7,7 @@ from uuid import UUID
 
 from flask import Blueprint, session, request, jsonify, Response
 
+from fractalis.authorization import authorized
 from fractalis.data.etlhandler import ETLHandler
 from fractalis.data.schema import create_data_schema
 from fractalis.validator import validate_json, validate_schema
@@ -29,9 +30,12 @@ def create_data_task() -> Tuple[Response, int]:
     logger.debug("Received POST request on /data.")
     wait = request.args.get('wait') == '1'
     payload = request.get_json(force=True)
-    etl_handler = ETLHandler.factory(handler=payload['handler'],
-                                     server=payload['server'],
-                                     auth=payload['auth'])
+    try:
+        etl_handler = ETLHandler.factory(handler=payload['handler'],
+                                         server=payload['server'],
+                                         auth=payload['auth'])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
     task_ids = etl_handler.handle(descriptors=payload['descriptors'],
                                   data_tasks=session['data_tasks'],
                                   use_existing=False,
@@ -94,6 +98,7 @@ def get_all_data() -> Tuple[Response, int]:
 
 
 @data_blueprint.route('/<uuid:task_id>', methods=['DELETE'])
+@authorized
 def delete_data(task_id: UUID) -> Tuple[Response, int]:
     """Remove all traces of the data associated with the given task id.
     :param task_id: The id associated with the data
@@ -117,6 +122,7 @@ def delete_data(task_id: UUID) -> Tuple[Response, int]:
 
 
 @data_blueprint.route('', methods=['DELETE'])
+@authorized
 def delete_all_data() -> Tuple[Response, int]:
     """Remove all traces of all data associated with this session.
     :return: Empty response.
@@ -135,6 +141,7 @@ def delete_all_data() -> Tuple[Response, int]:
 
 
 @data_blueprint.route('/meta/<uuid:task_id>', methods=['GET'])
+@authorized
 def get_meta_information(task_id: UUID) -> Tuple[Response, int]:
     """Get meta information for given task id.
     :return: meta information object stored in redis.

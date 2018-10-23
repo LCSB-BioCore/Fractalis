@@ -48,8 +48,8 @@ class TestTransmartHandler:
         with pytest.raises(ValueError) as e:
             TransmartHandler(server='http://foo.bar',
                              auth={'user': 'foo', 'passwd': 'bar', 'authServiceType': 'test_server_name'})
-            assert 'The authentication service type in authentication object has to be one of ' \
-                   '"oidc", "transmart"' in e
+        assert 'Could not authenticate with API. "The authentication service type in authentication object has to be ' \
+               'one of \'oidc\', \'transmart\'"' in str(e.value)
 
     def test_returns_token_for_credentials(self):
         with responses.RequestsMock() as response:
@@ -82,7 +82,7 @@ class TestTransmartHandler:
             with pytest.raises(ValueError) as e:
                 TransmartHandler(server='http://foo.bar',
                                  auth={'user': 'foo', 'passwd': 'bar', 'authServiceType': 'transmart'})
-                assert 'unexpected response' in e
+            assert 'unexpected response' in str(e.value)
 
     def test_auth_raises_exception_for_non_200_return(self):
         with responses.RequestsMock() as response:
@@ -93,4 +93,5 @@ class TestTransmartHandler:
             with pytest.raises(ValueError) as e:
                 TransmartHandler(server='http://foo.bar',
                                  auth={'user': 'foo', 'passwd': 'bar', 'authServiceType': 'transmart'})
-                assert '[400]' in e
+            assert '[400]' in str(e.value)
+
