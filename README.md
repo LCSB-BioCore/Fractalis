@@ -34,5 +34,5 @@ Please don't overwrite default settings if you don't know what you are doing. Th
 ### Add support for new services
 Please refer to [this document](fractalis/data).
 
-### Citation
-Manuscript is in preparation.
+### Publication
+https://doi.org/10.1093/gigascience/giy109
