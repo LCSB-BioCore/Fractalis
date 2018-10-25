@@ -14,7 +14,7 @@ setup(
     include_package_data=True,
     python_requires='>=3.6.0',
     install_requires=[
-        'Flask==0.12.2',
+        'Flask==0.12.3',
         'flask-cors==3.0.3',
         'Flask-Script==2.0.6',
         'flask-request-id-middleware==1.1',
