@@ -29,7 +29,7 @@ class TestNumericalETL:
 
     def test_extract_raises_readable_if_not_200(self):
         with responses.RequestsMock() as response:
-            response.add(response.GET, 'http://foo.bar/v2/observations',
+            response.add(response.POST, 'http://foo.bar/v2/observations',
                          body='{}',
                          status=400,
                          content_type='application/json')
@@ -40,7 +40,7 @@ class TestNumericalETL:
 
     def test_extract_raises_readable_if_not_json(self):
         with responses.RequestsMock() as response:
-            response.add(response.GET, 'http://foo.bar/v2/observations',
+            response.add(response.POST, 'http://foo.bar/v2/observations',
                          body='123{//}',
                          status=200,
                          content_type='application/json')
@@ -51,7 +51,7 @@ class TestNumericalETL:
 
     def test_extract_works_for_valid_input(self):
         with responses.RequestsMock() as response:
-            response.add(response.GET, 'http://foo.bar/v2/observations',
+            response.add(response.POST, 'http://foo.bar/v2/observations',
                          body='{}',
                          status=200,
                          content_type='application/json')
@@ -65,7 +65,7 @@ class TestNumericalETL:
             "dimensionElements": {"patient": [{"id": 1000421548, "deathDate": None, "birthDate": None, "race": None, "maritalStatus": None, "inTrialId": "3052", "age": 52, "trial": "GSE4382", "sexCd": None, "sex": "unknown", "religion": None}]}  # noqa: 501
         }
         with responses.RequestsMock() as response:
-            response.add(response.GET, 'http://foo.bar/v2/observations',
+            response.add(response.POST, 'http://foo.bar/v2/observations',
                          body=json.dumps(body),
                          status=200,
                          content_type='application/json')

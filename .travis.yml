@@ -1,0 +1,41 @@
+language: python
+python:
+  - "3.6"
+
+addons:
+  apt:
+    sources:
+    - r-packages-trusty
+    packages:
+    - r-base
+    - gfortran
+    - libblas-dev
+    - liblapack-dev
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - /usr/local/lib/R/site-library
+
+services:
+  - redis-server
+  - rabbitmq
+
+env:
+  global:
+    - R_LIB_USER=$HOME/R/Library
+
+before_install:
+  - sudo R -e "source(\"https://bioconductor.org/biocLite.R\"); biocLite()"
+  - ( ( R -q -e "'limma' %in% installed.packages()" | grep 'TRUE' > /dev/null ) && echo "limma installed" ) || sudo R -e "source(\"https://bioconductor.org/biocLite.R\"); biocLite(\"limma\")"
+  - ( ( R -q -e "'DESeq2' %in% installed.packages()" | grep 'TRUE' > /dev/null ) && echo "DESeq2 installed" ) || sudo R -e "source(\"https://bioconductor.org/biocLite.R\"); biocLite(\"DESeq2\")"
+
+install:
+  - pip install .
+
+script:
+  - echo -e "REDIS_HOST = 'localhost'\nBROKER_URL = 'amqp://guest:guest@localhost:5672//'\nCELERY_RESULT_BACKEND = 'redis://localhost:6379'" > $HOME/config.py
+  - export FRACTALIS_CONFIG=$HOME/config.py
+  - cat ${FRACTALIS_CONFIG}
+  - celery worker -D -A fractalis:celery -l debug --concurrency=1
+  - pytest
