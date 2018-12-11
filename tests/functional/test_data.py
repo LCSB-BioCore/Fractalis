@@ -2,12 +2,21 @@
 
 import json
 import os
+from unittest.mock import patch
 from uuid import UUID, uuid4
-
+from functools import wraps
 import flask
 import pytest
+from fractalis import app, redis, sync, authorization
 
-from fractalis import app, redis, sync
+
+def mock_authorization():
+    def decorator(f):
+        @wraps(f)
+        def authorization_function(*args, **kwargs):
+            return f(*args, **kwargs)
+        return authorization_function
+    return decorator
 
 
 # noinspection PyMissingOrEmptyDocstring, PyMissingTypeHints
@@ -142,6 +151,7 @@ class TestData:
             'descriptors': request.param['descriptors']
         }))
 
+    @patch('fractalis.authorization.authorized', side_effect=mock_authorization)
     def test_400_on_invalid_payload(self, bad_post):
         assert bad_post().status_code == 400
 
@@ -287,6 +297,7 @@ class TestData:
             assert data_state['data_type'] == 'mock'
             assert 'task_id' in data_state
 
+    @patch('fractalis.authorization.authorized', side_effect=mock_authorization)
     def test_valid_state_for_finished_etl_on_delete(
             self, test_client, payload):
         data = payload()
@@ -301,6 +312,7 @@ class TestData:
             with test_client.session_transaction() as sess:
                 assert data_state['task_id'] not in sess['data_tasks']
 
+    @patch('fractalis.authorization.authorized', side_effect=mock_authorization)
     def test_valid_state_for_running_etl_on_delete(self, test_client, payload):
         data = payload()
         test_client.post('/data', data=data['serialized'])
@@ -314,6 +326,7 @@ class TestData:
             with test_client.session_transaction() as sess:
                 assert data_state['task_id'] not in sess['data_tasks']
 
+    @patch('fractalis.authorization.authorized', side_effect=mock_authorization)
     def test_valid_state_for_failed_etl_on_delete(self, test_client, faiload):
         test_client.post('/data?wait=1', data=faiload['serialized'])
         for key in redis.keys('data:*'):
@@ -326,6 +339,7 @@ class TestData:
             with test_client.session_transaction() as sess:
                 assert data_state['task_id'] not in sess['data_tasks']
 
+    @patch('fractalis.authorization.authorized', side_effect=mock_authorization)
     def test_403_if_no_auth_on_delete(self, test_client, payload):
         data = payload()
         test_client.post('/data?wait=1', data=data['serialized'])
@@ -343,6 +357,7 @@ class TestData:
             assert redis.exists(key)
             assert os.path.exists(data_state['file_path'])
 
+    @patch('fractalis.authorization.authorized', side_effect=mock_authorization)
     def test_valid_state_for_finished_etl_on_delete_all(
             self, test_client, payload):
         data_dir = os.path.join(app.config['FRACTALIS_TMP_DIR'], 'data')
@@ -367,6 +382,7 @@ class TestData:
                 open(file_path, 'r').readlines()
         app.config['FRACTALIS_ENCRYPT_CACHE'] = False
 
+    @patch('fractalis.authorization.authorized', side_effect=mock_authorization)
     def test_valid_response_before_loaded_on_meta(self, test_client, payload):
         data = payload()
         test_client.post('/data', data=data['serialized'])
@@ -378,6 +394,7 @@ class TestData:
             assert rv.status_code == 200
             assert 'features' not in body['meta']
 
+    @patch('fractalis.authorization.authorized', side_effect=mock_authorization)
     def test_valid_response_after_loaded_on_meta(self, test_client, payload):
         data = payload()
         test_client.post('/data?wait=1', data=data['serialized'])
@@ -390,6 +407,7 @@ class TestData:
             assert rv.status_code == 200
             assert 'features' in body['meta']
 
+    @patch('fractalis.authorization.authorized', side_effect=mock_authorization)
     def test_403_if_no_auth_on_get_meta(self, test_client, payload):
         data = payload()
         test_client.post('/data?wait=1', data=data['serialized'])
@@ -405,3 +423,16 @@ class TestData:
             assert 'Refusing access.' in body['error']
             assert redis.exists(key)
             assert os.path.exists(data_state['file_path'])
+
+    def test_403_if_not_authorized(self, test_client, payload):
+        data = payload()
+        test_client.post('/data', data=data['serialized'])
+        for key in redis.keys('data:*'):
+            value = redis.get(key)
+            data_state = json.loads(value)
+            rv = test_client.get('/data/meta/{}?wait=1'
+                                 .format(data_state['task_id']))
+            body = flask.json.loads(rv.get_data())
+            assert rv.status_code == 403
+            assert 'Access unauthorized.' in body['error']
+            assert redis.exists(key)

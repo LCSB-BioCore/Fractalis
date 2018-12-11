@@ -39,6 +39,7 @@ setup(
         'pytest-runner',
         'pytest-cov',
         'responses',
-        'twine'
+        'twine',
+        'pyjwt==1.6.3'
     ]
 )
