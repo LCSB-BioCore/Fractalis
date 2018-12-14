@@ -50,7 +50,7 @@ def wait_for_completion(result_id: int, server, token):
             return r.text
     while True:
         status = _check_status()
-        if status == 'RUNNING':
+        if i(status == 'CREATED') or (status == 'RUNNING'):
             sleep(1)
             continue
         elif status == 'AVAILABLE':
