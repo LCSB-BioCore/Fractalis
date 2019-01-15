@@ -31,6 +31,17 @@ Tip: Use the [default settings](fractalis/config.py) as an example for your own 
 Please note, that all this files combines [Flask settings](http://flask.pocoo.org/docs/0.12/config/), [Celery settings](http://docs.celeryproject.org/en/latest/userguide/configuration.html), and Fractalis settings, which are all listed and documented within this file. 
 Please don't overwrite default settings if you don't know what you are doing. This might have severe implications for security or might cause Fractalis to not work correctly.
 
+### Add new analytics
+This paragraph only describes how to add the statistical analysis part in R or Python. For the visualisation please refer to the [Fractal.js](https://github.com/LCSB-BioCore/Fractal.js/blob/master/README.md) repository.
+Adding new scripts to Fractalis is a matter of inheriting from the [AnalyticTask](https://github.com/LCSB-BioCore/Fractalis/blob/master/fractalis/analytics/task.py) class and well... knowing how to write Python and R scripts.
+There are a few things that are enforced by the parent class, such as a task name and the existence of a main method, which is communicated to the developer by readable error messages.
+Implementing those will result in a distributable task without any required knowledge of the surrounding frameworks.
+For an example please have a look at the [correlation analysis script](https://github.com/LCSB-BioCore/Fractalis/blob/master/fractalis/analytics/tasks/correlation/main.py).
+
+Input to the main method are either the parameters submitted by the client or, in the case of special data ids ("$123654789$"), the data frame associated with he data id.
+
+Output of the main method must be JSON serializable. The content however is up to the developer.  
+
 ### Add support for new services
 Please refer to [this document](fractalis/data).
 
