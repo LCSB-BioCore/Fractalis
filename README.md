@@ -46,4 +46,4 @@ Output of the main method must be JSON serializable. The content however is up t
 Please refer to [this document](fractalis/data).
 
 ### Citation
-Manuscript is in preparation.
+https://academic.oup.com/gigascience/article/7/9/giy109/5082751
