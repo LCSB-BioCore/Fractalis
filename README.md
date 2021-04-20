@@ -1,6 +1,3 @@
-[![Build Status](https://git-r3lab.uni.lu/sascha.herzinger/fractalis/badges/master/build.svg)](https://git-r3lab.uni.lu/sascha.herzinger/fractalis/builds/)
-[![Coverage Report](https://git-r3lab.uni.lu/sascha.herzinger/fractalis/badges/master/coverage.svg)](https://git-r3lab.uni.lu/sascha.herzinger/fractalis/builds/)
-
 ### About
 This is the back-end component of the Fractalis project. It is a computational node that is responsible for the MicroETL process and the execution of analytical tasks. See https://fractalis.lcsb.uni.lu/
 
